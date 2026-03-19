@@ -129,7 +129,7 @@ function playRoiIntro(mob, tierMob) {
       box.style.transform = "translateX(-50%)"; box.style.right = "auto"; box.style.display = "flex"
       setTimeout(() => { box.style.transition = "opacity 0.8s"; box.style.opacity = "1" }, 50)
     }
-    const roiSnd = new Audio("roi.mp3"); roiSnd.volume = 1.0; roiSnd.play().catch(() => {})
+    const roiSnd = new Audio("audio/roi.mp3"); roiSnd.volume = 1.0; roiSnd.play().catch(() => {})
     setTimeout(() => {
       let iv = setInterval(() => { if (roiSnd.volume > 0.04) roiSnd.volume = Math.max(0, roiSnd.volume - 0.05); else { roiSnd.pause(); clearInterval(iv) } }, 80)
     }, 15000)
@@ -150,7 +150,7 @@ function _startCombatSequence(mob, tierMob) {
   // Balraug et Kraken — garder la musique de la map sans interruption
   if (mob !== "kraken" && mob !== "balraug") {
     fadeMusicOut(() => {
-      const track = tierMob === "boss" ? "worldboss.mp3" : tierMob === "high" ? "highcombat.mp3" : "lowcombat.mp3"
+      const track = tierMob === "boss" ? "audio/worldboss.mp3" : tierMob === "high" ? "audio/highcombat.mp3" : "audio/lowcombat.mp3"
       setTimeout(() => crossfadeMusic(track), 100)
     })
   }
@@ -501,7 +501,7 @@ function playOpeningCinematic(callback) {
   screen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:999999999;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:1;"
   document.body.appendChild(screen)
 
-  const tremb = new Audio("tremblement.mp3"); tremb.volume = 0.8; tremb.play().catch(() => {})
+  const tremb = new Audio("audio/tremblement.mp3"); tremb.volume = 0.8; tremb.play().catch(() => {})
   setTimeout(() => { let iv = setInterval(() => { if (tremb.volume>0.05) tremb.volume-=0.05; else { tremb.pause(); clearInterval(iv) } }, 100) }, 5500)
 
   let shakeCount = 0
@@ -538,12 +538,12 @@ function playOpeningCinematic(callback) {
     setTimeout(() => {
       ;["fart.mp3","cribibi.mp3","ah.mp3"].forEach((s, i) => {
         setTimeout(() => {
-          const snd = new Audio("" + s); snd.volume = 0; snd.play().catch(() => {})
+          const snd = new Audio("audio/" + s); snd.volume = 0; snd.play().catch(() => {})
           let inIv = setInterval(() => { if (snd.volume<0.55) snd.volume=Math.min(0.55,snd.volume+0.04); else clearInterval(inIv) }, 80)
           setTimeout(() => { let outIv = setInterval(() => { if (snd.volume>0.03) snd.volume=Math.max(0,snd.volume-0.04); else { snd.pause(); clearInterval(outIv) } }, 100) }, 3000)
         }, i * 200)
       })
-      const gb = new Audio("grisebarbe.mp3"); gb.volume = 0; gb.play().catch(() => {})
+      const gb = new Audio("audio/grisebarbe.mp3"); gb.volume = 0; gb.play().catch(() => {})
       let gbIn = setInterval(() => { if (gb.volume<0.7) gb.volume=Math.min(0.7,gb.volume+0.03); else clearInterval(gbIn) }, 100)
       setTimeout(() => { let gbOut = setInterval(() => { if (gb.volume>0.02) gb.volume-=0.03; else { gb.pause(); clearInterval(gbOut) } }, 100) }, 27000)
     }, 100)
@@ -558,7 +558,7 @@ function playOpeningCinematic(callback) {
     const t = document.createElement("div"); t.style.cssText = "font-family:'Cinzel Decorative','Cinzel',serif;font-size:18px;letter-spacing:5px;color:#c8a050;text-shadow:0 0 15px gold;text-align:center;margin-bottom:14px;"; t.innerText = "Prophétie des Enfants de Mouches"; wrapper.appendChild(t)
     const v = document.createElement("div"); v.style.cssText = "font-family:'IM Fell English',serif;font-size:15px;color:rgba(200,160,50,0.8);line-height:2;text-align:center;font-style:italic;"; v.innerText = "— Livre I, Verset 1 —"; wrapper.appendChild(v)
     screen.appendChild(wrapper); setTimeout(() => { wrapper.style.opacity = "1" }, 50)
-    const prop = new Audio("prophetie.mp3"); prop.volume = 0; prop.play().catch(() => {})
+    const prop = new Audio("audio/prophetie.mp3"); prop.volume = 0; prop.play().catch(() => {})
     let pIv = setInterval(() => { if (prop.volume<0.8) prop.volume=Math.min(0.8,prop.volume+0.04); else clearInterval(pIv) }, 100)
   }, 21000)
 
