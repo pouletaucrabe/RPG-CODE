@@ -86,7 +86,7 @@ db.ref("combat/mob").on("value", snap => {
         if (allyBtn && myToken) allyBtn.style.display = "flex"
       }, 500)
     }
-    if (data.hp <= 0 && combatActive) endCombat()
+    if (data.hp <= 0 && combatActive) { endCombat(); setGameState("GAME"); showTavern() }
   }
 })
 
@@ -183,7 +183,7 @@ db.ref("game/map").on("value", snap => {
       _musicTransitioning = false; _pendingMusic = null
       if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
       stopAllMusic()
-      setTimeout(() => crossfadeMusic("audio/" + mapMusic[mapName]), 200)
+      setTimeout(() => crossfadeMusic(mapMusic[mapName]), 200)
     }
   }, 800)
 
@@ -1059,6 +1059,7 @@ function fadeOut() {
 }
 
 function showTavern() {
+  document.getElementById("intro").style.display = "none"
   setGameState("GAME")
   const fade = document.getElementById("fadeScreen"); const map = document.getElementById("map")
   fadeOut()
@@ -1069,7 +1070,7 @@ function showTavern() {
   map.style.backgroundImage = "url('images/taverne.jpg')"; currentMap = "taverne.jpg"
   calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   setTimeout(() => { fade.style.opacity = 0 }, 500)
-  setTimeout(() => { if (mapMusic["taverne.jpg"]) crossfadeMusic("audio/" + mapMusic["taverne.jpg"]) }, 800)
+  setTimeout(() => { if (mapMusic["taverne.jpg"]) crossfadeMusic(mapMusic["taverne.jpg"]) }, 800)
 }
 
 function startIntro() {
@@ -1205,8 +1206,8 @@ function choosePlayer(id) {
   document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer"))
   myToken = document.getElementById(id); window.myToken = myToken
   myToken.classList.add("selectedPlayer")
-showNotification("✨ Votre héros est : " + id.toUpperCase())
-// Réduire le menu en mini badge
+  showNotification("✨ Votre héros est : " + id.toUpperCase())
+  // Réduire le menu en mini badge
   _collapsePlayerMenu(id)
 }
 
