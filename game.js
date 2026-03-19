@@ -1205,9 +1205,8 @@ function choosePlayer(id) {
   document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer"))
   myToken = document.getElementById(id); window.myToken = myToken
   myToken.classList.add("selectedPlayer")
-  showNotification("✨ Votre héros est : " + id.toUpperCase())
-  watchFreePoints(id)
-  // Réduire le menu en mini badge
+showNotification("✨ Votre héros est : " + id.toUpperCase())
+// Réduire le menu en mini badge
   _collapsePlayerMenu(id)
 }
 
