@@ -70,28 +70,28 @@
     <div class="token" id="greg" style="left:200px;top:300px;">
       <div class="tokenStats" id="stats_greg"></div>
       <div class="hpBarToken"><div class="hpBarFill" id="hp_greg"></div></div>
-      <img src="images/greg.png">
+      <img src="greg.png">
       <div class="nameTag">Greg</div>
     </div>
 
     <div class="token" id="ju" style="left:300px;top:300px;">
       <div class="tokenStats" id="stats_ju"></div>
       <div class="hpBarToken"><div class="hpBarFill" id="hp_ju"></div></div>
-      <img src="images/ju.png">
+      <img src="ju.png">
       <div class="nameTag">Yu</div>
     </div>
 
     <div class="token" id="elo" style="left:400px;top:300px;">
       <div class="tokenStats" id="stats_elo"></div>
       <div class="hpBarToken"><div class="hpBarFill" id="hp_elo"></div></div>
-      <img src="images/elo.png">
+      <img src="elo.png">
       <div class="nameTag">Elo</div>
     </div>
 
     <div class="token" id="bibi" style="left:600px;top:300px;">
       <div class="tokenStats" id="stats_bibi"></div>
       <div class="hpBarToken"><div class="hpBarFill" id="hp_bibi"></div></div>
-      <img src="images/bibi.png">
+      <img src="bibi.png">
       <div class="nameTag">Bibi</div>
     </div>
 
@@ -104,21 +104,21 @@
 <!-- BARRE DÉS -->
 <div id="diceBar">
   <button id="mjRollBtn" onclick="gmRoll(20)" style="display:none;" class="diceImgBtn">
-    <img src="images/D20.png" alt="D20 MJ" class="diceImg">
+    <img src="D20.png" alt="D20 MJ" class="diceImg">
     <span class="diceMJLabel">MJ</span>
   </button>
-  <button onclick="rollDice(4)"   class="diceImgBtn"><img src="images/D4.png"   alt="D4"   class="diceImg"></button>
-  <button onclick="rollDice(6)"   class="diceImgBtn"><img src="images/D6.png"   alt="D6"   class="diceImg"></button>
-  <button onclick="rollDice(8)"   class="diceImgBtn"><img src="images/D8.png"   alt="D8"   class="diceImg"></button>
-  <button onclick="rollDice(10)"  class="diceImgBtn"><img src="images/D10.png"  alt="D10"  class="diceImg"></button>
-  <button onclick="rollDice(12)"  class="diceImgBtn"><img src="images/D12.png"  alt="D12"  class="diceImg"></button>
-  <button onclick="rollDice(20)"  class="diceImgBtn"><img src="images/D20.png"  alt="D20"  class="diceImg"></button>
-  <button onclick="rollDice(100)" class="diceImgBtn"><img src="images/D100.png" alt="D100" class="diceImg"></button>
+  <button onclick="rollDice(4)"   class="diceImgBtn"><img src="D4.png"   alt="D4"   class="diceImg"></button>
+  <button onclick="rollDice(6)"   class="diceImgBtn"><img src="D6.png"   alt="D6"   class="diceImg"></button>
+  <button onclick="rollDice(8)"   class="diceImgBtn"><img src="D8.png"   alt="D8"   class="diceImg"></button>
+  <button onclick="rollDice(10)"  class="diceImgBtn"><img src="D10.png"  alt="D10"  class="diceImg"></button>
+  <button onclick="rollDice(12)"  class="diceImgBtn"><img src="D12.png"  alt="D12"  class="diceImg"></button>
+  <button onclick="rollDice(20)"  class="diceImgBtn"><img src="D20.png"  alt="D20"  class="diceImg"></button>
+  <button onclick="rollDice(100)" class="diceImgBtn"><img src="D100.png" alt="D100" class="diceImg"></button>
   <button id="mobD12" onclick="mobRoll(12)" style="display:none;" class="diceImgBtn mobDiceBtn">
-    <img src="images/D12.png" alt="D12 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
+    <img src="D12.png" alt="D12 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
   </button>
   <button id="mobD20" onclick="mobRoll(20)" style="display:none;" class="diceImgBtn mobDiceBtn">
-    <img src="images/D20.png" alt="D20 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
+    <img src="D20.png" alt="D20 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
   </button>
 </div>
 
@@ -129,7 +129,7 @@
 <div id="characterSheet">
   <h2 id="sheetTitle" style="text-align:center;font-family:'Cinzel';margin-bottom:10px;">Personnage</h2>
   <div id="sheetContainer">
-    <img id="sheetImage" src="images/elosheet.jpg">
+    <img id="sheetImage" src="elosheet.jpg">
     <input id="lvl"     class="sheetField" style="top:270px;left:420px;width:120px;height:60px;font-size:32px;font-weight:bold;text-align:center;border:2px solid black;background:white;">
     <input id="xp"      class="sheetField" style="top:400px;left:420px;width:140px;">
     <input id="force"   class="sheetField playerOnly" onclick="rollStat('force')"   style="top:520px;left:480px;width:280px;">
@@ -176,7 +176,7 @@
   </div>
 
   <div id="goldZone" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-    <img src="images/bourse.png" id="goldBtn" onclick="toggleGoldInput()" style="width:48px;height:48px;object-fit:contain;cursor:pointer;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
+    <img src="bourse.png" id="goldBtn" onclick="toggleGoldInput()" style="width:48px;height:48px;object-fit:contain;cursor:pointer;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
     <div id="goldDisplay" style="font-family:Cinzel,serif;font-size:16px;color:#d4a835;text-shadow:0 0 8px gold;display:none;min-width:60px;"></div>
     <input id="goldInput" type="number" placeholder="Or" onmousedown="event.stopPropagation()" style="display:none;width:90px;padding:5px 8px;font-family:Cinzel,serif;font-size:15px;background:rgba(8,20,24,0.95);color:#d4a835;border:1px solid #8a6520;border-radius:3px;text-align:center;" onchange="saveGold()" onkeydown="if(event.key==='Enter')saveGold()">
   </div>
@@ -185,26 +185,26 @@
 </div>
 
 <!-- SONS -->
-<audio id="victorySound"><source src="audio/victoire.mp3"></audio>
-<audio id="combatSound"><source src="audio/combat.mp3"></audio>
-<audio id="combatMusic" loop><source src="audio/lowcombat.mp3"></audio>
-<audio id="parcheminSound"><source src="audio/parchemin.mp3"></audio>
-<audio id="critSound"><source src="audio/crit.mp3" type="audio/mpeg"></audio>
-<audio id="failSound"><source src="audio/fail.mp3" type="audio/mpeg"></audio>
-<audio id="powerSound"><source src="audio/power.mp3" type="audio/mpeg"></audio>
-<audio id="power1Sound" loop><source src="audio/power1.mp3" type="audio/mpeg"></audio>
-<audio id="curseSound"><source src="audio/curse.mp3" type="audio/mpeg"></audio>
-<audio id="curse1Sound"><source src="audio/curse1.mp3" type="audio/mpeg"></audio>
-<audio id="curse2Sound"><source src="audio/curse2.mp3" type="audio/mpeg"></audio>
-<audio id="bark"><source src="audio/bark.mp3" type="audio/mpeg"></audio>
-<audio id="music" loop><source src="audio/trine.mp3" type="audio/mpeg"></audio>
-<audio id="levelUpSound"><source src="audio/lvlup.mp3" type="audio/mpeg"></audio>
-<audio id="defeatSound"><source src="audio/defaite.mp3" type="audio/mpeg"></audio>
+<audio id="victorySound"><source src="victoire.mp3"></audio>
+<audio id="combatSound"><source src="combat.mp3"></audio>
+<audio id="combatMusic" loop><source src="lowcombat.mp3"></audio>
+<audio id="parcheminSound"><source src="parchemin.mp3"></audio>
+<audio id="critSound"><source src="crit.mp3" type="mpeg"></audio>
+<audio id="failSound"><source src="fail.mp3" type="mpeg"></audio>
+<audio id="powerSound"><source src="power.mp3" type="mpeg"></audio>
+<audio id="power1Sound" loop><source src="power1.mp3" type="mpeg"></audio>
+<audio id="curseSound"><source src="curse.mp3" type="mpeg"></audio>
+<audio id="curse1Sound"><source src="curse1.mp3" type="mpeg"></audio>
+<audio id="curse2Sound"><source src="curse2.mp3" type="mpeg"></audio>
+<audio id="bark"><source src="bark.mp3" type="mpeg"></audio>
+<audio id="music" loop><source src="trine.mp3" type="mpeg"></audio>
+<audio id="levelUpSound"><source src="lvlup.mp3" type="mpeg"></audio>
+<audio id="defeatSound"><source src="defaite.mp3" type="mpeg"></audio>
 <audio id="musicA" loop></audio>
-<audio id="diceinvSound"><source src="audio/diceinv.mp3" type="audio/mpeg"></audio>
-<audio id="forsureMusic" loop><source src="audio/forsure.mp3" type="audio/mpeg"></audio>
+<audio id="diceinvSound"><source src="diceinv.mp3" type="mpeg"></audio>
+<audio id="forsureMusic" loop><source src="forsure.mp3" type="mpeg"></audio>
 <audio id="musicB" loop></audio>
-<audio id="auroraMusic" loop><source src="audio/aurore.mp3" type="audio/mpeg"></audio>
+<audio id="auroraMusic" loop><source src="aurore.mp3" type="mpeg"></audio>
 
 <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.8">
 
