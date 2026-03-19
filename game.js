@@ -119,7 +119,7 @@ db.ref("game/storyImage2").on("value", snap => {
   if (!box2 || !img2) return
   if (gameState !== "GAME" && gameState !== "COMBAT") { box2.style.display="none"; box2.style.opacity="0"; return }
   if (image) {
-    img2.src = "" + image
+    img2.src = "images/" + image
     box2.style.opacity = "0"; box2.style.left = "0"; box2.style.right = "auto"; box2.style.transform = ""; box2.style.display = "flex"
     if (!pnjSlotOrder.includes(2)) pnjSlotOrder.push(2)
     updatePNJPositions()
@@ -137,7 +137,7 @@ db.ref("game/storyImage3").on("value", snap => {
   if (!box3 || !img3) return
   if (gameState !== "GAME" && gameState !== "COMBAT") { box3.style.display="none"; box3.style.opacity="0"; return }
   if (image) {
-    img3.src = "" + image
+    img3.src = "images/" + image
     box3.style.opacity = "0"; box3.style.right = "0"; box3.style.left = "auto"; box3.style.transform = ""; box3.style.display = "flex"
     if (!pnjSlotOrder.includes(3)) pnjSlotOrder.push(3)
     updatePNJPositions()
@@ -174,7 +174,7 @@ db.ref("game/map").on("value", snap => {
   fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = 1; fade.style.pointerEvents = "none"
 
   setTimeout(() => {
-    map.style.backgroundImage = "url('" + mapName + "')"
+    map.style.backgroundImage = "url('images/" + mapName + "')"
     if (mapName === "MAPMONDE.jpg") { map.style.backgroundSize = "contain"; map.style.backgroundColor = "#0a0a1a" }
     else                            { map.style.backgroundSize = "cover";   map.style.backgroundColor = "" }
     if (isFirst) { calculateMinZoom(); cameraZoom = minZoom; updateCamera() }
@@ -306,9 +306,9 @@ db.ref("game/cemeterySpell").on("value", snap => {
     if (!document.getElementById("glipheOverlay")) {
       const g = document.createElement("div"); g.id = "glipheOverlay"
       g.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:99999990;opacity:0;transition:opacity 1s ease;"
-      const im = document.createElement("img"); im.src = "gliphe.png"; im.style.cssText = "max-height:70vh;max-width:70vw;object-fit:contain;filter:drop-shadow(0 0 30px purple);"
+      const im = document.createElement("img"); im.src = "images/gliphe.png"; im.style.cssText = "max-height:70vh;max-width:70vw;object-fit:contain;filter:drop-shadow(0 0 30px purple);"
       g.appendChild(im); document.body.appendChild(g)
-      const s2 = new Audio("spell.mp3"); s2.volume = 0.9; s2.play().catch(() => {})
+      const s2 = new Audio("audio/spell.mp3"); s2.volume = 0.9; s2.play().catch(() => {})
       setTimeout(() => { g.style.opacity = "1" }, 50)
       setTimeout(() => startSpellAura(), 1000)
     }
@@ -343,7 +343,7 @@ db.ref("game/playerDeath").on("value", snap => {
     skull.innerText = "💀"; tok.appendChild(skull)
   }
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
-  const snd = new Audio("defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
+  const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
   if (isGM) {
     if (!document.getElementById("revive_" + pid)) {
@@ -456,7 +456,7 @@ db.ref("game/mapAudio").on("value", snap => {
     if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
     stopAllMusic()
     setTimeout(() => {
-      crossfadeMusic("" + data.file + ".mp3")
+      crossfadeMusic("audio/" + data.file + ".mp3")
       _state._pendingMapAudio = false
     }, 300)
   }, 1400)
@@ -1045,7 +1045,7 @@ function startGame() {
   db.ref("game/map").once("value", snapshot => {
     const mapName = snapshot.val(); if (!mapName) return
     const map = document.getElementById("map")
-    map.style.backgroundImage = "url('" + mapName + "')"
+    map.style.backgroundImage = "url('images/" + mapName + "')"
     calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   })
   setTimeout(() => {
@@ -1066,7 +1066,7 @@ function showTavern() {
   document.getElementById("playerSelect").style.display = "block"
   document.getElementById("diceBar").style.display      = "flex"
   document.getElementById("diceLog").style.display      = "block"
-  map.style.backgroundImage = "url('taverne.jpg')"; currentMap = "taverne.jpg"
+  map.style.backgroundImage = "url('images/taverne.jpg')"; currentMap = "taverne.jpg"
   calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   setTimeout(() => { fade.style.opacity = 0 }, 500)
   setTimeout(() => { if (mapMusic["taverne.jpg"]) crossfadeMusic(mapMusic["taverne.jpg"]) }, 800)
@@ -1224,10 +1224,10 @@ function _collapsePlayerMenu(id) {
   toggle.style.width           = "36px"
   toggle.style.height          = "36px"
   toggle.style.fontSize        = "0px"
-  toggle.style.backgroundImage = `url('${id}.png')`
+  toggle.style.backgroundImage = `url('images/${id}.png')`
   toggle.style.backgroundSize  = "cover"
   toggle.style.backgroundPosition = "center"
-  toggle.style.background      = `url('${id}.png') center/cover no-repeat`
+  toggle.style.background      = `url('images/${id}.png') center/cover no-repeat`
   toggle.style.boxShadow       = "0 0 0 2px #1e5a66, 0 0 0 3px #d4a835"
   toggle.innerText = ""
   toggle.title     = id.toUpperCase()

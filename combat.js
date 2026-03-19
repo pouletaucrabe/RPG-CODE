@@ -125,11 +125,11 @@ function playRoiIntro(mob, tierMob) {
     cf.style.opacity = "0.5"; cf.style.background = "rgba(120,0,0,0.5)"
     const box = document.getElementById("storyImage"); const img = document.getElementById("storyImageContent")
     if (box && img) {
-      img.src = "roi.png"; box.style.opacity = "0"; box.style.left = "50%"
+      img.src = "images/roi.png"; box.style.opacity = "0"; box.style.left = "50%"
       box.style.transform = "translateX(-50%)"; box.style.right = "auto"; box.style.display = "flex"
       setTimeout(() => { box.style.transition = "opacity 0.8s"; box.style.opacity = "1" }, 50)
     }
-    const roiSnd = new Audio("roi.mp3"); roiSnd.volume = 1.0; roiSnd.play().catch(() => {})
+    const roiSnd = new Audio("audio/roi.mp3"); roiSnd.volume = 1.0; roiSnd.play().catch(() => {})
     setTimeout(() => {
       let iv = setInterval(() => { if (roiSnd.volume > 0.04) roiSnd.volume = Math.max(0, roiSnd.volume - 0.05); else { roiSnd.pause(); clearInterval(iv) } }, 80)
     }, 15000)
@@ -150,7 +150,7 @@ function _startCombatSequence(mob, tierMob) {
   // Balraug et Kraken — garder la musique de la map sans interruption
   if (mob !== "kraken" && mob !== "balraug") {
     fadeMusicOut(() => {
-      const track = tierMob === "boss" ? "worldboss.mp3" : tierMob === "high" ? "highcombat.mp3" : "lowcombat.mp3"
+      const track = tierMob === "boss" ? "audio/worldboss.mp3" : tierMob === "high" ? "audio/highcombat.mp3" : "audio/lowcombat.mp3"
       setTimeout(() => crossfadeMusic(track), 100)
     })
   }
@@ -175,9 +175,9 @@ function _startCombatSequence(mob, tierMob) {
       setTimeout(() => {
         const map = document.getElementById("map")
         if (currentMob === "kraken") {
-          map.style.backgroundImage = "url('tourbillon.jpg')"
+          map.style.backgroundImage = "url('images/tourbillon.jpg')"
         } else {
-          map.style.backgroundImage = (tierMob === "boss") ? "url('arenefinal.jpg')" : "url('arene.jpg')"
+          map.style.backgroundImage = (tierMob === "boss") ? "url('images/arenefinal.jpg')" : "url('images/arene.jpg')"
         }
         fadeToCombat()
         cf.style.display = "none"; cf.style.opacity = "1"
@@ -256,7 +256,7 @@ function showMobIntro(mob) {
     if (!box || !img) return
     box.style.left = p.left; box.style.transform = p.transform; box.style.right = p.right || "auto"
     box.style.display = "flex"; box.style.opacity = "1"
-    img.src = "" + mobName + ".png"
+    img.src = "images/" + mobName + ".png"
     const title = document.createElement("div")
     title.innerText = mobName.toUpperCase()
     title.style.cssText = "position:absolute;bottom:10%;left:50%;transform:translateX(-50%);font-family:Cinzel;font-size:clamp(20px,3vw,40px);color:red;text-shadow:0 0 10px red;white-space:nowrap;"
@@ -305,7 +305,7 @@ function spawnMobToken(mob) {
 
   token.style.pointerEvents = "auto"; token.style.cursor = "grab"
   if (tokenZone) tokenZone.appendChild(token)
-  img.src = "" + mob + ".png"
+  img.src = "images/" + mob + ".png"
   token.style.width = "130px"; token.style.height = "130px"
   img.style.width   = "130px"; img.style.height  = "130px"
   token.style.left  = "600px"; token.style.top   = "180px"
@@ -424,7 +424,7 @@ function returnToMap() {
 
   setTimeout(() => {
     const map = document.getElementById("map")
-    if (currentMap) map.style.backgroundImage = "url('" + currentMap + "')"
+    if (currentMap) map.style.backgroundImage = "url('images/" + currentMap + "')"
 
     ;["greg","ju","elo","bibi","mobToken"].forEach(id => {
       const token = document.getElementById(id)
@@ -501,7 +501,7 @@ function playOpeningCinematic(callback) {
   screen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:999999999;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:1;"
   document.body.appendChild(screen)
 
-  const tremb = new Audio("tremblement.mp3"); tremb.volume = 0.8; tremb.play().catch(() => {})
+  const tremb = new Audio("audio/tremblement.mp3"); tremb.volume = 0.8; tremb.play().catch(() => {})
   setTimeout(() => { let iv = setInterval(() => { if (tremb.volume>0.05) tremb.volume-=0.05; else { tremb.pause(); clearInterval(iv) } }, 100) }, 5500)
 
   let shakeCount = 0
@@ -538,12 +538,12 @@ function playOpeningCinematic(callback) {
     setTimeout(() => {
       ;["fart.mp3","cribibi.mp3","ah.mp3"].forEach((s, i) => {
         setTimeout(() => {
-          const snd = new Audio("" + s); snd.volume = 0; snd.play().catch(() => {})
+          const snd = new Audio("audio/" + s); snd.volume = 0; snd.play().catch(() => {})
           let inIv = setInterval(() => { if (snd.volume<0.55) snd.volume=Math.min(0.55,snd.volume+0.04); else clearInterval(inIv) }, 80)
           setTimeout(() => { let outIv = setInterval(() => { if (snd.volume>0.03) snd.volume=Math.max(0,snd.volume-0.04); else { snd.pause(); clearInterval(outIv) } }, 100) }, 3000)
         }, i * 200)
       })
-      const gb = new Audio("grisebarbe.mp3"); gb.volume = 0; gb.play().catch(() => {})
+      const gb = new Audio("audio/grisebarbe.mp3"); gb.volume = 0; gb.play().catch(() => {})
       let gbIn = setInterval(() => { if (gb.volume<0.7) gb.volume=Math.min(0.7,gb.volume+0.03); else clearInterval(gbIn) }, 100)
       setTimeout(() => { let gbOut = setInterval(() => { if (gb.volume>0.02) gb.volume-=0.03; else { gb.pause(); clearInterval(gbOut) } }, 100) }, 27000)
     }, 100)
@@ -558,7 +558,7 @@ function playOpeningCinematic(callback) {
     const t = document.createElement("div"); t.style.cssText = "font-family:'Cinzel Decorative','Cinzel',serif;font-size:18px;letter-spacing:5px;color:#c8a050;text-shadow:0 0 15px gold;text-align:center;margin-bottom:14px;"; t.innerText = "Prophétie des Enfants de Mouches"; wrapper.appendChild(t)
     const v = document.createElement("div"); v.style.cssText = "font-family:'IM Fell English',serif;font-size:15px;color:rgba(200,160,50,0.8);line-height:2;text-align:center;font-style:italic;"; v.innerText = "— Livre I, Verset 1 —"; wrapper.appendChild(v)
     screen.appendChild(wrapper); setTimeout(() => { wrapper.style.opacity = "1" }, 50)
-    const prop = new Audio("prophetie.mp3"); prop.volume = 0; prop.play().catch(() => {})
+    const prop = new Audio("audio/prophetie.mp3"); prop.volume = 0; prop.play().catch(() => {})
     let pIv = setInterval(() => { if (prop.volume<0.8) prop.volume=Math.min(0.8,prop.volume+0.04); else clearInterval(pIv) }, 100)
   }, 21000)
 
@@ -649,7 +649,7 @@ function updateMobPreview() {
 
   slots.forEach(s => {
     const div = document.createElement("div"); div.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;"
-    const img = document.createElement("img"); img.src = "" + s.name + ".png"; img.style.cssText = "width:60px;height:60px;object-fit:contain;border-radius:50%;border:2px solid rgb(180,40,40);box-shadow:0 0 10px rgb(150,0,0);"; img.onerror = () => img.style.opacity = "0.3"; div.appendChild(img)
+    const img = document.createElement("img"); img.src = "images/" + s.name + ".png"; img.style.cssText = "width:60px;height:60px;object-fit:contain;border-radius:50%;border:2px solid rgb(180,40,40);box-shadow:0 0 10px rgb(150,0,0);"; img.onerror = () => img.style.opacity = "0.3"; div.appendChild(img)
     const lbl = document.createElement("div"); lbl.style.cssText = "font-family:Cinzel,serif;font-size:9px;color:rgb(255,150,150);letter-spacing:1px;"; lbl.innerText = s.name.toUpperCase(); div.appendChild(lbl)
     preview.appendChild(div)
   })

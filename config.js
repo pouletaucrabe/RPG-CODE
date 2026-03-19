@@ -187,43 +187,43 @@ function getMobDamage(attack, mobLvl) {
 /* ========================= */
 
 const mapMusic = {
-  "taverne.jpg":         "audio/ambiancetaverne.mp3",
-  "village1.jpg":        "audio/marche.mp3",
-  "armurerie.jpg":       "audio/armurerie.mp3",
-  "marche.jpg":          "audio/marche.mp3",
-  "voyante.jpg":         "audio/voyante.mp3",
-  "foret.jpg":           "audio/foret.mp3",
-  "arbre.jpg":           "audio/arbre.mp3",
-  "castleofevil.jpg":    "audio/castleofevil.mp3",
-  "cimetiere.jpg":       "audio/cimetiere.mp3",
-  "mine.jpg":            "audio/mine.mp3",
-  "port.jpg":            "audio/port.mp3",
-  "bateaunord.png":      "audio/port.mp3",
-  "neige.jpg":           "audio/neige.mp3",
-  "bifrost.jpg":         "audio/bifrost.mp3",
-  "prairie.jpg":         "audio/prairie.mp3",
-  "chasseuraurore.jpg":  "audio/chasseuraurore.mp3",
-  "tenteaurore.jpg":     "audio/tente.mp3",
-  "bateau1.jpg":         "audio/chasseuraurore.mp3",
-  "antre.jpg":           "audio/antre.mp3",
-  "portail.jpg":         "audio/portail.mp3",
-  "tourbillon.jpg":      "audio/tourbillon.mp3",
-  "trou.jpg":            "audio/trou.mp3",
-  "cristaux.jpg":        "audio/cristaux.mp3",
-  "interieurmine.jpg":   "audio/mine.mp3",
-  "throne.jpg":          "audio/throne.mp3",
-  "interieurcastle.jpg": "audio/interieurcastle.mp3",
-  "egout.jpg":           "audio/egout.mp3",
-  "armurerie1.jpg":      "audio/brumeinside.mp3",  // Armurerie de Brume
-  "marche1.jpg":         "audio/port.mp3",
-  "palaisville.jpg":     "audio/brumeinside.mp3",
-  "mairemaison.jpg":     "audio/mairemaison.mp3",
-  "epouventail.jpg":     "audio/marche.mp3",
-  "asgard.jpg":          "audio/asgard.mp3",
-  "rivebois.jpg":        "audio/marche.mp3",
-  "ruines.jpg":          "audio/ruines.mp3",
-  "niflheim.jpg":        "audio/niflheim.mp3",
-  "hvergelmir.jpg":      "audio/niflheim.mp3"
+  "taverne.jpg":         "ambiancetaverne.mp3",
+  "village1.jpg":        "marche.mp3",
+  "armurerie.jpg":       "armurerie.mp3",
+  "marche.jpg":          "marche.mp3",
+  "voyante.jpg":         "voyante.mp3",
+  "foret.jpg":           "foret.mp3",
+  "arbre.jpg":           "arbre.mp3",
+  "castleofevil.jpg":    "castleofevil.mp3",
+  "cimetiere.jpg":       "cimetiere.mp3",
+  "mine.jpg":            "mine.mp3",
+  "port.jpg":            "port.mp3",
+  "bateaunord.png":      "port.mp3",
+  "neige.jpg":           "neige.mp3",
+  "bifrost.jpg":         "bifrost.mp3",
+  "prairie.jpg":         "prairie.mp3",
+  "chasseuraurore.jpg":  "chasseuraurore.mp3",
+  "tenteaurore.jpg":     "tente.mp3",
+  "bateau1.jpg":         "chasseuraurore.mp3",
+  "antre.jpg":           "antre.mp3",
+  "portail.jpg":         "foret.mp3",
+  "tourbillon.jpg":      "tourbillon.mp3",
+  "trou.jpg":            "trou.mp3",
+  "cristaux.jpg":        "cristaux.mp3",
+  "interieurmine.jpg":   "mine.mp3",
+  "throne.jpg":          "throne.mp3",
+  "interieurcastle.jpg": "castleofevil.mp3",
+  "egout.jpg":           "egout.mp3",
+  "armurerie1.jpg":      "brumeinside.mp3",  // Armurerie de Brume
+  "marche1.jpg":         "port.mp3",
+  "palaisville.jpg":     "brumeinside.mp3",
+  "mairemaison.jpg":     "mairemaison.mp3",
+  "epouventail.jpg":     "marche.mp3",
+  "asgard.jpg":          "asgard.mp3",
+  "rivebois.jpg":        "marche.mp3",
+  "ruines.jpg":          "ruines.mp3",
+  "niflheim.jpg":        "niflheim.mp3",
+  "hvergelmir.jpg":      "niflheim.mp3"
 }
 
 const mapNames = {
@@ -381,9 +381,9 @@ const secretAnswer  = "a la lueur des aurores les braves trinquent avec odin au 
 /* ========================= */
 
 const playerPowerSounds = {
-  greg: { file:"audio/gregpower.mp3", fadeAt:3000 },
-  ju:   { file:"audio/jupower.mp3",   fadeAt:null  },
-  elo:  { file:"audio/elopower.mp3",  fadeAt:5000  }
+  greg: { file:"gregpower.mp3", fadeAt:3000 },
+  ju:   { file:"jupower.mp3",   fadeAt:null  },
+  elo:  { file:"elopower.mp3",  fadeAt:5000  }
 }
 
 /* ========================= */
@@ -436,9 +436,9 @@ const MOB_SLOTS = ["mob","mob2","mob3"]
 /* ========================= */
 
 const dialogue = [
-  { portrait:"images/tavernier.png", text:"Réveillez-vous étrangers !" },
-  { portrait:"images/tavernier.png", text:"Vous êtes restés inconscients toute la nuit..." },
-  { portrait:"images/serveuse.png",  text:"Bienvenue à Rivebois." }
+  { portrait:"tavernier.png", text:"Réveillez-vous étrangers !" },
+  { portrait:"tavernier.png", text:"Vous êtes restés inconscients toute la nuit..." },
+  { portrait:"serveuse.png",  text:"Bienvenue à Rivebois." }
 ]
 
 /* ========================= */
