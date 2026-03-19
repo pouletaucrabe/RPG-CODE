@@ -183,7 +183,7 @@ db.ref("game/map").on("value", snap => {
       _musicTransitioning = false; _pendingMusic = null
       if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
       stopAllMusic()
-      setTimeout(() => crossfadeMusic(mapMusic[mapName]), 200)
+      setTimeout(() => crossfadeMusic("audio/" + mapMusic[mapName]), 200)
     }
   }, 800)
 
@@ -1069,7 +1069,7 @@ function showTavern() {
   map.style.backgroundImage = "url('images/taverne.jpg')"; currentMap = "taverne.jpg"
   calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   setTimeout(() => { fade.style.opacity = 0 }, 500)
-  setTimeout(() => { if (mapMusic["taverne.jpg"]) crossfadeMusic(mapMusic["taverne.jpg"]) }, 800)
+  setTimeout(() => { if (mapMusic["taverne.jpg"]) crossfadeMusic("audio/" + mapMusic["taverne.jpg"]) }, 800)
 }
 
 function startIntro() {
