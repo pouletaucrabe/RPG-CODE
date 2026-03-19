@@ -296,6 +296,7 @@ db.ref("game/runeChallenge").on("value", snap => {
   const overlay = document.getElementById("runeChallengeOverlay")
   if (overlay) { overlay.remove(); renderRuneChallenge(data) }
   if (isGM && !_state.runeJustOpened) { _state.runeJustOpened = true; renderRuneChallenge(data) }
+  if (!isGM && !document.getElementById("runeChallengeOverlay")) { renderRuneChallenge(data) }
 })
 
 // ─── cemeterySpell ───
