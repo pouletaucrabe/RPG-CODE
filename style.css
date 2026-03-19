@@ -1,0 +1,1874 @@
+/* ============================================================ */
+/* PROPHÉTIE DES MOUCHES — UI STYLE "TALES OF SYMPHONIA"       */
+/* Palette : teal sombre, bordeaux, or, ivoire                 */
+/* ============================================================ */
+
+:root {
+  --teal-dark:    #0a1a1e;
+  --teal-mid:     #0f2a30;
+  --teal-border:  #1e5a66;
+  --teal-glow:    rgba(30,180,200,0.25);
+  --gold:         #d4a835;
+  --gold-light:   #f5e090;
+  --gold-dim:     #8a6520;
+  --cream:        #f0e8c8;
+  --cream-dim:    #c8b890;
+  --red-dark:     #5a0a0a;
+  --red-mid:      #8b1a1a;
+  --red-border:   #cc3333;
+  --panel-bg:     rgba(8,20,24,0.96);
+  --border-outer: #8a6520;
+  --border-inner: #1e5a66;
+  --font-title:   'Cinzel Decorative', 'Cinzel', serif;
+  --font-body:    'Cinzel', serif;
+  --font-text:    'IM Fell English', serif;
+}
+
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+}
+
+/* ========================= */
+/* PANNEAU DE BASE — TALES   */
+/* Bordure double teal+or    */
+/* ========================= */
+
+.talesPanel {
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow:
+    0 0 0 1px var(--gold-dim),
+    inset 0 0 0 1px rgba(30,90,102,0.4),
+    0 0 30px rgba(0,0,0,0.9),
+    inset 0 0 40px rgba(0,0,0,0.5);
+  border-radius: 3px;
+  position: relative;
+}
+
+/* Coins ornementés via pseudo-éléments */
+.talesPanel::before {
+  content: "";
+  position: absolute; inset: 3px;
+  border: 1px solid rgba(212,168,53,0.25);
+  pointer-events: none; z-index: 0;
+  border-radius: 2px;
+}
+
+/* ========================= */
+/* ÉCRAN DÉPART              */
+/* ========================= */
+
+#startScreen {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: black;
+  color: white;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 40px; cursor: pointer; z-index: 10;
+}
+
+/* ========================= */
+/* INTRO                     */
+/* ========================= */
+
+#intro {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url("ouverture.jpg");
+  background-size: cover; background-position: center;
+  display: none; justify-content: center; align-items: center;
+  flex-direction: column; color: white; font-size: 32px;
+  text-shadow: 2px 2px 8px black;
+  overflow-y: auto; padding: 20px 0; box-sizing: border-box;
+}
+
+#introBox {
+  position: relative;
+  background-image: url("paper.png");
+  background-size: 100% 100%; background-repeat: no-repeat;
+  padding: 80px 80px 70px 80px;
+  width: 760px; max-width: 92vw;
+  text-align: center;
+  font-family: var(--font-text);
+  color: #2b1a10;
+  background-color: transparent; overflow: visible;
+}
+
+#introBox h1 {
+  font-family: var(--font-body);
+  font-size: 30px; color: #000;
+  margin-bottom: 16px; letter-spacing: 3px;
+}
+
+#introBox p {
+  font-family: var(--font-text);
+  font-size: 17px; line-height: 1.7; color: #111;
+  margin-bottom: 24px;
+}
+
+#startButton {
+  position: relative; margin-top: 20px; padding: 0;
+  width: 660px; height: 80px;
+  font-size: 20px; font-family: var(--font-body);
+  letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; border: none; background: none; overflow: visible;
+}
+
+#startButton .btn-inner {
+  position: relative; display: flex;
+  align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  background: url("bouton.png") center/100% 100% no-repeat;
+  color: #ffe8a0;
+  text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8);
+  transition: all 0.2s;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+}
+
+#startButton:hover .btn-inner {
+  filter: drop-shadow(0 6px 20px rgba(255,200,80,0.5)) brightness(1.15);
+  transform: translateY(-2px); color: #fff8c0;
+}
+
+#startButton:active .btn-inner { transform: translateY(1px); filter: brightness(0.85); }
+
+.menuButton {
+  position: relative; display: inline-block;
+  margin: 8px; padding: 0;
+  width: 620px; height: 80px;
+  font-size: 17px; font-family: var(--font-body);
+  letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; border: none; background: none; overflow: visible;
+  vertical-align: middle;
+}
+
+.menuButton .btn-inner {
+  position: relative; display: flex;
+  align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  background: url("bouton.png") center/100% 100% no-repeat;
+  color: #ffe8a0;
+  text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8);
+  transition: all 0.2s;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+
+.menuButton:hover .btn-inner {
+  filter: drop-shadow(0 6px 18px rgba(255,200,80,0.4)) brightness(1.15);
+  transform: translateY(-2px); color: #fff8c0;
+}
+
+/* ========================= */
+/* FONDU                     */
+/* ========================= */
+
+#fadeScreen {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: black;
+  opacity: 0; pointer-events: none;
+  transition: opacity 1.5s; z-index: 20;
+}
+
+/* ========================= */
+/* DIALOGUE                  */
+/* ========================= */
+
+#dialogueBox {
+  display: none; position: fixed; bottom: 0; left: 0;
+  width: 100%;
+  background: rgba(0,0,0,0.85); color: white;
+  padding: 30px;
+  font-family: var(--font-text); font-size: 26px;
+  z-index: 30000;
+  align-items: center;
+}
+
+#dialoguePortrait { width: 120px; margin-right: 20px; }
+
+/* ========================= */
+/* MAP + CAMÉRA              */
+/* ========================= */
+
+#camera {
+  display: none; position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  transform-origin: 0 0; overflow: hidden;
+  pointer-events: none;
+}
+
+#map {
+  width: 100vw; height: 100vh;
+  position: relative;
+  background-size: cover; background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden; pointer-events: auto;
+}
+
+#map, .token { pointer-events: auto; }
+
+#gmBar, .gmSection, #diceBar, #playerSelect,
+#diceLog, #mjLog, #notification, #gmSaveBar,
+#combatHUD, #gmCombatPanel, #gmDamagePanel,
+#mobHUD, #playerCombatPanel { pointer-events: auto !important; }
+
+/* ========================= */
+/* GRILLE                    */
+/* ========================= */
+
+#grid {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(30,180,200,0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,180,200,0.12) 1px, transparent 1px);
+  background-size: 80px 80px;
+  z-index: 5;
+}
+
+/* ========================= */
+/* TOKENS                    */
+/* ========================= */
+
+.token {
+  position: absolute;
+  display: flex; justify-content: center; align-items: center;
+  width: 110px; height: 110px;
+  cursor: grab; z-index: 10;
+  transition: left 0.1s linear, top 0.1s linear;
+}
+
+.token:active { cursor: grabbing; }
+
+.token img {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 0 2px #1e5a66,
+    0 0 0 4px var(--gold),
+    0 0 0 5px #0a2e36,
+    0 0 15px rgba(30,160,180,0.4),
+    0 0 30px rgba(20,100,120,0.25),
+    inset 0 0 8px rgba(0,0,0,0.5);
+  transition: box-shadow 0.3s;
+}
+
+.token::before {
+  content: "";
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  border: 2px solid rgba(30,180,200,0.35);
+  box-shadow: 0 0 10px rgba(30,180,200,0.2), inset 0 0 10px rgba(30,180,200,0.1);
+  pointer-events: none; z-index: 15;
+  animation: tokenRingPulse 3s ease-in-out infinite;
+}
+
+.token::after {
+  content: "";
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 108px; height: 108px;
+  border-radius: 50%;
+  border: 1px solid rgba(212,168,53,0.2);
+  pointer-events: none; z-index: 14;
+}
+
+@keyframes tokenRingPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(30,180,200,0.15), inset 0 0 8px rgba(30,180,200,0.05); }
+  50%      { box-shadow: 0 0 16px rgba(30,180,200,0.4), inset 0 0 12px rgba(30,180,200,0.15); }
+}
+
+.gmSelected img {
+  box-shadow:
+    0 0 0 2px #1e5a66,
+    0 0 0 4px gold,
+    0 0 0 5px #0a2e36,
+    0 0 20px gold,
+    0 0 40px orange !important;
+}
+
+/* Barres HP token */
+.hpBarToken {
+  position: absolute; top: -8px; left: 50%;
+  transform: translateX(-50%);
+  width: 60px; height: 6px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(30,90,102,0.6);
+  border-radius: 3px; overflow: hidden;
+}
+
+.hpBarFill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff5050, #8b0000);
+  transition: width 0.3s;
+}
+
+/* Stats token */
+.tokenStats {
+  position: absolute; top: -72px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  pointer-events: none; white-space: nowrap;
+}
+
+.tokenStats .powerText {
+  background: rgba(8,20,24,0.85);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px; padding: 1px 6px;
+  font-family: var(--font-body); font-size: 11px;
+  color: var(--gold); text-shadow: 0 0 6px gold;
+}
+
+.tokenStats .hpText,
+.tokenStats .lowHPText {
+  background: rgba(8,20,24,0.85);
+  border: 1px solid rgba(200,50,50,0.5);
+  border-radius: 3px; padding: 1px 6px;
+  font-family: var(--font-body); font-size: 11px;
+}
+
+.tokenStats .weightText {
+  background: rgba(8,20,24,0.7);
+  border-radius: 3px; padding: 1px 5px;
+  font-family: var(--font-body); font-size: 10px;
+  color: var(--cream-dim);
+}
+
+.hpText { color: #ff5050; font-weight: bold; }
+.lowHPText { color: #ff2020; animation: hpPulse 0.8s infinite alternate; }
+.curseText { color: #aa0000; text-shadow: 0 0 4px darkred, 0 0 8px red; }
+.powerText { color: gold; text-shadow: 0 0 6px gold, 0 0 15px orange; animation: powerGlow 1.5s infinite alternate; }
+.weightText { color: var(--cream-dim); font-weight: bold; }
+
+@keyframes hpPulse { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+@keyframes powerGlow {
+  0%  { text-shadow: 0 0 6px gold, 0 0 10px orange; }
+  100%{ text-shadow: 0 0 10px gold, 0 0 25px gold, 0 0 45px orange; }
+}
+
+.nameTag {
+  position: absolute; bottom: -26px; left: 50%;
+  transform: translateX(-50%);
+  color: var(--cream);
+  font-family: var(--font-body); font-size: 13px; font-weight: bold;
+  text-shadow: 0 0 4px black, 0 1px 3px black, 0 -1px 3px black;
+  pointer-events: none;
+  background: rgba(8,20,24,0.85);
+  border: 1px solid rgba(30,90,102,0.5);
+  border-radius: 3px; padding: 2px 10px;
+  white-space: nowrap; min-width: 60px; text-align: center;
+}
+
+.faceLeft img { transform: scaleX(-1); }
+
+/* ========================= */
+/* VOLUME                    */
+/* ========================= */
+
+#volumeSlider { position: fixed; top: 20px; right: 20px; width: 150px; z-index: 10000; }
+
+/* ========================= */
+/* SÉLECTION JOUEUR          */
+/* ========================= */
+
+#playerSelect { position: fixed; top: 80px; right: 20px; z-index: 999999; display: none; }
+
+#playerToggle {
+  width: 54px; height: 54px; border-radius: 50%; font-size: 22px;
+  background: radial-gradient(circle at 35% 35%, #1e6a7a, #0f3a44 60%, #060e12);
+  color: var(--cream);
+  border: none; outline: none; cursor: pointer;
+  box-shadow:
+    0 0 0 2px #062028,
+    0 0 0 4px var(--teal-border),
+    0 0 0 5px #062028,
+    0 0 15px rgba(0,0,0,0.8),
+    inset 0 2px 4px rgba(80,220,240,0.2);
+  transition: all 0.2s; position: relative;
+}
+
+#playerSelect.collapsed {
+  top: 10px !important;
+  right: 10px !important;
+}
+
+#playerSelect.collapsed #playerToggle {
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 0 !important;
+  background: none !important;
+  background-size: cover !important;
+  background-position: center !important;
+  box-shadow:
+    0 0 0 2px #1e5a66,
+    0 0 0 3px #d4a835,
+    0 0 8px rgba(0,0,0,0.8) !important;
+}
+
+#playerSelect.collapsed #playerMenu {
+  display: none !important;
+}
+
+#playerToggle:hover {
+  transform: scale(1.12);
+  box-shadow:
+    0 0 0 2px #062028,
+    0 0 0 4px rgba(30,180,200,0.8),
+    0 0 0 5px #062028,
+    0 0 20px rgba(30,180,200,0.5),
+    inset 0 2px 4px rgba(80,220,240,0.3);
+  color: #fff8c0;
+}
+
+#playerMenu {
+  position: absolute; top: 65px; right: 0; width: 220px;
+  background: linear-gradient(160deg, var(--teal-dark) 0%, #060e12 40%, var(--teal-dark) 100%);
+  padding: 0; border-radius: 3px; overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+  border: 1px solid var(--teal-border);
+  box-shadow:
+    0 0 0 1px var(--gold-dim),
+    0 0 30px rgba(0,0,0,0.9),
+    inset 0 0 40px rgba(0,0,0,0.5);
+}
+
+#playerMenu.open { max-height: 70vh; overflow-y: auto; }
+
+#playerMenu::before {
+  content: "⚜";
+  display: block; text-align: center;
+  color: var(--teal-border); font-size: 18px;
+  padding: 10px 0 4px;
+  text-shadow: 0 0 8px rgba(30,180,200,0.6);
+  letter-spacing: 8px;
+}
+
+.menuLabel {
+  margin: 4px 12px 8px;
+  font-family: var(--font-body); font-size: 11px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--teal-border); text-align: center; opacity: 0.9;
+  border-bottom: 1px solid rgba(30,90,102,0.4);
+  padding-bottom: 8px;
+}
+
+#playerSelect button {
+  display: block;
+  width: calc(100% - 24px); margin: 4px 12px;
+  padding: 10px 16px;
+  font-family: var(--font-body); font-size: 13px;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--cream); cursor: pointer;
+  transition: all 0.18s; position: relative; text-align: center;
+  background: linear-gradient(135deg,
+    rgba(15,50,60,0.6) 0%,
+    rgba(8,25,32,0.8) 50%,
+    rgba(15,50,60,0.6) 100%);
+  border: 1px solid rgba(30,90,102,0.5);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(80,220,240,0.1), inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+
+#playerSelect button::before,
+#playerSelect button::after {
+  content: "✦"; position: absolute; top: 50%;
+  transform: translateY(-50%);
+  color: var(--teal-border); font-size: 8px; opacity: 0.6;
+  transition: opacity 0.18s;
+}
+#playerSelect button::before { left: 8px; }
+#playerSelect button::after  { right: 8px; }
+
+#playerSelect button:hover {
+  background: linear-gradient(135deg,
+    rgba(20,80,95,0.7) 0%,
+    rgba(10,40,52,0.9) 50%,
+    rgba(20,80,95,0.7) 100%);
+  border-color: rgba(30,160,180,0.7);
+  color: #e8f8ff;
+  box-shadow: 0 0 12px rgba(30,160,180,0.3), inset 0 1px 0 rgba(80,220,240,0.2);
+  transform: translateX(-2px);
+}
+
+#playerSelect button:hover::before,
+#playerSelect button:hover::after { opacity: 1; color: rgba(30,200,220,0.9); }
+
+/* Bouton MJ rouge */
+#playerSelect button:first-of-type {
+  background: linear-gradient(135deg,
+    rgba(60,15,15,0.6) 0%,
+    rgba(30,8,8,0.8) 50%,
+    rgba(60,15,15,0.6) 100%);
+  border-color: rgba(150,40,40,0.5); color: #ffb0b0;
+}
+
+#playerSelect button:first-of-type:hover {
+  background: linear-gradient(135deg,
+    rgba(100,20,20,0.7) 0%,
+    rgba(60,10,10,0.9) 50%,
+    rgba(100,20,20,0.7) 100%);
+  border-color: rgba(200,60,60,0.8); color: #ffd0d0;
+  box-shadow: 0 0 12px rgba(180,40,40,0.4);
+}
+
+#playerMenu::after {
+  content: "— ✦ —"; display: block; text-align: center;
+  color: rgba(30,90,102,0.5); font-size: 11px;
+  padding: 8px 0 10px; letter-spacing: 4px;
+}
+
+/* ========================= */
+/* NOTIFICATION              */
+/* ========================= */
+
+#notification {
+  position: fixed; top: 120px; right: 20px;
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
+  color: var(--cream);
+  padding: 12px 22px;
+  font-family: var(--font-body); font-size: 16px;
+  border-radius: 3px;
+  opacity: 0; transition: opacity 0.5s;
+  z-index: 10001;
+}
+
+.selectedPlayer img { transform: scale(1.15); transition: transform 0.3s; border-radius: 50%; }
+
+/* ========================= */
+/* BARRE DÉS — TALES STYLE   */
+/* ========================= */
+
+#diceBar {
+  position: fixed; bottom: 20px; right: 20px;
+  background: linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
+  border: 1px solid var(--teal-border);
+  box-shadow:
+    0 0 0 1px var(--gold-dim),
+    0 -2px 30px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(30,90,102,0.3);
+  backdrop-filter: blur(6px);
+  padding: 10px 14px; border-radius: 4px;
+  display: flex; gap: 6px; align-items: center;
+  font-family: var(--font-body);
+  z-index: 9999999;
+}
+
+#diceBar button {
+  background: none; border: none; padding: 2px;
+  cursor: pointer; transition: all 0.15s; line-height: 0;
+}
+
+#diceBar button:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 8px rgba(30,200,220,0.7)) brightness(1.2);
+}
+
+#diceBar button:active { transform: scale(0.9); }
+
+.diceImgBtn { position: relative; display: flex; flex-direction: column; align-items: center; }
+
+.diceImg {
+  width: 46px; height: 46px; object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
+  transition: all 0.15s;
+}
+
+.diceMJLabel {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: var(--font-body); font-size: 9px;
+  color: var(--gold); font-weight: bold;
+  text-shadow: 0 0 4px black; pointer-events: none;
+}
+
+.diceMobLabel {
+  position: absolute; top: -4px; right: -4px;
+  font-size: 12px; pointer-events: none;
+}
+
+.mobDiceBtn .diceImg {
+  filter: drop-shadow(0 0 6px red) drop-shadow(0 2px 4px rgba(0,0,0,0.7));
+}
+
+/* ========================= */
+/* LOG DÉS                   */
+/* ========================= */
+
+#diceLog {
+  position: fixed; right: 20px; bottom: 90px;
+  width: 220px; max-height: 260px; overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
+  color: var(--cream);
+  font-family: var(--font-body);
+  padding: 10px; border-radius: 3px;
+  z-index: 9999999;
+}
+
+.logEntry { padding: 4px 0; border-bottom: 1px solid rgba(30,90,102,0.2); }
+.logMJ { color: var(--gold); }
+.logCrit { color: var(--gold); text-shadow: 0 0 8px gold; }
+.logFail { color: #ff5050; text-shadow: 0 0 8px red; }
+
+/* ========================= */
+/* RÉSULTAT DÉ               */
+/* ========================= */
+
+#diceResult {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  background: url("paper1.png"); background-size: cover;
+  padding: 40px 70px; border-radius: 4px;
+  font-family: var(--font-body); font-size: 36px; color: #2b1a10;
+  text-align: center;
+  box-shadow: 0 0 40px black;
+  opacity: 0; transition: opacity 0.5s;
+  z-index: 9999999; pointer-events: none;
+  min-width: 300px; max-width: 80vw; white-space: nowrap;
+}
+
+.diceNumber { font-size: 90px; margin-top: 10px; }
+.crit { color: gold; text-shadow: 0 0 40px gold, 0 0 80px orange; }
+.fail { color: red; text-shadow: 0 0 40px red; }
+
+/* ========================= */
+/* FICHE PERSONNAGE          */
+/* ========================= */
+
+#characterSheet {
+  overflow-y: auto; max-height: 90vh;
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  background: url("paper1.png"); background-size: cover;
+  padding: 40px; display: none;
+  z-index: 9999999;
+  font-family: var(--font-text);
+  color: black;
+  box-shadow: 0 0 40px black;
+}
+
+#sheetContainer { position: relative; }
+#sheetImage { width: 90vw; max-width: 900px; }
+
+.sheetField {
+  position: absolute;
+  background: rgba(255,255,255,0.2);
+  border: none; padding-left: 8px;
+  font-size: 20px; font-family: var(--font-body);
+  text-align: center; color: black; z-index: 10;
+}
+
+/* Malédiction */
+.curseGem {
+  display: inline-block; width: 20px; height: 20px;
+  background: url("mouche.png") center/contain no-repeat;
+  margin-right: 2px; cursor: pointer; transition: all 0.2s;
+  filter: grayscale(100%) brightness(0.25);
+  border: none; border-radius: 0;
+}
+
+.curseGem.active {
+  filter: sepia(100%) saturate(5000%) hue-rotate(280deg) brightness(1.1) contrast(1.5);
+  box-shadow: 0 0 8px red, 0 0 18px darkred;
+  animation: curseFlyPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes curseFlyPulse {
+  0%   { filter: sepia(100%) saturate(5000%) hue-rotate(280deg) brightness(1.0) contrast(1.5); }
+  100% { filter: sepia(100%) saturate(5000%) hue-rotate(280deg) brightness(1.4) contrast(1.8); }
+}
+
+.corruptionPoint {
+  display: inline-block; width: 22px; height: 12px;
+  background: rgba(15,40,50,0.8); margin-right: 2px;
+  border-radius: 2px; cursor: pointer;
+  border: 1px solid rgba(30,90,102,0.5);
+}
+
+.corruptionPoint.active {
+  background: linear-gradient(180deg, #ffe066, #caa300);
+  border: 1px solid #b89600;
+  box-shadow: 0 0 6px gold, 0 0 14px gold;
+  animation: powerPulse 1.2s infinite alternate;
+}
+
+@keyframes powerPulse {
+  0%   { box-shadow: 0 0 6px gold, 0 0 12px goldenrod; transform: scale(1); }
+  100% { box-shadow: 0 0 10px gold, 0 0 22px gold; transform: scale(1.15); }
+}
+
+/* ========================= */
+/* BARRE MJ — TALES STYLE    */
+/* ========================= */
+
+#gmBar {
+  display: none; position: fixed;
+  bottom: 20px; left: 50%; transform: translateX(-50%);
+  gap: 10px;
+  background: linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
+  border: 1px solid var(--teal-border);
+  box-shadow:
+    0 0 0 1px var(--gold-dim),
+    0 -2px 30px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(30,90,102,0.3);
+  padding: 10px 16px; border-radius: 4px;
+  z-index: 99999999; pointer-events: auto;
+}
+
+.gmIcon {
+  width: 52px; height: 52px; border-radius: 50%; font-size: 22px;
+  background: radial-gradient(circle at 35% 30%,
+    #1e6a7a 0%, #0f3a44 45%, #060e12 100%);
+  color: var(--cream);
+  border: none; outline: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  box-shadow:
+    0 0 0 2px #040c10,
+    0 0 0 3.5px var(--teal-border),
+    0 0 0 5px #040c10,
+    0 4px 12px rgba(0,0,0,0.7),
+    inset 0 2px 3px rgba(80,220,240,0.15),
+    inset 0 -2px 3px rgba(0,0,0,0.4);
+  position: relative;
+}
+
+.gmIcon::before {
+  content: "";
+  position: absolute; top: 4px; left: 8px;
+  width: 60%; height: 35%; border-radius: 50%;
+  background: linear-gradient(135deg, rgba(80,220,240,0.2) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.gmIcon:hover {
+  transform: scale(1.15) translateY(-2px);
+  background: radial-gradient(circle at 35% 30%,
+    #28909e 0%, #185a68 45%, #0a1e26 100%);
+  box-shadow:
+    0 0 0 2px #040c10,
+    0 0 0 3.5px rgba(30,200,220,0.8),
+    0 0 0 5px #040c10,
+    0 6px 20px rgba(0,0,0,0.8),
+    0 0 20px rgba(30,180,200,0.4),
+    inset 0 2px 3px rgba(80,220,240,0.25);
+  color: #e8f8ff;
+}
+
+/* ========================= */
+/* SECTIONS MJ               */
+/* ========================= */
+
+.gmSection {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 30px rgba(0,0,0,0.9);
+  padding: 14px; border-radius: 3px;
+  display: none; z-index: 99999999; pointer-events: auto;
+  max-height: 70vh; overflow-y: auto;
+}
+
+/* Séparateur haut */
+.gmSection::before {
+  content: "";
+  display: block; width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--teal-border), transparent);
+  margin-bottom: 10px;
+}
+
+.gmButton {
+  display: block; width: 160px; margin: 5px 0; padding: 9px;
+  font-family: var(--font-body);
+  background: linear-gradient(135deg, rgba(10,40,50,0.8), rgba(5,20,28,0.9));
+  color: var(--cream);
+  border: 1px solid rgba(30,90,102,0.6);
+  border-radius: 2px; cursor: pointer;
+  transition: 0.2s;
+}
+
+.gmButton:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, rgba(15,65,80,0.9), rgba(8,35,45,1));
+  border-color: rgba(30,180,200,0.7);
+  box-shadow: 0 0 12px rgba(30,160,180,0.3);
+}
+
+/* ========================= */
+/* ONGLETS PNJ               */
+/* ========================= */
+
+.pnjTabs { display: flex; gap: 4px; margin-bottom: 10px; }
+
+.pnjTab {
+  flex: 1;
+  background: linear-gradient(rgba(10,30,36,0.9), rgba(5,15,20,0.9));
+  color: var(--cream-dim);
+  border: 1px solid rgba(30,90,102,0.4);
+  border-radius: 2px; padding: 6px;
+  font-family: var(--font-body); cursor: pointer;
+  transition: 0.15s;
+}
+
+.pnjTab.active {
+  background: linear-gradient(rgba(20,70,85,0.9), rgba(10,45,58,0.9));
+  color: var(--cream);
+  border-color: var(--teal-border);
+  box-shadow: 0 0 8px rgba(30,160,180,0.3), inset 0 1px 0 rgba(80,220,240,0.15);
+}
+
+.pnjTabContent { overflow-y: auto; max-height: calc(100vh - 200px); display: none; }
+.pnjTabContent.active { display: block; }
+
+/* ========================= */
+/* MENU MAPS — TALES STYLE   */
+/* ========================= */
+
+.mapCategoryButton {
+  width: 100%; text-align: left;
+  background: linear-gradient(135deg, rgba(10,30,36,0.8), rgba(5,15,20,0.9));
+  color: var(--cream);
+  border: 1px solid rgba(30,90,102,0.4);
+  border-radius: 2px; padding: 8px 10px;
+  font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: 0.15s;
+  margin-bottom: 2px;
+}
+
+.mapCategoryButton:hover,
+.mapCategoryButton.active {
+  background: linear-gradient(135deg, rgba(15,55,68,0.9), rgba(8,30,40,1));
+  color: #e8f8ff;
+  border-color: rgba(30,160,180,0.6);
+  box-shadow: 0 0 8px rgba(30,140,160,0.2);
+}
+
+.mapCategory {
+  display: none; margin-left: 10px; margin-bottom: 4px;
+  background: rgba(5,15,20,0.7);
+  border-left: 2px solid rgba(30,90,102,0.4);
+  padding: 4px 4px 4px 8px;
+  border-radius: 0 2px 2px 0;
+  overflow: hidden;
+}
+
+.mapCategory button {
+  width: 100%; text-align: left;
+  background: transparent;
+  color: var(--cream-dim);
+  border: none; border-bottom: 1px solid rgba(30,90,102,0.15);
+  padding: 6px 8px;
+  font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: 0.12s;
+}
+
+.mapCategory button:hover {
+  color: #e8f8ff;
+  background: rgba(30,90,102,0.2);
+  padding-left: 14px;
+}
+
+.mapWorldButton {
+  width: 100%;
+  background: linear-gradient(rgba(15,55,68,0.9), rgba(8,35,45,0.95));
+  color: var(--cream);
+  font-family: var(--font-body);
+  padding: 10px; margin-bottom: 10px;
+  border: 1px solid var(--teal-border);
+  border-radius: 2px; font-size: 15px;
+  cursor: pointer; transition: 0.2s;
+  box-shadow: 0 0 10px rgba(30,140,160,0.2);
+}
+
+.mapWorldButton:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 20px rgba(30,180,200,0.4);
+  border-color: rgba(30,200,220,0.8);
+}
+
+.arrow { display: inline-block; width: 20px; transition: transform 0.2s; }
+.arrow.open { transform: rotate(90deg); }
+
+/* ========================= */
+/* JOURNAL MJ                */
+/* ========================= */
+
+#mjLog {
+  position: fixed; left: 20px; bottom: 20px;
+  width: 240px; max-height: 260px; overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
+  color: var(--cream);
+  font-family: var(--font-body);
+  padding: 10px; border-radius: 3px;
+  z-index: 99999; display: none;
+}
+
+.mjTitle { font-size: 16px; margin-bottom: 8px; text-align: center; color: var(--teal-border); letter-spacing: 2px; }
+.mjEntry { font-size: 13px; margin-bottom: 5px; border-bottom: 1px solid rgba(30,90,102,0.2); padding-bottom: 4px; }
+
+/* ========================= */
+/* BANDEROLE LIEU            */
+/* ========================= */
+
+#locationBanner {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  display: none; justify-content: center; align-items: center;
+  pointer-events: none; z-index: 999999;
+  opacity: 0; transition: opacity 1s;
+}
+
+#locationBanner.visible { display: flex; }
+#locationParticles { position: absolute; width: 100%; height: 100%; overflow: hidden; }
+
+.particle {
+  position: absolute; width: 6px; height: 6px;
+  background: var(--teal-border); border-radius: 50%;
+  box-shadow: 0 0 6px var(--teal-border), 0 0 12px rgba(30,180,200,0.5);
+  animation: particleFloat 3s linear forwards;
+}
+
+@keyframes particleFloat {
+  0%   { transform: translateY(40px) scale(0.5); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(-200px) scale(1.2); opacity: 0; }
+}
+
+#locationPaper {
+  background-image: url("cadre.png");
+  background-repeat: no-repeat; background-position: center; background-size: 100% 100%;
+  position: relative; width: 540px; min-width: 540px;
+  height: 360px; min-height: 360px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-family: var(--font-body); color: var(--cream); text-align: center;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.9));
+  transform: translateY(-300px) scaleY(0.2); transform-origin: top;
+  transition: transform 0.7s ease;
+}
+
+#locationPaper.open {
+  transform: translateY(0) scaleY(1);
+  animation: paperBounce 0.6s ease;
+}
+
+@keyframes paperBounce {
+  0%   { transform: translateY(-300px) scaleY(0.2) }
+  70%  { transform: translateY(10px) scaleY(1.05) }
+  100% { transform: translateY(0) scaleY(1) }
+}
+
+#locationText {
+  font-size: 28px; letter-spacing: 3px; font-weight: bold;
+  color: var(--cream);
+  text-shadow: 0 0 8px rgba(30,180,200,0.5), 0 0 16px rgba(30,140,160,0.4), 1px 1px 3px rgba(0,0,0,0.9);
+}
+
+/* ========================= */
+/* IMAGES STORY / PNJ        */
+/* ========================= */
+
+#storyImage {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: none; justify-content: center; align-items: center;
+  pointer-events: none; z-index: 9999999;
+  transition: opacity 0.5s ease, left 0.3s ease, right 0.3s ease;
+}
+
+#storyImage img {
+  max-height: 80vh;
+  animation: pnjAppear 0.6s ease-out, pnjIdle 3s ease-in-out infinite;
+  filter: drop-shadow(0 20px 40px black);
+}
+
+#storyImage2, #storyImage3 {
+  position: fixed; top: 0; right: 0; width: 50%; height: 100%;
+  display: none; justify-content: center; align-items: center;
+  pointer-events: none; z-index: 1000;
+  background: linear-gradient(to left, rgba(0,0,0,0.4), transparent);
+  transition: opacity 0.5s ease, left 0.4s ease, right 0.4s ease, transform 0.4s ease;
+}
+
+#storyImageContent2, #storyImageContent3 {
+  max-height: 85vh; max-width: 100%; object-fit: contain;
+}
+
+@keyframes pnjAppear {
+  0%   { transform: translateY(80px) scale(0.8); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes pnjIdle {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* ========================= */
+/* SAUVEGARDE MJ             */
+/* ========================= */
+
+#gmSaveBar { display: none; position: fixed; top: 16px; left: 160px; z-index: 99999999; }
+
+#gmSaveBtn {
+  font-family: var(--font-body); font-size: 13px; padding: 8px 16px;
+  background: linear-gradient(180deg, rgba(10,40,50,0.95), rgba(5,20,28,0.98));
+  color: rgba(30,200,220,0.9);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 10px rgba(30,140,160,0.2);
+  border-radius: 3px; cursor: pointer; transition: 0.2s;
+  letter-spacing: 1px;
+}
+
+#gmSaveBtn:hover {
+  background: linear-gradient(180deg, rgba(15,60,75,0.98), rgba(8,30,40,1));
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(30,180,200,0.4);
+  transform: translateY(-1px); color: #e8f8ff;
+}
+
+/* ========================= */
+/* TITRE DU JEU              */
+/* ========================= */
+
+#gameTitle {
+  position: relative; text-align: center; margin-bottom: 20px;
+  font-family: var(--font-title); font-size: 42px;
+  letter-spacing: 4px; color: var(--cream);
+  pointer-events: none; opacity: 0; transition: opacity 2s ease;
+}
+
+#gameTitle.visible {
+  opacity: 1;
+  animation: titleHaloBreath 3s ease-in-out infinite;
+}
+
+@keyframes titleHaloBreath {
+  0%,100% { text-shadow: 0 0 8px #ffd700, 0 0 16px #d4a800, 0 0 30px gold, 1px 1px 3px rgba(0,0,0,0.9); color: var(--cream); }
+  50%      { text-shadow: 0 0 6px #ffd700, 0 0 20px #aa7700, 0 0 40px rgba(200,120,0,0.8), 1px 1px 3px rgba(0,0,0,0.9); color: #e8d4a0; }
+}
+
+/* ========================= */
+/* COMBAT — HUD JOUEUR       */
+/* TALES STYLE               */
+/* ========================= */
+
+#combatHUD {
+  position: fixed; bottom: 20px; left: 20px;
+  display: none;
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
+  padding: 14px; width: 260px;
+  font-family: var(--font-body); color: var(--cream);
+  z-index: 99999999; gap: 12px;
+  border-radius: 3px;
+}
+
+/* Ligne décorative haut */
+#combatHUD::before {
+  content: "";
+  position: absolute; top: 0; left: 10%; right: 10%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--teal-border), transparent);
+}
+
+#combatHUDPortrait {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 2px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 10px rgba(30,140,160,0.4);
+}
+
+#combatHUDName {
+  font-size: 16px; margin-bottom: 6px;
+  color: rgba(30,200,220,0.9); letter-spacing: 2px;
+}
+
+/* Blocs attaque — TALES style */
+.combatBlock {
+  background: linear-gradient(135deg, rgba(10,30,38,0.9), rgba(5,15,22,0.95));
+  border: 1px solid rgba(30,90,102,0.5);
+  border-radius: 2px; padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.combatAttack {
+  font-family: 'Uncial Antiqua', serif;
+  font-size: 18px; color: rgba(30,200,220,0.9); margin-bottom: 4px;
+  text-shadow: 0 0 6px rgba(30,180,200,0.4);
+}
+
+.attackLine { font-size: 12px; margin-bottom: 2px; color: var(--cream-dim); }
+.attackLabel { color: rgba(30,180,200,0.7); font-weight: bold; font-size: 11px; }
+.attackDice  { color: #ff6060; font-weight: bold; }
+.attackStat  { color: rgba(30,200,220,0.9); font-weight: bold; }
+
+/* ========================= */
+/* COMBAT — PANEL DÉGÂTS MJ  */
+/* ========================= */
+
+#gmDamagePanel {
+  display: none; position: fixed; top: 10px;
+  left: 50%; transform: translateX(-50%);
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 30px rgba(0,0,0,0.9);
+  padding: 12px 16px; border-radius: 3px;
+  z-index: 9999999; pointer-events: auto; min-width: 300px;
+}
+
+/* Ligne haut ornementale */
+#gmDamagePanel::before {
+  content: "";
+  position: absolute; top: 0; left: 10%; right: 10%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--teal-border), transparent);
+}
+
+#gmDamagePanelInner { display: flex; flex-direction: column; gap: 8px; }
+
+#mobHPDisplay {
+  text-align: center;
+  font-family: var(--font-body); color: var(--cream); font-size: 13px;
+}
+
+/* Barre HP mob — style TALES : verte dégressive */
+#mobHPBarTopContainer {
+  width: 100%; height: 12px;
+  background: rgba(5,15,20,0.9);
+  border: 1px solid rgba(30,90,102,0.5);
+  border-radius: 2px; overflow: hidden; margin-top: 4px;
+}
+
+#mobHPBarTop {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #2aff6a, #00aa44);
+  transition: width 0.3s;
+  box-shadow: 0 0 6px rgba(0,220,100,0.5);
+}
+
+#mobHPTopText { color: var(--cream); font-size: 12px; font-family: 'Cinzel', serif; font-style: italic; }
+
+#gmDamageRow {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-body); color: var(--cream); font-size: 13px;
+}
+
+#mobDamageInput {
+  width: 70px; text-align: center;
+  font-family: var(--font-body); font-size: 16px;
+  background: rgba(5,15,20,0.9); color: var(--cream);
+  border: 1px solid var(--teal-border); border-radius: 2px; padding: 4px;
+}
+
+#gmCombatButtons { display: flex; gap: 8px; justify-content: center; }
+
+#btnVictoire {
+  background: linear-gradient(rgba(15,60,25,0.95), rgba(8,35,15,0.98));
+  color: var(--gold);
+  border: 1px solid rgba(50,180,80,0.6);
+  border-radius: 2px; padding: 8px 16px;
+  font-family: var(--font-body); font-size: 13px; cursor: pointer;
+  transition: 0.2s; letter-spacing: 1px;
+}
+
+#btnVictoire:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 14px rgba(50,200,80,0.4);
+  border-color: rgba(80,220,100,0.8);
+}
+
+#btnDefaite {
+  background: linear-gradient(rgba(60,10,10,0.95), rgba(35,5,5,0.98));
+  color: #ff7070;
+  border: 1px solid rgba(180,40,40,0.6);
+  border-radius: 2px; padding: 8px 16px;
+  font-family: var(--font-body); font-size: 13px; cursor: pointer;
+  transition: 0.2s; letter-spacing: 1px;
+}
+
+#btnDefaite:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 14px rgba(200,40,40,0.4);
+  border-color: rgba(220,60,60,0.8);
+}
+
+/* ========================= */
+/* COMBAT — PANEL MJ PERSO  */
+/* ========================= */
+
+#gmCombatPanel {
+  position: fixed; top: 20px; left: 20px;
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
+  padding: 10px; border-radius: 3px;
+  z-index: 999999; pointer-events: auto;
+  display: none; flex-direction: column; gap: 8px;
+}
+
+.gmAttackButton {
+  background: linear-gradient(135deg, rgba(10,40,50,0.9), rgba(5,22,30,0.95));
+  color: var(--cream);
+  border: 1px solid rgba(30,90,102,0.5);
+  border-radius: 2px; padding: 8px 14px;
+  font-family: var(--font-body); cursor: pointer; transition: 0.15s;
+}
+
+.gmAttackButton:hover {
+  transform: scale(1.06);
+  border-color: rgba(30,180,200,0.7);
+  box-shadow: 0 0 10px rgba(30,160,180,0.3);
+  color: #e8f8ff;
+}
+
+.gmMiniSheet {
+  cursor: grab; width: 220px; min-height: 120px;
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim);
+  border-radius: 3px; padding: 10px;
+  font-family: var(--font-body); font-size: 13px; color: var(--cream);
+}
+
+.gmMiniSheet:active { cursor: grabbing; }
+
+.gmMiniTitle {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; font-weight: bold;
+  color: rgba(30,200,220,0.9);
+  border-bottom: 1px solid rgba(30,90,102,0.3);
+  padding-bottom: 6px; font-size: 12px; letter-spacing: 2px;
+}
+
+.gmMiniToken { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--teal-border); }
+
+.gmMiniHPContainer {
+  width: 100%; height: 10px;
+  background: rgba(5,15,20,0.9);
+  border: 1px solid rgba(30,90,102,0.4);
+  border-radius: 2px; margin-bottom: 8px; overflow: hidden;
+}
+
+.gmMiniHPBar {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #2aff6a, #00aa44);
+  transition: width 0.2s;
+}
+
+.gmMiniStats {
+  display: flex; justify-content: space-around; align-items: center;
+  background: rgba(5,15,20,0.7);
+  border: 1px solid rgba(30,90,102,0.3);
+  border-radius: 2px; padding: 5px; margin-bottom: 8px; font-size: 13px;
+}
+
+.gmMiniLvl  { color: var(--gold); font-weight: bold; }
+.gmMiniHP   { color: #ff6060; font-weight: bold; font-style: italic; }
+.gmMiniCurse{ color: #aa2222; }
+.gmMiniPower{ color: var(--gold); }
+
+.gmMiniSheet:hover {
+  border-color: rgba(30,180,200,0.7);
+  box-shadow: 0 0 12px rgba(30,160,180,0.3);
+}
+
+/* ========================= */
+/* TOKEN MOB                 */
+/* ========================= */
+
+#mobToken { transform: scale(1.5); z-index: 20; }
+
+.mobHP {
+  position: absolute; top: -35px; left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  font-family: var(--font-body); text-align: center;
+}
+
+.mobHPBarContainer {
+  width: 100%; height: 8px;
+  background: rgba(5,15,20,0.9);
+  border: 1px solid rgba(30,90,102,0.4);
+  border-radius: 2px; overflow: hidden;
+}
+
+#mobTokenHPBar {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #2aff6a, #00aa44);
+  transition: width 0.3s;
+}
+
+#mobTokenHPText { font-size: 11px; color: var(--cream); font-style: italic; }
+
+.token img {
+  border: 3px solid transparent;
+  box-shadow: 0 0 10px black, 0 0 20px rgba(0,0,0,0.7);
+}
+
+#mobToken img {
+  border: 3px solid rgba(30,90,102,0.8);
+  box-shadow: 0 0 15px rgba(30,160,180,0.5), 0 0 30px rgba(20,100,120,0.3);
+}
+
+/* ========================= */
+/* PANEL COMBAT JOUEUR       */
+/* ========================= */
+
+#playerCombatPanel {
+  position: fixed; top: 50%; right: 20px;
+  transform: translateY(-50%);
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
+  padding: 14px; border-radius: 3px;
+  font-family: var(--font-body); color: var(--cream);
+  width: 200px; z-index: 999999; display: none;
+}
+
+.playerCombatTitle {
+  text-align: center; color: rgba(30,200,220,0.9);
+  margin-bottom: 10px; letter-spacing: 2px; font-size: 12px;
+  border-bottom: 1px solid rgba(30,90,102,0.4); padding-bottom: 6px;
+}
+
+.playerStat { margin-bottom: 5px; font-size: 12px; }
+
+.playerStat input {
+  width: 55px; margin-left: 6px;
+  background: rgba(5,15,20,0.9); color: var(--cream);
+  border: 1px solid rgba(30,90,102,0.5);
+  border-radius: 2px; text-align: center;
+  font-family: var(--font-body); font-size: 13px; font-style: italic;
+}
+
+#combatHPBarContainer {
+  width: 100%; height: 14px;
+  background: rgba(5,15,20,0.9);
+  border: 1px solid rgba(30,90,102,0.5);
+  border-radius: 2px; margin-top: 6px; overflow: hidden;
+}
+
+#combatHPBar {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #2aff6a, #00aa44);
+  transition: width 0.2s;
+  box-shadow: 0 0 6px rgba(0,200,80,0.4);
+}
+
+/* ========================= */
+/* ARÈNE COMBAT              */
+/* ========================= */
+
+#combatArena {
+  display: none; position: relative; pointer-events: none;
+}
+
+#combatArena::after {
+  content: "";
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+}
+
+#combatGrid {
+  display: none; position: absolute; width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(30,180,200,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,180,200,0.1) 1px, transparent 1px);
+  background-size: 100px 100px;
+  pointer-events: none; z-index: 2;
+}
+
+#combatTokens { position: absolute; width: 100%; height: 100%; z-index: 10; }
+
+#combatFilter {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at center, rgba(80,0,0,0.3), rgba(50,0,0,0.6));
+  pointer-events: none; z-index: 9999998; display: none;
+  animation: combatPulse 3s infinite alternate;
+}
+
+/* ========================= */
+/* INTRO COMBAT              */
+/* ========================= */
+
+#combatIntro {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95);
+  display: none; justify-content: center; align-items: center;
+  z-index: 999999999;
+}
+
+#combatIntroText {
+  font-family: var(--font-body); font-size: 56px;
+  color: rgba(30,200,220,0.95);
+  text-shadow: 0 0 10px rgba(30,180,200,0.6), 0 0 30px rgba(20,120,160,0.4);
+  letter-spacing: 6px;
+  animation: combatPulse 1.2s infinite alternate;
+}
+
+@keyframes combatPulse {
+  0%   { transform: scale(1); opacity: 0.85; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+/* ========================= */
+/* VICTOIRE / DÉFAITE        */
+/* ========================= */
+
+#victoryScreen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: none; justify-content: center; align-items: center;
+  z-index: 999999999;
+  opacity: 0; transition: opacity 0.4s ease;
+}
+
+#victoryText {
+  font-family: var(--font-title); font-size: 70px;
+  color: var(--gold);
+  text-shadow: 0 0 20px gold, 0 0 40px orange, 0 0 80px gold;
+  animation: victoryGlow 1.2s infinite alternate;
+  letter-spacing: 6px;
+}
+
+@keyframes victoryGlow {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
+.victoryParticle {
+  position: absolute; width: 8px; height: 8px;
+  background: var(--gold); border-radius: 50%;
+  box-shadow: 0 0 6px gold, 0 0 12px orange;
+  animation: goldRise 1.5s ease-out forwards;
+}
+
+@keyframes goldRise {
+  0%   { transform: translateY(40px) scale(0.5); opacity: 1; }
+  100% { transform: translateY(-120px) scale(1.2); opacity: 0; }
+}
+
+#defeatScreen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95);
+  display: none; flex-direction: column;
+  justify-content: center; align-items: center;
+  z-index: 999999999;
+}
+
+#defeatText {
+  font-family: var(--font-body); font-size: 80px; color: #cc2222;
+  text-shadow: 0 0 20px red, 0 0 40px darkred;
+  animation: defeatPulse 1.5s infinite alternate; margin-bottom: 30px;
+  letter-spacing: 4px;
+}
+
+#defeatSubText {
+  font-family: var(--font-text); font-size: 24px; color: #aa4444;
+  text-align: center;
+  opacity: 0; animation: defeatFadeIn 1s ease 0.8s forwards;
+  line-height: 1.6; max-width: 600px; padding: 0 40px;
+}
+
+@keyframes defeatPulse {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+@keyframes defeatFadeIn {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================= */
+/* BOUTON ATTAQUES JOUEUR    */
+/* ========================= */
+
+#playerAttackBtn {
+  display: none; position: fixed; bottom: 20px; left: 20px;
+  width: 54px; height: 54px; border-radius: 50%; font-size: 22px;
+  background: radial-gradient(circle at 35% 30%, #1e6a7a, #0f3a44 60%, #060e12);
+  color: var(--cream);
+  border: none;
+  box-shadow:
+    0 0 0 2px #040c10,
+    0 0 0 3.5px var(--teal-border),
+    0 0 0 5px #040c10,
+    0 0 15px rgba(0,0,0,0.8);
+  cursor: pointer; transition: 0.2s; z-index: 99999999;
+  align-items: center; justify-content: center;
+}
+
+#playerAllyBtn {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  left: 20px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  font-size: 20px;
+  background: radial-gradient(circle at 35% 30%, #2a1a5e, #130d2e 60%, #07050f);
+  color: #c8a8ff;
+  border: none;
+  box-shadow:
+    0 0 0 2px #0d0820,
+    0 0 0 3.5px rgba(140,80,255,0.6),
+    0 0 0 5px #0d0820,
+    0 0 15px rgba(100,50,220,0.4);
+  cursor: pointer;
+  transition: 0.2s;
+  z-index: 99999999;
+  align-items: center;
+  justify-content: center;
+}
+
+#playerAllyBtn:hover {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 2px #0d0820,
+    0 0 0 3.5px rgba(180,120,255,0.8),
+    0 0 0 5px #0d0820,
+    0 0 20px rgba(140,80,255,0.6);
+  color: #e8d0ff;
+}
+
+#playerAttackBtn:hover {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 2px #040c10,
+    0 0 0 3.5px rgba(30,200,220,0.8),
+    0 0 0 5px #040c10,
+    0 0 20px rgba(30,180,200,0.5);
+}
+
+/* ========================= */
+/* STATES TOKENS COMBAT      */
+/* ========================= */
+
+.cursed img {
+  border: 3px solid red !important;
+  box-shadow: 0 0 10px red, 0 0 20px darkred, 0 0 35px crimson !important;
+}
+
+.powerReady img {
+  border: 2px solid gold !important;
+  box-shadow: 0 0 15px gold, 0 0 30px orange, 0 0 60px gold !important;
+  animation: powerTokenPulse 1.5s ease-in-out infinite !important;
+}
+
+@keyframes powerTokenPulse {
+  0%   { box-shadow: 0 0 10px gold, 0 0 20px orange, 0 0 40px gold; }
+  50%  { box-shadow: 0 0 20px gold, 0 0 40px orange, 0 0 80px gold; }
+  100% { box-shadow: 0 0 10px gold, 0 0 20px orange, 0 0 40px gold; }
+}
+
+.powerFull img {
+  border: 3px solid gold !important;
+  animation: powerFullPulse 0.8s ease-in-out infinite alternate !important;
+}
+
+@keyframes powerFullPulse {
+  0%   { box-shadow: 0 0 15px gold, 0 0 30px orange, 0 0 60px gold; filter: brightness(1.1); }
+  100% { box-shadow: 0 0 30px gold, 0 0 60px orange, 0 0 100px gold; filter: brightness(1.4); }
+}
+
+.lowHP img {
+  box-shadow: 0 0 10px red, 0 0 25px darkred, 0 0 40px red;
+  animation: dangerPulse 1s infinite alternate;
+}
+
+.midHP img { box-shadow: 0 0 10px orange, 0 0 25px orange; }
+
+.fullHP img {
+  box-shadow:
+    0 0 0 2px #1e5a66, 0 0 0 4px var(--gold),
+    0 0 15px rgba(30,160,180,0.4);
+}
+
+@keyframes dangerPulse {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
+.damageFlash img { animation: hitFlash 0.4s; }
+
+@keyframes hitFlash {
+  0%   { filter: brightness(3) saturate(3); }
+  50%  { filter: brightness(0.5) saturate(3); }
+  100% { filter: brightness(1); }
+}
+
+.tokenGlow img { box-shadow: 0 0 10px rgba(30,200,220,0.5), 0 0 20px rgba(30,160,180,0.3); }
+
+.playerDead { filter: grayscale(1) brightness(0.4) !important; }
+
+.playerDead::after {
+  content: ""; position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); border-radius: inherit;
+}
+
+.overweight img {
+  border: 3px solid red;
+  box-shadow: 0 0 15px red, 0 0 35px darkred;
+  animation: dangerPulse 0.8s infinite alternate;
+}
+
+.speechBubble {
+  position: absolute; bottom: 80px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel-bg);
+  border: 1px solid var(--teal-border);
+  color: var(--cream);
+  padding: 6px 12px; border-radius: 4px;
+  font-family: var(--font-body); font-size: 14px;
+  box-shadow: 0 0 10px black;
+  white-space: nowrap; z-index: 1000;
+}
+
+/* ========================= */
+/* EFFETS VISUELS            */
+/* ========================= */
+
+.portalEffect {
+  position: absolute; width: 120px; height: 120px;
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(30,180,200,0.8) 0%, rgba(10,100,140,0.4) 40%, transparent 70%);
+  box-shadow: 0 0 20px rgba(30,200,220,0.7), 0 0 40px rgba(20,150,180,0.4);
+  animation: portalOpen 1.5s ease-out; z-index: 20;
+}
+
+@keyframes portalOpen {
+  0%   { transform: scale(0.2); opacity: 1; }
+  60%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.mobPortal {
+  position: absolute; width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80,0,0,0.9) 0%, rgba(50,0,0,0.6) 40%, transparent 70%);
+  box-shadow: 0 0 20px red, 0 0 40px darkred;
+  animation: portalOpen 0.7s ease-out; z-index: 1;
+}
+
+.levelUpEffect {
+  position: absolute; width: 140px; height: 140px;
+  left: 50%; top: 50%; transform: translate(-50%,-50%);
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(30,200,220,0.9) 0%, rgba(30,180,200,0.4) 40%, transparent 70%);
+  box-shadow: 0 0 20px rgba(30,200,220,0.8), 0 0 40px rgba(20,150,180,0.5);
+  animation: levelUpAnim 2s ease-out; z-index: 50;
+}
+
+@keyframes levelUpAnim {
+  0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 1; }
+  60%  { transform: translate(-50%,-50%) scale(1.5); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(2); opacity: 0; }
+}
+
+.levelUpContainer { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); pointer-events: none; z-index: 40; }
+.levelBeam {
+  position: absolute; left: 50%; top: -120px; transform: translateX(-50%);
+  width: 30px; height: 240px;
+  background: linear-gradient(to top, rgba(30,200,220,0.8), rgba(80,240,255,0.9), transparent);
+  filter: blur(6px); animation: beamFade 2s ease-out;
+}
+
+.levelParticle {
+  position: absolute; width: 6px; height: 6px;
+  border-radius: 50%; background: rgba(30,200,220,0.9);
+  box-shadow: 0 0 6px rgba(30,200,220,0.8);
+  animation: particleRise 1.8s linear forwards;
+}
+
+@keyframes beamFade   { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes particleRise {
+  0%   { transform: translateY(40px) scale(0.5); opacity: 1; }
+  100% { transform: translateY(-120px) scale(1.2); opacity: 0; }
+}
+
+@keyframes explodePower {
+  0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(2); opacity: 0; }
+}
+
+/* ========================= */
+/* SANG                      */
+/* ========================= */
+
+.bloodDrop {
+  position: absolute; top: 55%; border-radius: 0 0 50% 50%;
+  background: linear-gradient(180deg, #8b0000, #cc0000, #ff1a1a);
+  pointer-events: none; z-index: 30;
+  animation: bloodDrip linear forwards;
+}
+
+@keyframes bloodDrip {
+  0%   { height: 0; opacity: 1; border-radius: 50%; }
+  30%  { height: 8px; opacity: 1; border-radius: 50% 50% 40% 40%; }
+  70%  { height: 16px; opacity: 1; border-radius: 40% 40% 50% 50%; }
+  85%  { height: 18px; opacity: 1; transform: translateY(0); }
+  100% { height: 18px; opacity: 0; transform: translateY(30px); }
+}
+
+.bloodTrail {
+  position: absolute; width: 3px; border-radius: 2px;
+  background: linear-gradient(180deg, rgba(139,0,0,0.8), rgba(180,0,0,0.4), transparent);
+  pointer-events: none; z-index: 29;
+  animation: trailFade 2s ease-out forwards;
+}
+
+@keyframes trailFade { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+
+/* ========================= */
+/* MALÉDICTION ROUE          */
+/* ========================= */
+
+@keyframes cursePulse    { 0% { background: rgba(0,0,0,0.92); } 100% { background: rgba(60,0,0,0.95); } }
+@keyframes curseShake    { 0%,100% { transform: translate(-2px,0) rotate(-1deg); } 50% { transform: translate(2px,0) rotate(0.5deg); } }
+@keyframes curseResultPop{ 0% { transform: scale(0.2); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+/* ========================= */
+/* AURORE BORÉALE            */
+/* ========================= */
+
+@keyframes auroraDance {
+  0%,100% { transform: rotate(-12deg) translateY(0) scaleX(1); opacity: 0.5; filter: blur(12px) brightness(1.1); }
+  50%     { transform: rotate(-16deg) translateY(20px) scaleX(0.92); opacity: 0.5; filter: blur(13px) brightness(1.0); }
+}
+
+/* ========================= */
+/* FEU BOSS                  */
+/* ========================= */
+
+@keyframes bossFireSpark {
+  0%   { transform: translateY(0) scaleX(1); opacity: 0.9; }
+  50%  { transform: translateY(-60px) scaleX(0.7); opacity: 0.6; }
+  100% { transform: translateY(-120px) scaleX(0.3); opacity: 0; }
+}
+
+@keyframes bossVignettePulse {
+  0%   { box-shadow: inset 0 0 80px rgba(200,30,0,0.5); }
+  100% { box-shadow: inset 0 0 120px rgba(255,50,0,0.7); }
+}
+
+/* ========================= */
+/* SORT CIMETIÈRE            */
+/* ========================= */
+
+@keyframes spellPulse {
+  0%   { box-shadow: inset 0 0 80px rgba(150,0,255,0.4); }
+  100% { box-shadow: inset 0 0 120px rgba(180,0,255,0.7); }
+}
+
+@keyframes bifrostPulse {
+  0%   { text-shadow: 0 0 20px #00aaff, 0 0 40px #0066ff; opacity: 0.8; }
+  100% { text-shadow: 0 0 40px #44ccff, 0 0 80px #0099ff; opacity: 1; }
+}
+
+@keyframes skullFloat {
+  0%   { transform: translate(-50%,-50%) scale(1); }
+  100% { transform: translate(-50%,-60%) scale(1.1); }
+}
+
+@keyframes hpDangerPulse {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+/* ========================= */
+/* ÉTINCELLES MENU           */
+/* ========================= */
+
+.menuSpark {
+  position: fixed; width: 5px; height: 5px;
+  border-radius: 50%; background: rgba(30,200,220,0.9);
+  pointer-events: none; z-index: 9999;
+  box-shadow: 0 0 4px rgba(30,200,220,0.8), 0 0 10px rgba(20,150,180,0.5);
+  animation: sparkFly 1.2s ease-out forwards;
+}
+
+@keyframes sparkFly {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  40%  { opacity: 1; transform: translate(calc(var(--dx)*30px), calc(var(--dy)*30px)) scale(1.3); }
+  100% { transform: translate(calc(var(--dx)*80px), calc(var(--dy)*80px)) scale(0.1); opacity: 0; }
+}
+
+/* ========================= */
+/* DÉFI RUNIQUE              */
+/* ========================= */
+
+.runeLetBtn {
+  width: 28px; height: 28px; padding: 0;
+  font-family: var(--font-body); font-size: 12px;
+  background: rgba(10,30,38,0.8); color: var(--teal-border);
+  border: 1px solid rgba(30,90,102,0.4);
+  border-radius: 2px; cursor: pointer; transition: all 0.15s;
+}
+
+.runeLetBtn:hover {
+  background: rgba(15,50,62,0.9); color: #e8f8ff;
+  border-color: rgba(30,200,220,0.6);
+  box-shadow: 0 0 6px rgba(30,180,200,0.3);
+}
+
+/* ========================= */
+/* POUVOIR BOUTON            */
+/* ========================= */
+
+@keyframes powerBtnPulse {
+  0%   { box-shadow: 0 0 15px gold, 0 0 30px orange; transform: translateX(-50%) scale(1); }
+  100% { box-shadow: 0 0 30px gold, 0 0 60px orange; transform: translateX(-50%) scale(1.05); }
+}
+
+/* ========================= */
+/* GLOBAL BODY               */
+/* ========================= */
+
+body {
+  color: var(--cream);
+  text-shadow: 0 0 3px black, 0 0 6px black;
+}
+
+#gameWrapper { position: relative; width: 100%; height: 100%; transform-origin: center; }
+
+/* Mobfade */
+.mobFadeOut { animation: mobFade 1.5s forwards; }
+@keyframes mobFade {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.85); }
+}
+
+/* Smoke spawn */
+.mobSmoke {
+  position: absolute; width: 160px; height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,0,0,0.8), rgba(0,0,0,0.3), transparent);
+  filter: blur(20px); animation: smokeRise 1s ease-out;
+}
+
+@keyframes smokeRise {
+  0%   { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes mobSpawn {
+  0%   { opacity: 0; transform: scale(0.4); filter: blur(8px); }
+  60%  { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+.mobSpawn { animation: mobSpawn 0.8s ease-out; }

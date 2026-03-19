@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="color-scheme" content="only light">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English&display=swap" rel="stylesheet">
+  <title>RPG Test</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #playerCodeBtn, #playerCodeBtn * {
+      color: #ffd700 !important;
+      background: linear-gradient(#5a3800, #2a1800) !important;
+      border-color: #ffd700 !important;
+      -webkit-text-fill-color: #ffd700 !important;
+    }
+  </style>
+</head>
+
+<body tabindex="0">
+
+<div id="gameWrapper">
+  <div id="startScreen" onclick="startIntro()">Cliquer pour commencer</div>
+
+  <div id="intro">
+    <div id="gameTitle"></div>
+    <div id="introBox">
+      <button id="startButton" onclick="startGame()"><span class="btn-inner">▶ Continuer</span></button>
+      <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <button class="menuButton" onclick="newGame()"><span class="btn-inner">🆕 Nouvelle Partie</span></button>
+        <button class="menuButton" onclick="loadGame()"><span class="btn-inner">📂 Charger Partie</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dialogueBox">
+    <img id="dialoguePortrait">
+    <div id="dialogueText"></div>
+  </div>
+
+  <div id="fadeScreen"></div>
+
+  <div id="playerSelect">
+    <button id="playerToggle" onclick="togglePlayerMenu()">🎭</button>
+    <div id="playerMenu">
+      <button onclick="requestGM()">🎲 MJ</button>
+      <div class="menuLabel">Choose :</div>
+      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('greg')">Greg</button>
+      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('ju')">Yu</button>
+      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('elo')">Elo</button>
+      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('bibi')">Bibi</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAMÉRA -->
+<div id="camera" tabindex="-1">
+  <div id="map" tabindex="-1">
+
+    <div class="token" id="mobToken" style="left:500px;top:200px;display:none;">
+      <div class="mobHP">
+        <div class="mobHPBarContainer"><div id="mobTokenHPBar"></div></div>
+        <div id="mobTokenHPText"></div>
+      </div>
+      <img id="mobTokenImg">
+    </div>
+
+    <div id="grid"></div>
+
+    <div class="token" id="greg" style="left:200px;top:300px;">
+      <div class="tokenStats" id="stats_greg"></div>
+      <div class="hpBarToken"><div class="hpBarFill" id="hp_greg"></div></div>
+      <img src="greg.png">
+      <div class="nameTag">Greg</div>
+    </div>
+
+    <div class="token" id="ju" style="left:300px;top:300px;">
+      <div class="tokenStats" id="stats_ju"></div>
+      <div class="hpBarToken"><div class="hpBarFill" id="hp_ju"></div></div>
+      <img src="ju.png">
+      <div class="nameTag">Yu</div>
+    </div>
+
+    <div class="token" id="elo" style="left:400px;top:300px;">
+      <div class="tokenStats" id="stats_elo"></div>
+      <div class="hpBarToken"><div class="hpBarFill" id="hp_elo"></div></div>
+      <img src="elo.png">
+      <div class="nameTag">Elo</div>
+    </div>
+
+    <div class="token" id="bibi" style="left:600px;top:300px;">
+      <div class="tokenStats" id="stats_bibi"></div>
+      <div class="hpBarToken"><div class="hpBarFill" id="hp_bibi"></div></div>
+      <img src="bibi.png">
+      <div class="nameTag">Bibi</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notification"></div>
+
+<!-- BARRE DÉS -->
+<div id="diceBar">
+  <button id="mjRollBtn" onclick="gmRoll(20)" style="display:none;" class="diceImgBtn">
+    <img src="D20.png" alt="D20 MJ" class="diceImg">
+    <span class="diceMJLabel">MJ</span>
+  </button>
+  <button onclick="rollDice(4)"   class="diceImgBtn"><img src="D4.png"   alt="D4"   class="diceImg"></button>
+  <button onclick="rollDice(6)"   class="diceImgBtn"><img src="D6.png"   alt="D6"   class="diceImg"></button>
+  <button onclick="rollDice(8)"   class="diceImgBtn"><img src="D8.png"   alt="D8"   class="diceImg"></button>
+  <button onclick="rollDice(10)"  class="diceImgBtn"><img src="D10.png"  alt="D10"  class="diceImg"></button>
+  <button onclick="rollDice(12)"  class="diceImgBtn"><img src="D12.png"  alt="D12"  class="diceImg"></button>
+  <button onclick="rollDice(20)"  class="diceImgBtn"><img src="D20.png"  alt="D20"  class="diceImg"></button>
+  <button onclick="rollDice(100)" class="diceImgBtn"><img src="D100.png" alt="D100" class="diceImg"></button>
+  <button id="mobD12" onclick="mobRoll(12)" style="display:none;" class="diceImgBtn mobDiceBtn">
+    <img src="D12.png" alt="D12 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
+  </button>
+  <button id="mobD20" onclick="mobRoll(20)" style="display:none;" class="diceImgBtn mobDiceBtn">
+    <img src="D20.png" alt="D20 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
+  </button>
+</div>
+
+<div id="diceResult"></div>
+<div id="diceLog"></div>
+
+<!-- FICHE PERSONNAGE -->
+<div id="characterSheet">
+  <h2 id="sheetTitle" style="text-align:center;font-family:'Cinzel';margin-bottom:10px;">Personnage</h2>
+  <div id="sheetContainer">
+    <img id="sheetImage" src="elosheet.jpg">
+    <input id="lvl"     class="sheetField" style="top:270px;left:420px;width:120px;height:60px;font-size:32px;font-weight:bold;text-align:center;border:2px solid black;background:white;">
+    <input id="xp"      class="sheetField" style="top:400px;left:420px;width:140px;">
+    <input id="force"   class="sheetField playerOnly" onclick="rollStat('force')"   style="top:520px;left:480px;width:280px;">
+    <input id="charme"  class="sheetField playerOnly" onclick="rollStat('charme')"  style="top:570px;left:480px;width:280px;">
+    <input id="perspi"  class="sheetField playerOnly" onclick="rollStat('perspi')"  style="top:620px;left:480px;width:280px;">
+    <input id="chance"  class="sheetField playerOnly" onclick="rollStat('chance')"  style="top:670px;left:480px;width:280px;">
+    <input id="defense" class="sheetField playerOnly" onclick="rollStat('defense')" style="top:720px;left:480px;width:280px;">
+    <textarea id="notes" class="sheetField playerOnly" style="top:880px;left:420px;width:380px;height:140px;"></textarea>
+    <div id="weightContainer" style="position:absolute;top:300px;left:60px;width:300px;">
+      <input id="weight"    class="sheetField" placeholder="Poids" style="top:0;left:0;width:80px;position:relative;">
+      <span style="margin-left:10px;">/</span>
+      <input id="maxWeight" class="sheetField" placeholder="Max"   style="top:0;left:0;width:80px;position:relative;margin-left:10px;">
+      <div id="weightBarContainer" style="margin-top:6px;width:220px;height:14px;background:#222;border-radius:6px;overflow:hidden;">
+        <div id="weightBar" style="height:100%;width:0%;background:lime;"></div>
+      </div>
+    </div>
+    <textarea id="inventaire" class="sheetField" spellcheck="false" style="top:340px;left:60px;width:300px;height:620px;"></textarea>
+    <div id="curseBar" class="playerOnly" style="position:absolute;top:255px;right:60px;">
+      <span class="curseGem" onclick="toggleCurse(1)"></span>
+      <span class="curseGem" onclick="toggleCurse(2)"></span>
+      <span class="curseGem" onclick="toggleCurse(3)"></span>
+      <span class="curseGem" onclick="toggleCurse(4)"></span>
+      <span class="curseGem" onclick="toggleCurse(5)"></span>
+      <span class="curseGem" onclick="toggleCurse(6)"></span>
+      <span class="curseGem" onclick="toggleCurse(7)"></span>
+      <span class="curseGem" onclick="toggleCurse(8)"></span>
+    </div>
+    <input id="hp" class="sheetField" style="top:315px;right:60px;width:90px;font-size:20px;border:2px solid black;background:white;text-align:center;">
+    <div id="hpBarContainer" style="position:absolute;top:285px;right:60px;width:200px;height:18px;background:#222;border:2px solid #555;border-radius:6px;">
+      <div id="hpBar" style="height:100%;width:100%;background:linear-gradient(90deg,#ff5050,#b00000,#600000);border-radius:4px;box-shadow:0 0 8px red;"></div>
+    </div>
+    <div id="corruptionBar" class="playerOnly" style="position:absolute;top:370px;right:60px;">
+      <span class="corruptionPoint" onclick="setCorruption(1)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(2)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(3)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(4)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(5)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(6)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(7)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(8)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(9)"></span>
+      <span class="corruptionPoint" onclick="setCorruption(10)"></span>
+    </div>
+  </div>
+
+  <div id="goldZone" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <img src="bourse.png" id="goldBtn" onclick="toggleGoldInput()" style="width:48px;height:48px;object-fit:contain;cursor:pointer;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
+    <div id="goldDisplay" style="font-family:Cinzel,serif;font-size:16px;color:#d4a835;text-shadow:0 0 8px gold;display:none;min-width:60px;"></div>
+    <input id="goldInput" type="number" placeholder="Or" onmousedown="event.stopPropagation()" style="display:none;width:90px;padding:5px 8px;font-family:Cinzel,serif;font-size:15px;background:rgba(8,20,24,0.95);color:#d4a835;border:1px solid #8a6520;border-radius:3px;text-align:center;" onchange="saveGold()" onkeydown="if(event.key==='Enter')saveGold()">
+  </div>
+  <button onclick="saveCharacter()">💾 Sauvegarder</button>
+  <button onclick="closeCharacterSheet()">Fermer</button>
+</div>
+
+<!-- SONS -->
+<audio id="victorySound"><source src="victoire.mp3"></audio>
+<audio id="combatSound"><source src="combat.mp3"></audio>
+<audio id="combatMusic" loop><source src="lowcombat.mp3"></audio>
+<audio id="parcheminSound"><source src="parchemin.mp3"></audio>
+<audio id="critSound"><source src="crit.mp3" type="mpeg"></audio>
+<audio id="failSound"><source src="fail.mp3" type="mpeg"></audio>
+<audio id="powerSound"><source src="power.mp3" type="mpeg"></audio>
+<audio id="power1Sound" loop><source src="power1.mp3" type="mpeg"></audio>
+<audio id="curseSound"><source src="curse.mp3" type="mpeg"></audio>
+<audio id="curse1Sound"><source src="curse1.mp3" type="mpeg"></audio>
+<audio id="curse2Sound"><source src="curse2.mp3" type="mpeg"></audio>
+<audio id="bark"><source src="bark.mp3" type="mpeg"></audio>
+<audio id="music" loop><source src="trine.mp3" type="mpeg"></audio>
+<audio id="levelUpSound"><source src="lvlup.mp3" type="mpeg"></audio>
+<audio id="defeatSound"><source src="defaite.mp3" type="mpeg"></audio>
+<audio id="musicA" loop></audio>
+<audio id="diceinvSound"><source src="diceinv.mp3" type="mpeg"></audio>
+<audio id="forsureMusic" loop><source src="forsure.mp3" type="mpeg"></audio>
+<audio id="musicB" loop></audio>
+<audio id="auroraMusic" loop><source src="aurore.mp3" type="mpeg"></audio>
+
+<input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.8">
+
+<!-- BARRE MJ SAUVEGARDE -->
+<div id="gmSaveBar">
+  <button onclick="resetAllPlayerStats()" style="padding:4px 10px;font-family:Cinzel,serif;font-size:10px;background:rgba(100,50,0,0.5);color:#ffddaa;border:1px solid rgba(160,100,40,0.5);border-radius:3px;cursor:pointer;margin-bottom:4px;width:100%;" title="Recalculer les stats selon le niveau actuel">⚙ Reset Stats</button>
+  <button id="gmSaveBtn" onclick="showSaveMenu()">💾 Sauvegarder</button>
+</div>
+
+<!-- BARRE MJ -->
+<div id="gmBar">
+  <button class="gmIcon" onclick="toggleGMSection('gmCharacters')" title="Personnages (P)">🎭</button>
+  <button class="gmIcon" onclick="toggleGMSection('mapMenu')"      title="Maps (M)">🗺</button>
+  <button class="gmIcon" onclick="toggleGMSection('pnjMenu')"      title="PNJ (R)">👤</button>
+  <button class="gmIcon" onclick="toggleGMSection('mobMenu2')"     title="Mobs (T)">👹</button>
+  <button class="gmIcon" onclick="toggleGMSection('xpMenu')"       title="XP">⭐</button>
+  <button class="gmIcon" onclick="toggleGMSection('elementsMenu')" title="Éléments (E)">🗝</button>
+  <button class="gmIcon" id="allyBtn" onclick="openAllyPNJPanel()" title="Alliés (A)" style="display:none;">⚔</button>
+</div>
+
+<!-- SECTIONS MJ -->
+<div id="gmCharacters" class="gmSection">
+  <button onclick="openCharacterSheet('greg')">Greg</button>
+  <button onclick="openCharacterSheet('ju')">Yu</button>
+  <button onclick="openCharacterSheet('elo')">Elo</button>
+  <button onclick="openCharacterSheet('bibi')">Bibi</button>
+</div>
+
+<div id="xpMenu" class="gmSection">
+  <button class="gmButton" onclick="giveXP(10)">+10 XP</button>
+  <button class="gmButton" onclick="giveXP(20)">+20 XP</button>
+  <button class="gmButton" onclick="giveXP(50)">+50 XP</button>
+  <button class="gmButton" onclick="giveXP(80)">+80 XP</button>
+  <button class="gmButton" onclick="giveXP(120)">+120 XP</button>
+  <button class="gmButton" onclick="giveXP(200)">+200 XP</button>
+</div>
+
+<!-- MENU PNJ / HIGH PNJ -->
+<div id="pnjMenu" class="gmSection">
+  <div class="pnjTabs">
+    <button class="pnjTab active" onclick="openPNJTab('pnjTab', this)">👤 PNJ</button>
+    <button class="pnjTab" onclick="openPNJTab('highPnjTab', this)">👑 High PNJ</button>
+  </div>
+
+  <div id="pnjTab" class="pnjTabContent active">
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjRivebois', this)"><span class="arrow">▶</span> 🍺 Rivebois</button>
+    <div id="pnjRivebois" class="mapCategory">
+      <button onclick="setPNJImage('tavernier.png')">Tavernier</button>
+      <button onclick="setPNJImage('serveuse.png')">Serveuse</button>
+      <button onclick="setPNJImage('marchand.png')">Marchand</button>
+      <button onclick="setPNJImage('voyantepnj.png')">Voyante</button>
+      <button onclick="setPNJImage('soulard.png')">Soulard</button>
+      <button onclick="setPNJImage('garde.png')">Garde</button>
+      <button onclick="setPNJImage('forgeron.png')">Forgeron</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjBrume', this)"><span class="arrow">▶</span> 🌫 Brume</button>
+    <div id="pnjBrume" class="mapCategory">
+      <button onclick="setPNJImage('child baldur.png')">Child Baldur</button>
+      <button onclick="setPNJImage('forgeron1.png')">Forgeron 2</button>
+      <button onclick="setPNJImage('garde baldur.png')">Garde Baldur</button>
+      <button onclick="setPNJImage('marchand2.png')">Marchand 2</button>
+      <button onclick="setPNJImage('gardedunord.png')">Garde du Nord</button>
+      <button onclick="setPNJImage('garde2.png')">Garde 2</button>
+      <button onclick="setPNJImage('conseillerroinord.png')">Conseiller</button>
+      <button onclick="setPNJImage('pretre.png')">Prêtre</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjGenerique', this)"><span class="arrow">▶</span> 👥 Génériques</button>
+    <div id="pnjGenerique" class="mapCategory">
+      <button onclick="setPNJImage('pnj1.png')">PNJ 1</button>
+      <button onclick="setPNJImage('pnj2.png')">PNJ 2</button>
+      <button onclick="setPNJImage('femmepnj.png')">Femme PNJ</button>
+      <button onclick="setPNJImage('femmepnj1.png')">Femme PNJ 2</button>
+      <button onclick="setPNJImage('femmepnj2.png')">Femme PNJ 3</button>
+      <button onclick="setPNJImage('femmepnj3.png')">Femme PNJ 4</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjChasseur', this)"><span class="arrow">▶</span> 🌌 Chasseur Aurore</button>
+    <div id="pnjChasseur" class="mapCategory"></div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjAutre', this)"><span class="arrow">▶</span> 📦 Autre</button>
+    <div id="pnjAutre" class="mapCategory">
+      <button onclick="setPNJImage('oldmessager.png')">Vieux Messager</button>
+    </div>
+    <!-- SLOT PNJ -->
+    <div style="margin-top:6px;border-top:1px solid rgba(30,90,102,0.3);padding-top:6px;">
+      <div style="font-family:Cinzel;font-size:10px;color:#1e8a9a;text-align:center;margin-bottom:4px;letter-spacing:1px;">SLOT PNJ</div>
+      <div style="display:flex;gap:4px;justify-content:center;margin-bottom:4px;">
+        <button id="slot1Btn" onclick="setPNJSlot(1)" style="flex:1;padding:4px;font-family:Cinzel;font-size:10px;background:rgba(30,90,102,0.4);color:#a0d8e0;border:1px solid #1e5a66;border-radius:3px;cursor:pointer;">① Centre</button>
+        <button id="slot2Btn" onclick="setPNJSlot(2)" style="flex:1;padding:4px;font-family:Cinzel;font-size:10px;background:rgba(30,90,102,0.15);color:#6a9aaa;border:1px solid rgba(30,90,102,0.3);border-radius:3px;cursor:pointer;">② Gauche</button>
+        <button id="slot3Btn" onclick="setPNJSlot(3)" style="flex:1;padding:4px;font-family:Cinzel;font-size:10px;background:rgba(30,90,102,0.15);color:#6a9aaa;border:1px solid rgba(30,90,102,0.3);border-radius:3px;cursor:pointer;">③ Droite</button>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button onclick="closePNJBySlot(1)" style="flex:1;padding:3px;font-family:Cinzel;font-size:9px;background:rgba(180,40,40,0.3);color:#ffaaaa;border:1px solid rgba(200,60,60,0.4);border-radius:3px;cursor:pointer;">✕ C</button>
+        <button onclick="closePNJBySlot(2)" style="flex:1;padding:3px;font-family:Cinzel;font-size:9px;background:rgba(180,40,40,0.3);color:#ffaaaa;border:1px solid rgba(200,60,60,0.4);border-radius:3px;cursor:pointer;">✕ G</button>
+        <button onclick="closePNJBySlot(3)" style="flex:1;padding:3px;font-family:Cinzel;font-size:9px;background:rgba(180,40,40,0.3);color:#ffaaaa;border:1px solid rgba(200,60,60,0.4);border-radius:3px;cursor:pointer;">✕ D</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="highPnjTab" class="pnjTabContent">
+    <button onclick="showHighPNJ('maire.png', 'Maire Rivebois')">Maire Rivebois</button>
+    <button onclick="showHighPNJ('roi.png', 'Le Roi')">Roi</button>
+    <button onclick="showHighPNJ('generalmelenchon.png', 'Général Mélenchon')">Général Mélenchon</button>
+    <button onclick="showHighPNJ('jarl baldur.png', 'Jarl Baldur')">Jarl Baldur</button>
+    <button onclick="showHighPNJ('intendantbrume.png', 'Intendant de Brume')">Intendant de Brume</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('highPnjDieux', this)"><span class="arrow">▶</span> ⚡ Dieux</button>
+    <div id="highPnjDieux" class="mapCategory">
+      <button onclick="showHighPNJ('odin.png', 'Odin')">Odin</button>
+      <button onclick="showHighPNJ('thor.png', 'Thor')">Thor</button>
+      <button onclick="showHighPNJ('freya.png', 'Freya')">Freya</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU MOBS / PNJ COMBAT -->
+<div id="mobMenu2" class="gmSection">
+  <div class="pnjTabs">
+    <button class="pnjTab active" onclick="openPNJTab('mobTab', this)">👹 Mobs</button>
+    <button class="pnjTab" onclick="openPNJTab('pnjCombatTab', this)">⚔ PNJ Combat</button>
+  </div>
+
+  <div id="mobTab" class="pnjTabContent active">
+    <button class="mapCategoryButton" onclick="toggleCategory('mobBetes', this)"><span class="arrow">▶</span> 🐺 Bêtes</button>
+    <div id="mobBetes" class="mapCategory">
+      <button onclick="openMobDiff('loup', event)"  style="width:100%;text-align:left;">Loup</button>
+      <button onclick="openMobDiff('ogre', event)"  style="width:100%;text-align:left;">Ogre</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('mobHumano', this)"><span class="arrow">▶</span> 🗡 Humanoïdes</button>
+    <div id="mobHumano" class="mapCategory">
+      <button onclick="openMobDiff('gobelins', event)"  style="width:100%;text-align:left;">Gobelin</button>
+      <button onclick="openMobDiff('bandit', event)"    style="width:100%;text-align:left;">Bandit</button>
+      <button onclick="openMobDiff('garde', event)"     style="width:100%;text-align:left;">Garde</button>
+      <button onclick="openMobDiff('valkyrie', event)"  style="width:100%;text-align:left;">Valkyrie</button>
+      <button onclick="openMobDiff('liquorice', event)" style="width:100%;text-align:left;">Liquorice</button>
+      <button onclick="openMobDiff('chnaw', event)"     style="width:100%;text-align:left;">Chnaw</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('mobMystique', this)"><span class="arrow">▶</span> 🧙 Mystiques</button>
+    <div id="mobMystique" class="mapCategory">
+      <button onclick="openMobDiff('vampire', event)" style="width:100%;text-align:left;">Vampire</button>
+      <button onclick="openMobDiff('witch', event)"   style="width:100%;text-align:left;">Sorcière</button>
+      <button onclick="openMobDiff('pretre', event)"  style="width:100%;text-align:left;">Prêtre Maudit</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('mobGoules', this)"><span class="arrow">▶</span> 💀 Morts-Vivants</button>
+    <div id="mobGoules" class="mapCategory">
+      <button onclick="openMobDiff('fantome', event)" style="width:100%;text-align:left;">Fantôme</button>
+      <button onclick="openMobDiff('draugr', event)"  style="width:100%;text-align:left;">Draugr</button>
+      <button onclick="openMobDiff('zombie', event)"  style="width:100%;text-align:left;">Zombie</button>
+      <button onclick="openMobDiff('zombie2', event)" style="width:100%;text-align:left;">Zombie 2</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('mobMonstres', this)"><span class="arrow">▶</span> 👹 Monstres</button>
+    <div id="mobMonstres" class="mapCategory">
+      <button onclick="openMobDiff('dragon', event)" style="width:100%;text-align:left;">Dragon</button>
+      <button onclick="openMobDiff('golem', event)"  style="width:100%;text-align:left;">Golem</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('mobWorldBoss', this)"><span class="arrow">▶</span> ⚡ World Boss</button>
+    <div id="mobWorldBoss" class="mapCategory">
+      <button onclick="startCombat('balraug','boss')">Balraug</button>
+      <button onclick="startCombat('fenrir','boss')">Fenrir</button>
+      <button onclick="startCombat('jormungand','boss')">Jormungand</button>
+      <button onclick="startCombat('kraken','boss')">Kraken</button>
+      <button onclick="startCombat('nhiddog','boss')">Nhiddog</button>
+      <button onclick="startCombat('roi','boss')">Roi</button>
+    </div>
+  </div>
+
+  <div id="pnjCombatTab" class="pnjTabContent">
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatRivebois', this)"><span class="arrow">▶</span> 🍺 Rivebois</button>
+    <div id="pnjCombatRivebois" class="mapCategory">
+      <button onclick="openMobDiff('tavernier', event)"   style="width:100%;text-align:left;">Tavernier</button>
+      <button onclick="openMobDiff('soulard', event)"     style="width:100%;text-align:left;">Soulard</button>
+      <button onclick="openMobDiff('serveuse', event)"    style="width:100%;text-align:left;">Serveuse</button>
+      <button onclick="openMobDiff('marchand', event)"    style="width:100%;text-align:left;">Marchand</button>
+      <button onclick="openMobDiff('forgeron', event)"    style="width:100%;text-align:left;">Forgeron</button>
+      <button onclick="openMobDiff('pnj1', event)"        style="width:100%;text-align:left;">PNJ 1</button>
+      <button onclick="openMobDiff('pnj2', event)"        style="width:100%;text-align:left;">PNJ 2</button>
+      <button onclick="openMobDiff('femmepnj', event)"    style="width:100%;text-align:left;">Femme PNJ</button>
+      <button onclick="openMobDiff('femmepnj1', event)"   style="width:100%;text-align:left;">Femme PNJ 2</button>
+      <button onclick="openMobDiff('femmepnj2', event)"   style="width:100%;text-align:left;">Femme PNJ 3</button>
+      <button onclick="openMobDiff('femmepnj3', event)"   style="width:100%;text-align:left;">Femme PNJ 4</button>
+      <button onclick="openMobDiff('oldmessager', event)" style="width:100%;text-align:left;">Vieux Messager</button>
+      <button onclick="openMobDiff('maire', event)"       style="width:100%;text-align:left;">Maire</button>
+      <button onclick="openMobDiff('voyantepnj', event)"  style="width:100%;text-align:left;">Voyante</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatBrume', this)"><span class="arrow">▶</span> 🌫 Brume</button>
+    <div id="pnjCombatBrume" class="mapCategory">
+      <button onclick="openMobDiff('garde', event)"             style="width:100%;text-align:left;">Garde</button>
+      <button onclick="openMobDiff('garde2', event)"            style="width:100%;text-align:left;">Garde 2</button>
+      <button onclick="openMobDiff('gardedunord', event)"       style="width:100%;text-align:left;">Garde du Nord</button>
+      <button onclick="openMobDiff('forgeron1', event)"         style="width:100%;text-align:left;">Forgeron 2</button>
+      <button onclick="openMobDiff('marchand2', event)"         style="width:100%;text-align:left;">Marchand 2</button>
+      <button onclick="openMobDiff('child baldur', event)"      style="width:100%;text-align:left;">Child Baldur</button>
+      <button onclick="openMobDiff('intendantbrume', event)"    style="width:100%;text-align:left;">Intendant de Brume</button>
+      <button onclick="openMobDiff('conseillerroinord', event)" style="width:100%;text-align:left;">Conseiller</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatImportants', this)"><span class="arrow">▶</span> 👑 Importants</button>
+    <div id="pnjCombatImportants" class="mapCategory">
+      <button onclick="openMobDiff('pretre', event)"           style="width:100%;text-align:left;">Prêtre</button>
+      <button onclick="openMobDiff('garde baldur', event)"     style="width:100%;text-align:left;">Garde Baldur</button>
+      <button onclick="openMobDiff('generalmelenchon', event)" style="width:100%;text-align:left;">Général Mélenchon</button>
+      <button onclick="openMobDiff('jarl baldur', event)"      style="width:100%;text-align:left;">Jarl Baldur</button>
+      <button onclick="openMobDiff('chnaw', event)"            style="width:100%;text-align:left;">Chnaw</button>
+      <button onclick="openMobDiff('liquorice', event)"        style="width:100%;text-align:left;">Liquorice</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatDieux', this)"><span class="arrow">▶</span> ⚡ Dieux</button>
+    <div id="pnjCombatDieux" class="mapCategory">
+      <button onclick="startCombat('odin','boss')">Odin</button>
+      <button onclick="startCombat('thor','boss')">Thor</button>
+      <button onclick="startCombat('freya','boss')">Freya</button>
+    </div>
+  </div>
+</div>
+
+<!-- ELEMENTS MENU -->
+<div id="elementsMenu" class="gmSection">
+  <div class="pnjTabs">
+    <button class="pnjTab active" onclick="openPNJTab('elemIndices', this)">📜</button>
+    <button class="pnjTab" onclick="openPNJTab('elemObjets', this)">⚔</button>
+    <button class="pnjTab" onclick="openPNJTab('elemEffets', this)">✨</button>
+    <button class="pnjTab" onclick="openPNJTab('elemCartes', this)">🗺</button>
+    <button class="pnjTab" onclick="openPNJTab('elemJeu', this)">ᚱ</button>
+    <button class="pnjTab" onclick="openPNJTab('elemWanted', this)">🎯</button>
+  </div>
+  <div id="elemIndices" class="pnjTabContent active">
+    <div style="font-family:Cinzel;font-size:10px;color:#8a6830;text-align:center;margin-bottom:8px;letter-spacing:2px;">🍃 DOCUMENTS</div>
+    <button onclick="showDocument('note baldur.png','Note de Baldur')"   style="width:100%;text-align:left;background:rgba(60,40,10,0.4);color:#f0d890;border:1px solid rgba(160,120,40,0.4);padding:7px 10px;border-radius:3px;font-family:Cinzel;font-size:11px;cursor:pointer;margin-bottom:4px;">📜 Note de Baldur</button>
+    <button onclick="showDocument('note foret.png','Note de la Forêt')"  style="width:100%;text-align:left;background:rgba(60,40,10,0.4);color:#f0d890;border:1px solid rgba(160,120,40,0.4);padding:7px 10px;border-radius:3px;font-family:Cinzel;font-size:11px;cursor:pointer;margin-bottom:4px;">📜 Note de la Forêt</button>
+    <button onclick="showDocument('fresque.png','Fresque Maelstrom')"    style="width:100%;text-align:left;background:rgba(60,40,10,0.4);color:#f0d890;border:1px solid rgba(160,120,40,0.4);padding:7px 10px;border-radius:3px;font-family:Cinzel;font-size:11px;cursor:pointer;margin-bottom:4px;">🖼 Fresque Maelstrom</button>
+    <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:6px;">
+      <button onclick="clearAllElements()" style="width:100%;background:rgba(180,40,40,0.4);color:#ffaaaa;border:1px solid rgba(200,60,60,0.5);padding:6px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">🗑 Tout effacer</button>
+    </div>
+  </div>
+  <div id="elemObjets" class="pnjTabContent">
+    <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:8px;">
+      <button onclick="openShop('armurerie')" style="width:100%;background:rgba(100,60,20,0.5);color:#ffddaa;border:1px solid rgba(160,100,40,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;margin-bottom:4px;">⚔ Armurerie</button>
+      <button onclick="openShop('marche')"   style="width:100%;background:rgba(40,100,40,0.5);color:#aaffaa;border:1px solid rgba(60,160,60,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">🛒 Marché</button>
+    </div>
+  </div>
+  <div id="elemEffets" class="pnjTabContent">
+    <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:8px;display:flex;flex-direction:column;gap:4px;">
+      <button onclick="triggerAurora()" style="width:100%;background:rgba(0,180,120,0.15);color:#a0ffcc;border:1px solid rgba(0,200,150,0.4);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">🌌 Déclencher Aurore</button>
+      <button onclick="cemeteryEventDone=false;triggerCemeteryEvent()" style="width:100%;background:rgba(80,0,120,0.3);color:#cc88ff;border:1px solid rgba(120,0,180,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">⚡ Sort Cimetière</button>
+    </div>
+  </div>
+  <div id="elemCartes" class="pnjTabContent"></div>
+  <div id="elemJeu" class="pnjTabContent">
+    <div style="font-family:Cinzel;font-size:11px;color:#8a6830;text-align:center;margin-bottom:8px;letter-spacing:2px;">⚔ DÉFI RUNIQUE ⚔</div>
+    <button id="runeLaunchBtn"   onclick="openRuneChallenge()" style="width:100%;background:rgba(200,160,50,0.2);color:#c8a050;border:1px solid rgba(200,160,50,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;margin-bottom:4px;">ᚱ Lancer le Défi</button>
+    <button id="runeContinueBtn" onclick="db.ref('game/runeChallenge').once('value',s=>renderRuneChallenge(s.val()))" style="display:none;width:100%;background:rgba(50,150,50,0.2);color:#aaffaa;border:1px solid rgba(50,150,50,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;margin-bottom:4px;">▶ Continuer le Défi</button>
+    <div style="font-family:Cinzel;font-size:10px;color:#8a6830;text-align:center;margin:4px 0;letter-spacing:2px;">— RÉVÉLER UNE LETTRE —</div>
+    <div id="runeLetterPanel" style="background:rgba(0,0,0,0.2);border-radius:4px;padding:6px;">
+      <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">
+        <button onclick="revealRuneLetter('A')" class="runeLetBtn">A</button><button onclick="revealRuneLetter('B')" class="runeLetBtn">B</button>
+        <button onclick="revealRuneLetter('C')" class="runeLetBtn">C</button><button onclick="revealRuneLetter('D')" class="runeLetBtn">D</button>
+        <button onclick="revealRuneLetter('E')" class="runeLetBtn">E</button><button onclick="revealRuneLetter('F')" class="runeLetBtn">F</button>
+        <button onclick="revealRuneLetter('G')" class="runeLetBtn">G</button><button onclick="revealRuneLetter('H')" class="runeLetBtn">H</button>
+        <button onclick="revealRuneLetter('I')" class="runeLetBtn">I</button><button onclick="revealRuneLetter('J')" class="runeLetBtn">J</button>
+        <button onclick="revealRuneLetter('K')" class="runeLetBtn">K</button><button onclick="revealRuneLetter('L')" class="runeLetBtn">L</button>
+        <button onclick="revealRuneLetter('M')" class="runeLetBtn">M</button><button onclick="revealRuneLetter('N')" class="runeLetBtn">N</button>
+        <button onclick="revealRuneLetter('O')" class="runeLetBtn">O</button><button onclick="revealRuneLetter('P')" class="runeLetBtn">P</button>
+        <button onclick="revealRuneLetter('R')" class="runeLetBtn">R</button><button onclick="revealRuneLetter('S')" class="runeLetBtn">S</button>
+        <button onclick="revealRuneLetter('T')" class="runeLetBtn">T</button><button onclick="revealRuneLetter('U')" class="runeLetBtn">U</button>
+        <button onclick="revealRuneLetter('V')" class="runeLetBtn">V</button><button onclick="revealRuneLetter('W')" class="runeLetBtn">W</button>
+        <button onclick="revealRuneLetter('Y')" class="runeLetBtn">Y</button><button onclick="revealRuneLetter('Z')" class="runeLetBtn">Z</button>
+      </div>
+    </div>
+  </div>
+  <div id="elemWanted" class="pnjTabContent">
+    <div style="font-family:Cinzel,serif;font-size:11px;color:#aa8844;letter-spacing:2px;margin-bottom:8px;text-align:center;">⚔ AFFICHES WANTED</div>
+    <div id="wantedList" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;"></div>
+    <button onclick="openWantedEditor()" style="width:100%;margin-top:8px;padding:6px;font-family:Cinzel,serif;font-size:11px;background:rgba(80,50,10,0.5);color:#ffddaa;border:1px solid rgba(150,100,30,0.5);border-radius:4px;cursor:pointer;">+ Créer une affiche</button>
+  </div>
+</div>
+
+<!-- MAP MENU -->
+<div id="mapMenu" class="gmSection">
+  <div class="pnjTabs">
+    <button class="pnjTab active" onclick="openPNJTab('mapVilles', this)">🏙 Villes</button>
+    <button class="pnjTab" onclick="openPNJTab('mapLandscape', this)">🌄 Landscape</button>
+    <button class="pnjTab" onclick="openPNJTab('mapLieux', this)">🗺 Lieux</button>
+  </div>
+
+  <!-- VILLES -->
+  <div id="mapVilles" class="pnjTabContent active">
+    <button class="mapCategoryButton" onclick="toggleCategory('villageMaps', this)"><span class="arrow">▶</span> 🏘 Rivebois</button>
+    <div id="villageMaps" class="mapCategory">
+      <button onclick="changeMap('taverne.jpg')">Taverne</button>
+      <button onclick="changeMap('village1.jpg')">Village</button>
+      <button onclick="changeMap('armurerie.jpg')">Armurerie</button>
+      <button onclick="changeMap('marche.jpg')">Marché</button>
+      <button onclick="changeMap('voyante.jpg')">Voyante</button>
+      <button onclick="changeMap('mairemaison.jpg')">Mairie</button>
+      <button onclick="changeMap('epouventail.jpg')">Épouvantail</button>
+      <button onclick="changeMap('rivebois.jpg')">Rivebois</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('portMaps', this)"><span class="arrow">▶</span> ⚓ Brume</button>
+    <div id="portMaps" class="mapCategory">
+      <button onclick="changeMap('port.jpg')">Entrée Brume</button>
+      <button onclick="changeMap('bateaunord.png')">Bateau Nord</button>
+      <button onclick="changeMap('egout.jpg')">Égout de Brume</button>
+      <button onclick="changeMap('armurerie1.jpg')">Armurerie</button>
+      <button onclick="changeMap('marche1.jpg')">Place du marché</button>
+      <button onclick="changeMap('palaisville.jpg')">Palais de l'intendant Macron</button>
+      <button onclick="changeMap('bateau.jpg', 'forsure')">Le for sure</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('auroraHunterMaps', this)"><span class="arrow">▶</span> 🌌 Chasseur d'Aurores</button>
+    <div id="auroraHunterMaps" class="mapCategory">
+      <button onclick="changeMap('chasseuraurore.jpg')">Camp chasseurs</button>
+      <button onclick="changeMap('tenteaurore.jpg')">Tente du général</button>
+      <button onclick="changeMap('bateau1.jpg')">L'Oregon III</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('asgardMaps', this)"><span class="arrow">▶</span> ⚡ Asgard</button>
+    <div id="asgardMaps" class="mapCategory">
+      <button onclick="changeMap('bifrost.jpg')">Bifrost</button>
+      <button onclick="changeMap('asgard.jpg')">Cité des dieux Asgard</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('niflheimMaps', this)"><span class="arrow">▶</span> 🌊 Niflheim</button>
+    <div id="niflheimMaps" class="mapCategory">
+      <button onclick="changeMap('tourbillon.jpg')">Maelstrom</button>
+      <button onclick="changeMap('niflheim.jpg')">Cité engloutie Niflheim</button>
+      <button onclick="changeMap('hvergelmir.jpg')">Source sacrée Hvergelmir</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('castleofevilMaps', this)"><span class="arrow">▶</span> 🏰 Castle of Evil</button>
+    <div id="castleofevilMaps" class="mapCategory">
+      <button onclick="changeMap('castleofevil.jpg')">Entrée castle</button>
+      <button onclick="changeMap('interieurcastle.jpg')">Salle castle</button>
+      <button onclick="changeMap('throne.jpg')">Throne</button>
+    </div>
+    <button class="mapWorldButton" onclick="changeMap('MAPMONDE.jpg')">🌍 MAP MONDE</button>
+  </div>
+
+  <!-- LANDSCAPE -->
+  <div id="mapLandscape" class="pnjTabContent">
+    <button onclick="changeMap('prairie.jpg')" style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">Prairie</button>
+    <button onclick="changeMap('neige.jpg')"   style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">Neige</button>
+  </div>
+
+  <!-- LIEUX -->
+  <div id="mapLieux" class="pnjTabContent">
+    <button class="mapCategoryButton" onclick="toggleCategory('forestMaps', this)"><span class="arrow">▶</span> 🌲 Forêt</button>
+    <div id="forestMaps" class="mapCategory">
+      <button onclick="changeMap('foret.jpg')">Forêt</button>
+      <button onclick="changeMap('arbre.jpg')">Arbre</button>
+      <button onclick="changeMap('portail.jpg')">Portail</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('mineMaps', this)"><span class="arrow">▶</span> ⛏ Mine</button>
+    <div id="mineMaps" class="mapCategory">
+      <button onclick="changeMap('mine.jpg')">Entrée mine</button>
+      <button onclick="changeMap('interieurmine.jpg')">Salle mine</button>
+      <button onclick="changeMap('balraug.jpg', 'balraug')">Antre de Balraug</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('cimetiereMaps', this)"><span class="arrow">▶</span> ⚰ Cimetière</button>
+    <div id="cimetiereMaps" class="mapCategory">
+      <button onclick="changeMap('cimetiere.jpg')">Cimetière</button>
+      <button onclick="changeMap('chapelle.jpg')">Chapelle</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('antreMaps', this)"><span class="arrow">▶</span> 🕳 Antre</button>
+    <div id="antreMaps" class="mapCategory">
+      <button onclick="changeMap('trou.jpg')">Passage</button>
+      <button onclick="changeMap('antre.jpg')">L'Antre</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('ruinesBaldurMaps', this)"><span class="arrow">▶</span> 🏚 Ruines Baldur</button>
+    <div id="ruinesBaldurMaps" class="mapCategory">
+      <button onclick="changeMap('ruines.jpg')">Village du Jarl</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('autreMaps', this)"><span class="arrow">▶</span> 📦 Autres</button>
+    <div id="autreMaps" class="mapCategory">
+      <button onclick="changeMap('cristaux.jpg')">Cristaux</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOURNAL MJ -->
+<div id="mjLog">
+  <div class="mjTitle" style="display:flex;justify-content:space-between;align-items:center;">
+    <span>📜 Journal du MJ</span>
+    <span id="mjLogToggle" onclick="toggleMJLog()" style="cursor:pointer;font-size:14px;color:#5a9aaa;padding:0 4px;" title="Réduire">▼</span>
+  </div>
+  <div id="mjLogContent"></div>
+</div>
+
+<div id="locationBanner">
+  <div id="locationParticles"></div>
+  <div id="locationPaper"><span id="locationText"></span></div>
+</div>
+
+<div id="storyImage" style="display:none;opacity:0;"><img id="storyImageContent"></div>
+<div id="storyImage2" style="display:none;"><img id="storyImageContent2"></div>
+<div id="storyImage3" style="display:none;"><img id="storyImageContent3"></div>
+
+<div id="combatIntro"><div id="combatIntroText">⚔ PREPAREZ-VOUS À COMBATTRE ⚔</div></div>
+<div id="victoryScreen"><div id="victoryText">VICTOIRE!</div></div>
+<div id="combatFilter"></div>
+
+<button id="playerAttackBtn" onclick="togglePlayerAttacks()" style="display:none;">⚔</button>
+<button id="playerAllyBtn" onclick="openAllyPNJViewer()" style="display:none;">✦</button>
+
+<div id="combatHUD">
+  <img id="combatHUDPortrait">
+  <div id="combatHUDInfo">
+    <div id="combatHUDName"></div>
+    <div id="combatHUDAttacks"></div>
+  </div>
+</div>
+
+<div id="gmDamagePanel">
+  <div id="gmDamagePanelInner">
+    <div id="mobHPDisplay">
+      <div id="mobHPBarTop"><span id="mobHPTopText">— / —</span></div>
+      <div id="mobHPBarTopContainer"><div id="mobHPBarTop"></div></div>
+    </div>
+    <div id="gmDamageRow">
+      <label>Dégâts :</label>
+      <input id="mobDamageInput" type="number" placeholder="0">
+    </div>
+    <div id="gmCombatButtons">
+      <button id="btnVictoire" onclick="showVictory()">⚔ VICTOIRE</button>
+      <button id="btnDefaite"  onclick="showDefeat()">💀 DÉFAITE</button>
+    </div>
+  </div>
+</div>
+
+<div id="gmCombatPanel"></div>
+
+<div id="addMobPanel" style="display:none;margin-top:8px;border-top:1px solid rgba(200,60,60,0.3);padding-top:8px;">
+  <div style="font-family:Cinzel,serif;font-size:10px;color:#ff8888;text-align:center;margin-bottom:6px;letter-spacing:2px;">+ AJOUTER UN MOB</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;" id="addMobButtons"></div>
+</div>
+
+<div id="mobHUD">
+  <div id="mobName"></div>
+  <div id="mobHPBarContainer"><div id="mobHPBar"></div></div>
+  <div id="mobHPText"></div>
+</div>
+
+<div id="playerCombatPanel">
+  <div class="playerCombatTitle">Stats</div>
+  <div class="playerStat">Force :   <input id="combat_force"></div>
+  <div class="playerStat">Charme :  <input id="combat_charme"></div>
+  <div class="playerStat">Perspi :  <input id="combat_perspi"></div>
+  <div class="playerStat">Chance :  <input id="combat_chance"></div>
+  <div class="playerStat">Défense : <input id="combat_defense"></div>
+  <div class="playerStat">❤️ HP :   <input id="combat_hp">
+    <div id="combatHPBarContainer"><div id="combatHPBar"></div></div>
+  </div>
+</div>
+
+<div id="combatArena">
+  <div id="combatGrid"></div>
+  <div id="combatTokens"></div>
+  <div id="defeatScreen">
+    <div id="defeatText">DÉFAITE</div>
+    <div id="defeatSubText">Vos héros tombent dans l'obscurité...<br>La prophétie n'est pas encore accomplie.</div>
+  </div>
+</div>
+
+<!-- MENU SÉLECTION MOBS PRÉ-COMBAT -->
+<div id="mobSelectionMenu" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999999;align-items:center;justify-content:center;flex-direction:column;gap:16px;" data-darkreader-ignore>
+  <canvas id="mobMenuBg" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></canvas>
+  <div style="position:relative;z-index:1;text-align:center;padding:30px;background:rgb(15,0,0)!important;border:2px solid rgb(180,40,40);border-radius:12px;min-width:400px;box-shadow:0 0 60px rgb(200,0,0);" data-darkreader-ignore>
+    <div id="mobMenuTitle" style="font-family:'Cinzel Decorative',serif;font-size:20px;color:rgb(255,100,100);letter-spacing:4px;margin-bottom:8px;">⚔ CONFIGURATION DU COMBAT</div>
+    <div id="mobMenuSub"   style="font-family:Cinzel,serif;font-size:12px;color:rgb(180,80,80);letter-spacing:2px;margin-bottom:20px;"></div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-bottom:20px;">
+      <div style="background:rgb(25,5,5);border:1px solid rgb(120,30,30);border-radius:8px;padding:12px;width:160px;">
+        <div style="font-family:Cinzel,serif;font-size:10px;color:rgb(160,60,60);margin-bottom:8px;letter-spacing:1px;">MOB 2 (optionnel)</div>
+        <div id="mobSlot2Select" data-value="" onmousedown="event.stopPropagation()" style="width:100%;padding:5px;font-family:Cinzel,serif;font-size:11px;background:rgb(20,5,5);color:rgb(255,180,180);border:1px solid rgb(120,30,30);border-radius:3px;cursor:pointer;text-align:center;" onclick="event.stopPropagation();toggleMobDropdown('slot2',this)">— Aucun —</div>
+        <div id="mobDropdown_slot2" onmousedown="event.stopPropagation()" style="display:none;position:fixed;background:rgb(15,3,3);border:1px solid rgb(150,30,30);border-radius:4px;max-height:180px;overflow-y:auto;z-index:999999999;width:160px;"></div>
+      </div>
+      <div style="background:rgb(25,5,5);border:1px solid rgb(120,30,30);border-radius:8px;padding:12px;width:160px;">
+        <div style="font-family:Cinzel,serif;font-size:10px;color:rgb(160,60,60);margin-bottom:8px;letter-spacing:1px;">MOB 3 (optionnel)</div>
+        <div id="mobSlot3Select" data-value="" onmousedown="event.stopPropagation()" style="width:100%;padding:5px;font-family:Cinzel,serif;font-size:11px;background:rgb(20,5,5);color:rgb(255,180,180);border:1px solid rgb(120,30,30);border-radius:3px;cursor:pointer;text-align:center;" onclick="event.stopPropagation();toggleMobDropdown('slot3',this)">— Aucun —</div>
+        <div id="mobDropdown_slot3" onmousedown="event.stopPropagation()" style="display:none;position:fixed;background:rgb(15,3,3);border:1px solid rgb(150,30,30);border-radius:4px;max-height:180px;overflow-y:auto;z-index:999999999;width:160px;"></div>
+      </div>
+    </div>
+    <div id="mobPreviewRow" style="display:flex;gap:24px;justify-content:center;margin-bottom:16px;min-height:70px;align-items:center;"></div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="mobMenuLaunch" onclick="launchFromMobMenu()" style="padding:12px 30px;font-family:Cinzel,serif;font-size:13px;letter-spacing:2px;background:rgb(100,0,0);color:rgb(255,150,150);border:2px solid rgb(180,40,40);border-radius:6px;cursor:pointer;">⚔ Lancer</button>
+      <button onclick="document.getElementById('mobSelectionMenu').style.display='none'" style="padding:12px 20px;font-family:Cinzel,serif;font-size:12px;background:rgb(30,30,30);color:rgb(150,150,150);border:1px solid rgb(80,80,80);border-radius:6px;cursor:pointer;">✕ Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP DIFFICULTÉ MOB -->
+<div id="mobDiffPopup" style="display:none;position:fixed;z-index:99999999;background:rgb(15,3,3);border:1px solid rgb(180,40,40);border-radius:6px;padding:8px;box-shadow:0 0 20px rgba(180,0,0,0.4);" onmousedown="event.stopPropagation()">
+  <div id="mobDiffName" style="font-family:Cinzel,serif;font-size:10px;color:rgb(200,100,100);letter-spacing:2px;text-align:center;margin-bottom:6px;"></div>
+  <div style="display:flex;flex-direction:column;gap:4px;">
+    <button onclick="launchMobDiff('weak')"   style="padding:4px 14px;font-family:Cinzel,serif;font-size:11px;background:rgb(30,10,10);color:rgb(180,220,180);border:1px solid rgb(60,120,60);border-radius:3px;cursor:pointer;">● Faible</button>
+    <button onclick="launchMobDiff('medium')" style="padding:4px 14px;font-family:Cinzel,serif;font-size:11px;background:rgb(30,10,10);color:rgb(220,180,100);border:1px solid rgb(120,90,30);border-radius:3px;cursor:pointer;">●● Moyen</button>
+    <button onclick="launchMobDiff('high')"   style="padding:4px 14px;font-family:Cinzel,serif;font-size:11px;background:rgb(30,10,10);color:rgb(220,120,80);border:1px solid rgb(150,60,30);border-radius:3px;cursor:pointer;">●●● Puissant</button>
+    <button onclick="launchMobDiff('boss')"   style="padding:4px 14px;font-family:Cinzel,serif;font-size:11px;background:rgb(30,10,10);color:rgb(255,180,80);border:1px solid rgb(180,100,0);border-radius:3px;cursor:pointer;">⚡ Boss</button>
+  </div>
+</div>
+
+<!-- ÉDITEUR WANTED -->
+<div id="wantedEditor" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999999;align-items:center;justify-content:center;">
+  <div style="background:rgb(20,12,5);border:2px solid rgb(150,100,30);border-radius:10px;padding:20px;width:320px;font-family:Cinzel,serif;">
+    <div style="font-size:14px;color:rgb(255,200,80);letter-spacing:3px;text-align:center;margin-bottom:14px;">⚔ CRÉER UNE AFFICHE</div>
+    <div id="wantedMobBtn" data-value="" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();toggleWantedDropdown(this)" style="width:100%;padding:6px;margin-bottom:4px;font-family:Cinzel,serif;font-size:11px;background:rgb(15,8,3);color:rgb(255,200,120);border:1px solid rgb(120,80,20);border-radius:3px;cursor:pointer;text-align:center;box-sizing:border-box;">— Choisir un mob —</div>
+    <div id="wantedMobDropdown" onmousedown="event.stopPropagation()" style="display:none;position:fixed;background:rgb(15,5,0);border:1px solid rgb(120,80,20);border-radius:4px;max-height:200px;overflow-y:auto;z-index:999999999;width:280px;"></div>
+    <div id="wantedTierBtn" data-value="weak" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();toggleWantedTierDropdown(this)" style="width:100%;padding:6px;margin-bottom:4px;font-family:Cinzel,serif;font-size:11px;background:rgb(15,8,3);color:rgb(255,200,120);border:1px solid rgb(120,80,20);border-radius:3px;cursor:pointer;text-align:center;box-sizing:border-box;">Faible — 50-150 po</div>
+    <div id="wantedTierDropdown" onmousedown="event.stopPropagation()" style="display:none;position:fixed;background:rgb(15,5,0);border:1px solid rgb(120,80,20);border-radius:4px;z-index:999999999;width:280px;">
+      <div onmousedown="event.stopPropagation()" onclick="event.stopPropagation();selectWantedTier('weak','Faible — 50-150 po')"       style="padding:6px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,220,180);cursor:pointer;">Faible — 50-150 po</div>
+      <div onmousedown="event.stopPropagation()" onclick="event.stopPropagation();selectWantedTier('medium','Moyen — 200-500 po')"     style="padding:6px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(220,180,100);cursor:pointer;">Moyen — 200-500 po</div>
+      <div onmousedown="event.stopPropagation()" onclick="event.stopPropagation();selectWantedTier('high','Puissant — 600-1200 po')"   style="padding:6px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(220,120,80);cursor:pointer;">Puissant — 600-1200 po</div>
+      <div onmousedown="event.stopPropagation()" onclick="event.stopPropagation();selectWantedTier('boss','Boss — 2000-5000 po')"      style="padding:6px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,180,80);cursor:pointer;">Boss — 2000-5000 po</div>
+    </div>
+    <input id="wantedReward" type="number" placeholder="Récompense (po)" onmousedown="event.stopPropagation()" style="width:100%;padding:6px;margin-bottom:8px;font-family:Cinzel,serif;font-size:11px;background:rgb(15,8,3);color:rgb(255,200,120);border:1px solid rgb(120,80,20);border-radius:3px;box-sizing:border-box;">
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button onclick="createWantedPoster()" style="flex:1;padding:8px;font-family:Cinzel,serif;font-size:12px;background:rgb(80,50,10);color:rgb(255,200,80);border:1px solid rgb(150,100,30);border-radius:4px;cursor:pointer;">✓ Créer</button>
+      <button onclick="document.getElementById('wantedEditor').style.display='none'" style="flex:1;padding:8px;font-family:Cinzel,serif;font-size:12px;background:rgb(40,20,5);color:rgb(180,140,80);border:1px solid rgb(100,70,20);border-radius:4px;cursor:pointer;">✕ Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- SCRIPTS — ordre de chargement important        -->
+<!-- ============================================== -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<!-- 1. Données statiques -->
+<script src="config.js"></script>
+<!-- 2. Variables d'état -->
+<script src="state.js"></script>
+<!-- 3. Utilitaires (pas de dépendances Firebase) -->
+<script src="utils.js"></script>
+<!-- 4. Logique principale + Firebase listeners -->
+<script src="game.js"></script>
+<!-- 5. Interface utilisateur -->
+<script src="ui.js"></script>
+<!-- 6. Combat -->
+<script src="combat.js"></script>
+
+</body>
+</html>
