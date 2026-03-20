@@ -379,10 +379,14 @@ function showVictory() {
     victory.style.display = "none"
     endCombat()
     if (currentMob === "balraug") {
-      db.ref("game/map").set("prairie.jpg")
+      currentMap = "prairie.jpg"
+      if (isGM) db.ref("game/map").set("prairie.jpg")
+      returnToMap()
       setTimeout(() => crossfadeMusic(mapMusic["prairie.jpg"]), 800)
     } else if (currentMob === "kraken") {
-      db.ref("game/map").set("niflheim.jpg")
+      currentMap = "niflheim.jpg"
+      if (isGM) db.ref("game/map").set("niflheim.jpg")
+      returnToMap()
       setTimeout(() => crossfadeMusic(mapMusic["niflheim.jpg"]), 800)
     } else {
       returnToMap()
