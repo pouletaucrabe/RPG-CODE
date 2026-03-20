@@ -256,6 +256,7 @@ function _startCombatSequence(mob, tierMob) {
 /* ========================= */
 
 function showMobIntro(mob) {
+  window.__witchIntroSoundPlaying = false
   const mobs = [mob]
   if (_state.pendingExtraMobs) {
     ;["mob2","mob3"].forEach(slot => { const m = _state.pendingExtraMobs[slot]; if (m) mobs.push(m) })
@@ -276,7 +277,8 @@ function showMobIntro(mob) {
       box.style.left = p.left; box.style.transform = p.transform; box.style.right = p.right || "auto"
       box.style.display = "flex"; box.style.opacity = "1"
       img.src = "images/" + mobName + ".png"
-      if (mobName === "witch") {
+      if (mobName === "witch" && !window.__witchIntroSoundPlaying) {
+        window.__witchIntroSoundPlaying = true
         const witchSound = new Audio("audio/witch.mp3")
         witchSound.volume = 0.9
         witchSound.play().catch(() => {})
@@ -285,6 +287,7 @@ function showMobIntro(mob) {
             if (witchSound.volume > 0.08) witchSound.volume = Math.max(0, witchSound.volume - 0.09)
             else {
               witchSound.pause()
+              window.__witchIntroSoundPlaying = false
               clearInterval(fadeIv)
             }
           }, 100)
@@ -472,6 +475,7 @@ function endCombat() {
     db.ref("game/playerAllyAccess").remove()
     _syncCombatEnd()
   }
+  setTimeout(() => { if (typeof updateThuumButton === "function") updateThuumButton() }, 80)
 }
 
 function returnToMap() {
@@ -505,6 +509,7 @@ function returnToMap() {
       fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = "0"; fade.style.pointerEvents = "none"
       // Balraug — musique déjà en cours, ne pas relancer
       if (currentMap && mapMusic[currentMap] && currentMob !== "balraug") crossfadeMusic(mapMusic[currentMap])
+      if (typeof updateThuumButton === "function") updateThuumButton()
     }, 300)
   }, 600)
 }

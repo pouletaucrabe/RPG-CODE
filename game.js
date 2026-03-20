@@ -135,6 +135,23 @@ function updateMadnessVisibility() {
   else playMadnessLoopForTier(window.groupMadnessTier, window.groupMadness)
 }
 
+function resetMadnessPresentation() {
+  const gauge = document.getElementById("madnessGauge")
+  const overlay = document.getElementById("madnessOverlay")
+  const cameraEl = document.getElementById("camera")
+  stopMadnessLoops()
+  if (gauge) gauge.style.display = "none"
+  if (overlay) {
+    overlay.style.display = "none"
+    overlay.style.opacity = "0"
+    overlay.classList.remove("active", "pulse")
+  }
+  if (cameraEl) {
+    cameraEl.style.filter = ""
+    cameraEl.classList.remove("madnessWarp")
+  }
+}
+
 function updateMadnessUI(value) {
   const gauge = document.getElementById("madnessGauge")
   const fill = document.getElementById("madnessGaugeFill")
@@ -260,30 +277,39 @@ function isThuumUsedThisCombat(word) {
 function updateThuumButton() {
   const btn = document.getElementById("playerThuumBtn")
   if (!btn) return
-
-  if (isGM || !myToken || !combatActive || !hasUnlockedThuum("SKRAA")) {
+  
+  if (isGM || !myToken || !hasUnlockedThuum("SKRAA")) {
     btn.style.display = "none"
     btn.disabled = false
-    btn.innerText = "SKRAA"
     return
   }
 
   btn.style.display = "block"
+  if (!combatActive) {
+    btn.disabled = true
+    btn.title = "Disponible en combat"
+    return
+  }
   const used = isThuumUsedThisCombat("SKRAA")
   btn.disabled = used
-  btn.innerText = used ? "SKRAA - utilise" : "SKRAA"
+  btn.title = used ? "Deja utilise pour ce combat" : "Pret a etre lance"
 }
 
 function showThuumUnlockCinematic(data) {
-  const screen = document.getElementById("thuumUnlockScreen")
-  const title = document.getElementById("thuumUnlockTitle")
-  const words = document.getElementById("thuumUnlockWords")
-  const player = document.getElementById("thuumUnlockPlayer")
-  if (!screen || !title || !words || !player) return
+    const screen = document.getElementById("thuumUnlockScreen")
+    const image = document.getElementById("thuumUnlockImage")
+    const title = document.getElementById("thuumUnlockTitle")
+    const words = document.getElementById("thuumUnlockWords")
+    const player = document.getElementById("thuumUnlockPlayer")
+    if (!screen || !title || !words || !player) return
 
-  title.innerText = "Nouveau Cri de Mouches appris : " + data.word
-  words.innerText = "SKRAA • VORTH • NAAK"
-  player.innerText = data.playerId ? ("Porteur choisi : " + data.playerId.toUpperCase()) : ""
+    if (image) image.src = "images/thuum.png"
+    title.innerText = "Nouveau Cri de Mouches appris : " + data.word
+    words.innerText = (data.words && data.words.length ? data.words.join(" • ") : data.word)
+    player.innerText = data.playerId ? ("Porteur choisi : " + data.playerId.toUpperCase()) : ""
+  if (myToken && data.playerId && String(myToken.id).toLowerCase() === String(data.playerId).toLowerCase()) {
+    showNotification("SKRAA est maintenant a vous")
+  }
 
   const snd = document.getElementById("thuumSound")
   if (snd) {
@@ -366,18 +392,18 @@ function usePlayerThuum() {
   setTimeout(() => db.ref("game/thuumCast").remove(), 1500)
 
   const rank = ((getMyThuumWords().SKRAA || {}).rank || 1)
-  const mainDmg = 16 + rank * 8
-  const splash = 6 + rank * 4
+  const mainDmg = 8 + rank * 4
+  const splash = 3 + rank * 2
 
   db.ref("combat/mob").once("value", snap => {
     const mob = snap.val()
-    if (mob) db.ref("combat/mob/hp").set(Math.max(0, (mob.hp || 0) - mainDmg))
+    if (mob) db.ref("combat/mob/hp").set(Math.max(1, (mob.hp || 0) - mainDmg))
   })
 
   ;["mob2", "mob3"].forEach(slot => {
     db.ref("combat/" + slot).once("value", snap => {
       const mob = snap.val()
-      if (mob) db.ref("combat/" + slot + "/hp").set(Math.max(0, (mob.hp || 0) - splash))
+      if (mob) db.ref("combat/" + slot + "/hp").set(Math.max(1, (mob.hp || 0) - splash))
     })
   })
 
@@ -400,6 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const madnessGauge = document.getElementById("madnessGauge")
 if (madnessGauge) madnessGauge.style.display = "none"
+resetMadnessPresentation()
 
 // ─── combat/mob — listener unique fusionné ───
 db.ref("combat/mob").on("value", snap => {
@@ -1276,7 +1303,12 @@ function loadGame() {
   let data
   try { data = JSON.parse(save) } catch(e) { showNotification("Sauvegarde corrompue"); return }
   if (!data.characters && !data.tokens) { showNotification("Sauvegarde vide"); return }
-  _applyLoadData(data, () => showNotification("✅ Partie chargée"))
+  _applyLoadData(data, () => {
+    resetMadnessPresentation()
+    updateMadnessVisibility()
+    updateThuumButton()
+    showNotification("✅ Partie chargée")
+  })
 }
 
 function loadSave(saveName) {
@@ -1284,6 +1316,9 @@ function loadSave(saveName) {
   const data  = saves[saveName]
   if (!data) { showNotification("Sauvegarde introuvable"); return }
   _applyLoadData(data, () => {
+    resetMadnessPresentation()
+    updateMadnessVisibility()
+    updateThuumButton()
     const panel = document.getElementById("savePanel"); if (panel) panel.remove()
     showNotification("✅ Partie chargée : " + saveName)
     addMJLog("📂 Chargement : " + saveName)
@@ -1312,6 +1347,7 @@ function newGame() {
     db.ref("tokens").set({ greg:{x:200,y:300}, ju:{x:300,y:300}, elo:{x:400,y:300}, bibi:{x:600,y:300} })
     db.ref("game/map").set("taverne.jpg")
     db.ref("game/groupMadness").set(0)
+    resetMadnessPresentation()
     db.ref("diceRoll").remove()
   db.ref("game/storyImage").set(null)
   showNotification("🆕 Nouvelle partie créée")
@@ -1503,6 +1539,7 @@ function startGame() {
   combatActive = false
     combatStarting = false
     window.__combatOutcomeShowing = false
+    resetMadnessPresentation()
     updateMadnessVisibility()
     const playerAllyBtn = document.getElementById("playerAllyBtn")
     if (playerAllyBtn) playerAllyBtn.style.display = "none"

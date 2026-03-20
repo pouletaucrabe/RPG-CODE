@@ -241,7 +241,7 @@ const mapNames = {
   "castleofevil.jpg":    "The Castle of Evil",
   "cimetiere.jpg":       "Cimetière ancien",
   "mine.jpg":            "Mine du vent d'Est",
-  "prebalraug.jpg":      "PrÃ©-Balraug",
+  "prebalraug.jpg":      "Salle principal",
   "port.jpg":            "La Cité du Nord Brume",
   "portail.jpg":         "Portail de Vérité",
   "trou.jpg":            "Passage de l'Antre monde",
