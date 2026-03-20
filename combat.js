@@ -670,7 +670,7 @@ function updateMobPreview() {
 
   slots.forEach(s => {
     const div = document.createElement("div"); div.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;"
-    const img = document.createElement("img"); img.src = "" + s.name + ".png"; img.style.cssText = "width:60px;height:60px;object-fit:contain;border-radius:50%;border:2px solid rgb(180,40,40);box-shadow:0 0 10px rgb(150,0,0);"; img.onerror = () => img.style.opacity = "0.3"; div.appendChild(img)
+    const img = document.createElement("img"); img.src = "images/" + s.name + ".png"; img.style.cssText = "width:60px;height:60px;object-fit:contain;border-radius:50%;border:2px solid rgb(180,40,40);box-shadow:0 0 10px rgb(150,0,0);"; img.onerror = () => img.style.opacity = "0.3"; div.appendChild(img)
     const lbl = document.createElement("div"); lbl.style.cssText = "font-family:Cinzel,serif;font-size:9px;color:rgb(255,150,150);letter-spacing:1px;"; lbl.innerText = s.name.toUpperCase(); div.appendChild(lbl)
     preview.appendChild(div)
   })
@@ -693,40 +693,22 @@ function _startRemoteCombat(data) {
   combatActive = true
   combatStarting = false
   setGameState("COMBAT")
+  combatSequence(data.mainMob, data.tier)
+}
 
+function _playRemoteCombatExit() {
+  if (isGM) return
   const fade = document.getElementById("fadeScreen")
-  const map = document.getElementById("map")
-  fade.style.transition = "opacity 0.5s ease"
-  fade.style.opacity = "1"
+  if (fade) {
+    fade.style.transition = "opacity 0.6s ease"
+    fade.style.opacity = "1"
+    fade.style.pointerEvents = "none"
+  }
 
   setTimeout(() => {
-    map.style.backgroundImage = "url('images/" + _getCombatArenaMap(data.mainMob, data.tier) + "')"
-    fadeToCombat()
-    spawnMobToken(data.mainMob)
-    activeMobSlots.mob = true
-
-    ;(data.extraMobs || []).forEach((mob, i) => {
-      const slot = ["mob2","mob3"][i]
-      if (!slot || !mob) return
-      db.ref("combat/" + slot).once("value", snap => {
-        const md = snap.val()
-        if (!md) return
-        const ex = document.getElementById("mobToken_" + slot)
-        if (ex) ex.remove()
-        spawnExtraMobToken(md, slot)
-        activeMobSlots[slot] = true
-      })
-    })
-
-    renderAllMobPanels()
-    loadPlayerCombatStats()
-    showCombatHUD()
-
-    const playerAllyBtn = document.getElementById("playerAllyBtn")
-    if (playerAllyBtn) playerAllyBtn.style.display = "flex"
-
-    fade.style.opacity = "0"
-  }, 500)
+    endCombat()
+    returnToMap()
+  }, 450)
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -735,8 +717,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!data || !data.active) {
       if (!isGM && combatActive) {
-        endCombat()
-        returnToMap()
+        _playRemoteCombatExit()
       }
       return
     }
