@@ -21,6 +21,7 @@ const db = firebase.database()
 window.groupMadness = 0
 window.groupMadnessTier = 0
 window.madnessShakeInterval = null
+window.currentMadnessLoopId = null
 window.playerThuumData = {}
 window.usedThuumData = {}
 window.__lastThuumUnlockTime = 0
@@ -50,13 +51,19 @@ function stopMadnessLoops() {
   ;["madnessLow", "madnessMid", "madnessHigh", "madnessPeak"].forEach(id => {
     const audio = document.getElementById(id)
     if (!audio) return
+    audio.volume = 0
     audio.pause()
     audio.currentTime = 0
   })
+  window.currentMadnessLoopId = null
 }
 
 function playMadnessLoopForTier(tier, value) {
-  stopMadnessLoops()
+  if (tier <= 0 || !isMadnessActiveMap() || combatActive || gameState !== "GAME") {
+    stopMadnessLoops()
+    return
+  }
+
   const audioMap = {
     1: document.getElementById("madnessLow"),
     2: document.getElementById("madnessMid"),
@@ -64,8 +71,24 @@ function playMadnessLoopForTier(tier, value) {
     4: document.getElementById("madnessPeak")
   }
   const audio = audioMap[tier]
-  if (!audio || combatActive || gameState !== "GAME") return
-  audio.volume = Math.min(0.85, (0.18 + value / 180) * getMadnessZoneFactor())
+  const targetId = audio ? audio.id : null
+  if (!audio) {
+    stopMadnessLoops()
+    return
+  }
+
+  const targetVolume = Math.min(0.85, (0.18 + value / 180) * getMadnessZoneFactor())
+
+  if (window.currentMadnessLoopId === targetId && !audio.paused) {
+    audio.volume = targetVolume
+    return
+  }
+
+  stopMadnessLoops()
+  window.currentMadnessLoopId = targetId
+  audio.currentTime = 0
+  audio.loop = true
+  audio.volume = targetVolume
   audio.play().catch(() => {})
 }
 
@@ -109,7 +132,7 @@ function updateMadnessVisibility() {
       cameraEl.classList.remove("madnessWarp")
     }
   }
-  else if (window.groupMadnessTier > 0) playMadnessLoopForTier(window.groupMadnessTier, window.groupMadness)
+  else playMadnessLoopForTier(window.groupMadnessTier, window.groupMadness)
 }
 
 function updateMadnessUI(value) {
@@ -172,6 +195,7 @@ function updateMadnessUI(value) {
     window.groupMadnessTier = tier
   }
 
+  playMadnessLoopForTier(tier, pct)
   startMadnessShake(tier)
   updateMadnessVisibility()
 }
@@ -1799,16 +1823,16 @@ document.addEventListener("keydown", e => {
   }
 
   if (key === "escape") {
-    const docOverlay = document.getElementById("documentOverlay"); if (docOverlay) { hideDocument(); return }
-    const runeOverlay = document.getElementById("runeChallengeOverlay"); if (runeOverlay) { runeOverlay.remove(); return }
+    const docOverlay = document.getElementById("documentOverlay"); if (docOverlay && isGM) { hideDocument(); return }
+    const runeOverlay = document.getElementById("runeChallengeOverlay"); if (runeOverlay && isGM) { runeOverlay.remove(); return }
     const sheet = document.getElementById("characterSheet"); if (sheet && sheet.style.display !== "none" && sheet.style.display !== "") { closeCharacterSheet(); return }
-    const shopOverlay = document.getElementById("shopOverlay"); if (shopOverlay) { closeShop(); return }
+    const shopOverlay = document.getElementById("shopOverlay"); if (shopOverlay && isGM) { closeShop(); return }
     const combatHUD = document.getElementById("combatHUD"); if (combatHUD && combatHUD.style.display === "flex") { combatHUD.style.display = "none"; return }
     let anyGMOpen = false
     document.querySelectorAll(".gmSection").forEach(sec => { if (sec.style.display !== "none" && sec.style.display !== "") anyGMOpen = true })
     if (anyGMOpen) { document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" }); return }
     const playerMenu = document.getElementById("playerMenu"); if (playerMenu && playerMenu.classList.contains("open")) { playerMenu.classList.remove("open"); return }
-    if (closeLastPNJ()) return
+    if (isGM && closeLastPNJ()) return
     return
   }
 
