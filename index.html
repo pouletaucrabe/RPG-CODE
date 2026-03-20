@@ -20,7 +20,7 @@
 <body tabindex="0">
 
 <div id="gameWrapper">
-  <div id="startScreen" onclick="startIntro()">Cliquer pour commencer</div>
+  <div id="startScreen" onclick="safeStartIntro(event)">Cliquer pour commencer</div>
 
   <div id="intro">
     <div id="gameTitle"></div>
@@ -734,6 +734,32 @@
 <script src="ui.js"></script>
 <!-- 6. Combat -->
 <script src="combat.js"></script>
+<script>
+function safeStartIntro(event) {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  const start = document.getElementById("startScreen")
+  if (start) {
+    start.style.pointerEvents = "none"
+    start.style.zIndex = "999999999"
+  }
+  if (typeof startIntro === "function") {
+    startIntro()
+  } else {
+    console.error("startIntro introuvable")
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const start = document.getElementById("startScreen")
+  if (!start) return
+  start.style.zIndex = "999999999"
+  start.style.pointerEvents = "auto"
+  start.addEventListener("pointerdown", safeStartIntro, { passive: false })
+})
+</script>
 
 </body>
 </html>
