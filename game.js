@@ -26,12 +26,10 @@ function _syncCombatEnd() {
 
 function startCombat(mob, forceTier) {
   if (combatStarting || !isGM) return
-  // Balraug uniquement sur sa map
   if (mob === "balraug" && currentMap !== "balraug.jpg") {
     showNotification("⚠ Balraug ne peut être invoqué que dans sa map !")
     return
   }
-  // Kraken uniquement sur le Maelstrom
   if (mob === "kraken" && currentMap !== "tourbillon.jpg") {
     showNotification("⚠ Le Kraken ne peut être invoqué que sur le Maelstrom !")
     return
@@ -41,17 +39,24 @@ function startCombat(mob, forceTier) {
 }
 
 function showMobSelectionMenu(mainMob, forceTier) {
-  _state.pendingMob  = mainMob
+  _state.pendingMob = mainMob
   _state.pendingTier = forceTier
   const menu = document.getElementById("mobSelectionMenu")
   if (!menu) return
-  ;["mobSlot2Select","mobSlot3Select"].forEach(id => {
+  ;["mobSlot2Select", "mobSlot3Select"].forEach(id => {
     const el = document.getElementById(id)
-    if (el) { el.innerText = "— Aucun —"; el.dataset.value = "" }
+    if (el) {
+      el.innerText = "— Aucun —"
+      el.dataset.value = ""
+    }
   })
-  ;["mobDropdown_slot2","mobDropdown_slot3"].forEach(id => {
+  ;["mobDropdown_slot2", "mobDropdown_slot3"].forEach(id => {
     const dd = document.getElementById(id)
-    if (dd) { dd.style.display = "none"; dd.innerHTML = ""; delete dd.dataset.built }
+    if (dd) {
+      dd.style.display = "none"
+      dd.innerHTML = ""
+      delete dd.dataset.built
+    }
   })
   const sub = document.getElementById("mobMenuSub")
   if (sub) sub.innerText = "Mob principal : " + mainMob.toUpperCase()
@@ -63,8 +68,8 @@ function showMobSelectionMenu(mainMob, forceTier) {
   if (canvas) {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
-    const ctx  = canvas.getContext("2d")
-    const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width*0.7)
+    const ctx = canvas.getContext("2d")
+    const grad = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width * 0.7)
     grad.addColorStop(0, "rgb(60,5,5)")
     grad.addColorStop(1, "rgb(5,0,0)")
     ctx.fillStyle = grad
@@ -93,30 +98,30 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
 
   getPartyLevel(level => {
     const base = mobStats[mainMob] ? mobStats[mainMob].baseHP : 10
-    const tierMults  = { weak:1.0,  medium:1.6, high:2.8, boss:5.0  }
-    const tierScales = { weak:0.12, medium:0.18, high:0.25, boss:0.35 }
-    const tierLvlOff = { weak:-1,   medium:1,   high:3,    boss:8    }
-    const mult = tierMults[tier]  || 1.0
-    const sc   = tierScales[tier] || 0.12
+    const tierMults = { weak: 1.0, medium: 1.6, high: 2.8, boss: 5.0 }
+    const tierScales = { weak: 0.12, medium: 0.18, high: 0.25, boss: 0.35 }
+    const tierLvlOff = { weak: -1, medium: 1, high: 3, boss: 8 }
+    const mult = tierMults[tier] || 1.0
+    const sc = tierScales[tier] || 0.12
     const effLevel = (tier === "boss" && level > 10) ? 10 + (level - 10) * 0.65 : level
-    const hp   = Math.round(base * mult * Math.pow(1 + effLevel * sc, 1.6))
-    const lvl  = Math.max(1, level + (tierLvlOff[tier] || 0))
-    db.ref("combat/mob").set({ name:mainMob, hp, maxHP:hp, lvl, tier })
+    const hp = Math.round(base * mult * Math.pow(1 + effLevel * sc, 1.6))
+    const lvl = Math.max(1, level + (tierLvlOff[tier] || 0))
+    db.ref("combat/mob").set({ name: mainMob, hp, maxHP: hp, lvl, tier })
 
     _state.pendingExtraMobs = {}
     extraMobs.forEach((mob, i) => {
-      const slot = ["mob2","mob3"][i]
+      const slot = ["mob2", "mob3"][i]
       if (!slot || !mob) return
       _state.pendingExtraMobs[slot] = mob
       const tier2 = mobStats[mob] ? mobStats[mob].tier : "weak"
       const base2 = mobStats[mob] ? mobStats[mob].baseHP : 10
-      const mult2 = { weak:1.2, medium:2.0, high:3.5, boss:6.0 }[tier2] || 1.2
-      const lf2   = { weak:4,   medium:8,   high:14,  boss:30  }[tier2] || 4
+      const mult2 = { weak: 1.2, medium: 2.0, high: 3.5, boss: 6.0 }[tier2] || 1.2
+      const lf2 = { weak: 4, medium: 8, high: 14, boss: 30 }[tier2] || 4
       setTimeout(() => {
         getPartyLevel(lv => {
-          const hp2  = Math.round(base2 * mult2 + lv * lf2 + Math.floor(lv * lv * 0.5))
-          const lvl2 = Math.max(1, lv + ({ weak:-1, medium:1, high:3, boss:8 }[tier2] || 0))
-          db.ref("combat/" + slot).set({ name:mob, hp:hp2, maxHP:hp2, lvl:lvl2, tier:tier2, slot })
+          const hp2 = Math.round(base2 * mult2 + lv * lf2 + Math.floor(lv * lv * 0.5))
+          const lvl2 = Math.max(1, lv + ({ weak: -1, medium: 1, high: 3, boss: 8 }[tier2] || 0))
+          db.ref("combat/" + slot).set({ name: mob, hp: hp2, maxHP: hp2, lvl: lvl2, tier: tier2, slot })
           activeMobSlots[slot] = true
         })
       }, i * 200)
@@ -571,6 +576,8 @@ function endCombat() {
     db.ref("combat/mob").remove()
     ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
     _syncCombatEnd()
+  } else {
+    window.__REMOTE_COMBAT_ENDING__ = true
   }
 }
 
@@ -582,7 +589,9 @@ function returnToMap() {
 
   setTimeout(() => {
     const map = document.getElementById("map")
-    if (currentMap) map.style.backgroundImage = "url('images/" + currentMap + "')"
+    if (currentMap) {
+      map.style.backgroundImage = "url('images/" + currentMap + "')"
+    }
 
     ;["greg","ju","elo","bibi","mobToken"].forEach(id => {
       const token = document.getElementById(id)
@@ -629,7 +638,7 @@ function returnToMap() {
 function startBossFireEffect() {
   const existing = document.getElementById("bossFireOverlay")
   if (existing) existing.remove()
-  const overlay  = document.createElement("div")
+  const overlay = document.createElement("div")
   overlay.id = "bossFireOverlay"
   overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4999;opacity:0;transition:opacity 1.5s ease;"
   overlay.style.background = [
@@ -640,20 +649,20 @@ function startBossFireEffect() {
 
   for (let i = 0; i < 40; i++) {
     const spark = document.createElement("div")
-    const zone  = Math.random()
+    const zone = Math.random()
     let x, startY
     if (zone < 0.4) {
-      x = Math.random()*100
-      startY = 85+Math.random()*15
+      x = Math.random() * 100
+      startY = 85 + Math.random() * 15
     } else if (zone < 0.7) {
-      x = Math.random()*12
-      startY = 40+Math.random()*60
+      x = Math.random() * 12
+      startY = 40 + Math.random() * 60
     } else {
-      x = 88+Math.random()*12
-      startY = 40+Math.random()*60
+      x = 88 + Math.random() * 12
+      startY = 40 + Math.random() * 60
     }
-    const w = 4+Math.random()*10
-    const h = 10+Math.random()*20
+    const w = 4 + Math.random() * 10
+    const h = 10 + Math.random() * 20
     spark.style.cssText = `position:absolute;width:${w}px;height:${h}px;border-radius:50% 50% 20% 20%;background:linear-gradient(to top,transparent,#ff6600,${Math.random()>0.5?"#ffcc00":"#ff3300"});left:${x}%;top:${startY}%;animation:bossFireSpark ${1+Math.random()*2.5}s ease-in infinite;animation-delay:${Math.random()*2}s;filter:blur(${Math.random()*2}px);`
     overlay.appendChild(spark)
   }
@@ -710,9 +719,7 @@ function playOpeningCinematic(callback) {
     const old = screen.querySelector(".cinText")
     if (old) {
       old.style.opacity = "0"
-      setTimeout(() => {
-        if (old.parentNode) old.remove()
-      }, 1000)
+      setTimeout(() => { if (old.parentNode) old.remove() }, 1000)
     }
     const el = document.createElement("div")
     el.className = "cinText"
@@ -722,9 +729,7 @@ function playOpeningCinematic(callback) {
     setTimeout(() => { el.style.opacity = "1" }, 50)
     setTimeout(() => {
       el.style.opacity = "0"
-      setTimeout(() => {
-        if (el.parentNode) el.remove()
-      }, 1500)
+      setTimeout(() => { if (el.parentNode) el.remove() }, 1500)
     }, duration)
   }
 
@@ -793,9 +798,7 @@ function playOpeningCinematic(callback) {
     const old = screen.querySelector(".cinText")
     if (old) {
       old.style.opacity = "0"
-      setTimeout(() => {
-        if (old.parentNode) old.remove()
-      }, 1000)
+      setTimeout(() => { if (old.parentNode) old.remove() }, 1000)
     }
     const wrapper = document.createElement("div")
     wrapper.className = "cinText"
@@ -837,16 +840,16 @@ function openMobDiff(mobId, event) {
   if (!isGM) return
   event.stopPropagation()
   _state.mobDiffPending = mobId
-  const popup  = document.getElementById("mobDiffPopup")
+  const popup = document.getElementById("mobDiffPopup")
   const nameEl = document.getElementById("mobDiffName")
   if (!popup) return
 
   const bossMobs = ["balraug","fenrir","jormungand","kraken","nhiddog","roi","odin","thor","freya"]
-  const noWeak   = ["golem","pretre","zombie","zombie2","maire","intendantbrume","conseillerroinord","generalmelenchon","jarl baldur","garde baldur"]
+  const noWeak = ["golem","pretre","zombie","zombie2","maire","intendantbrume","conseillerroinord","generalmelenchon","jarl baldur","garde baldur"]
 
   popup.querySelectorAll("button").forEach(btn => {
     const match = btn.getAttribute("onclick")?.match(/launchMobDiff\('(\w+)'\)/)
-    const tier  = match?.[1]
+    const tier = match?.[1]
     if (!tier) return
     if (bossMobs.includes(mobId)) btn.style.display = tier === "boss" ? "block" : "none"
     else if (noWeak.includes(mobId)) btn.style.display = tier === "weak" ? "none" : "block"
@@ -918,9 +921,9 @@ function toggleMobDropdown(slot, triggerEl) {
   }
   const rect = triggerEl.getBoundingClientRect()
   dd.style.position = "fixed"
-  dd.style.top = (rect.bottom+4)+"px"
-  dd.style.left = rect.left+"px"
-  dd.style.width = rect.width+"px"
+  dd.style.top = (rect.bottom + 4) + "px"
+  dd.style.left = rect.left + "px"
+  dd.style.width = rect.width + "px"
   dd.style.display = "block"
 }
 
@@ -977,23 +980,23 @@ function _startRemoteCombat(data) {
   combatStarting = false
   setGameState("COMBAT")
 
-  document.getElementById("mobD12").style.display = "none"
-  document.getElementById("mobD20").style.display = "none"
-
   const fade = document.getElementById("fadeScreen")
+  const map = document.getElementById("map")
+
   fade.style.transition = "opacity 0.5s ease"
   fade.style.opacity = "1"
 
   setTimeout(() => {
-    const map = document.getElementById("map")
     map.style.backgroundImage = "url('images/" + _getCombatArenaMap(data.mainMob, data.tier) + "')"
     fadeToCombat()
     spawnMobToken(data.mainMob)
-    activeMobSlots["mob"] = true
+
+    activeMobSlots.mob = true
 
     ;(data.extraMobs || []).forEach((mob, i) => {
       const slot = ["mob2","mob3"][i]
       if (!slot || !mob) return
+
       db.ref("combat/" + slot).once("value", snap => {
         const md = snap.val()
         if (!md) return
@@ -1007,6 +1010,7 @@ function _startRemoteCombat(data) {
     renderAllMobPanels()
     loadPlayerCombatStats()
     showCombatHUD()
+
     const playerAllyBtn = document.getElementById("playerAllyBtn")
     if (playerAllyBtn) playerAllyBtn.style.display = "flex"
 
@@ -1020,10 +1024,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!data || !data.active) {
       if (!isGM && combatActive) {
-        combatActive = false
-        activeMobSlots["mob"] = false
-        activeMobSlots["mob2"] = false
-        activeMobSlots["mob3"] = false
+        endCombat()
         returnToMap()
       }
       return
