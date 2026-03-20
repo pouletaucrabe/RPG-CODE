@@ -268,18 +268,32 @@ function showMobIntro(mob) {
   }
   const posSet = posMap[Math.min(mobs.length, 3)]
 
-  mobs.forEach((mobName, i) => {
-    if (i >= slots.length) return
-    const s = slots[i]; const p = posSet[i]
-    const box = document.getElementById(s.box); const img = document.getElementById(s.img)
-    if (!box || !img) return
-    box.style.left = p.left; box.style.transform = p.transform; box.style.right = p.right || "auto"
-    box.style.display = "flex"; box.style.opacity = "1"
-    img.src = "images/" + mobName + ".png"
-    const title = document.createElement("div")
-    title.innerText = mobName.toUpperCase()
-    title.style.cssText = "position:absolute;bottom:10%;left:50%;transform:translateX(-50%);font-family:Cinzel;font-size:clamp(20px,3vw,40px);color:red;text-shadow:0 0 10px red;white-space:nowrap;"
-    box.appendChild(title)
+    mobs.forEach((mobName, i) => {
+      if (i >= slots.length) return
+      const s = slots[i]; const p = posSet[i]
+      const box = document.getElementById(s.box); const img = document.getElementById(s.img)
+      if (!box || !img) return
+      box.style.left = p.left; box.style.transform = p.transform; box.style.right = p.right || "auto"
+      box.style.display = "flex"; box.style.opacity = "1"
+      img.src = "images/" + mobName + ".png"
+      if (mobName === "witch") {
+        const witchSound = new Audio("audio/witch.mp3")
+        witchSound.volume = 0.9
+        witchSound.play().catch(() => {})
+        setTimeout(() => {
+          const fadeIv = setInterval(() => {
+            if (witchSound.volume > 0.08) witchSound.volume = Math.max(0, witchSound.volume - 0.09)
+            else {
+              witchSound.pause()
+              clearInterval(fadeIv)
+            }
+          }, 100)
+        }, 4000)
+      }
+      const title = document.createElement("div")
+      title.innerText = mobName.toUpperCase()
+      title.style.cssText = "position:absolute;bottom:10%;left:50%;transform:translateX(-50%);font-family:Cinzel;font-size:clamp(20px,3vw,40px);color:red;text-shadow:0 0 10px red;white-space:nowrap;"
+      box.appendChild(title)
     setTimeout(() => {
       box.style.transition = "opacity 1s"; box.style.opacity = "0"
       setTimeout(() => { box.style.display = "none"; if (title.parentNode) title.remove(); box.style.opacity = "1"; box.style.transition = "" }, 1000)
