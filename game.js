@@ -252,17 +252,17 @@ function updateThuumButton() {
   const btn = document.getElementById("playerThuumBtn")
   if (!btn) return
 
-  if (!myToken || !combatActive || !hasUnlockedThuum("SKRAA")) {
+  if (isGM || !myToken || !combatActive || !hasUnlockedThuum("SKRAA")) {
     btn.style.display = "none"
     btn.disabled = false
-    btn.innerText = "ᚦ SKRAA"
+    btn.innerText = "SKRAA"
     return
   }
 
   btn.style.display = "block"
   const used = isThuumUsedThisCombat("SKRAA")
   btn.disabled = used
-  btn.innerText = used ? "ᚦ SKRAA - utilise" : "ᚦ SKRAA"
+  btn.innerText = used ? "SKRAA - utilise" : "SKRAA"
 }
 
 function showThuumUnlockCinematic(data) {
@@ -314,20 +314,28 @@ function grantThuumToPlayer(playerId, word) {
     return
   }
 
-  db.ref("game/playerThuum/" + playerId + "/" + word).set({
-    unlocked: true,
-    rank: 1,
-    words: ["SKRAA", "VORTH", "NAAK"],
-    time: Date.now()
-  }).then(() => {
-    db.ref("game/thuumUnlockEvent").set({
-      playerId,
-      word,
+  db.ref("game/playerThuum/" + playerId + "/" + word).once("value", snap => {
+    const existing = snap.val()
+    if (existing && existing.unlocked) {
+      showNotification(word + " deja appris par " + playerId.toUpperCase())
+      return
+    }
+
+    db.ref("game/playerThuum/" + playerId + "/" + word).set({
+      unlocked: true,
+      rank: 1,
       words: ["SKRAA", "VORTH", "NAAK"],
       time: Date.now()
+    }).then(() => {
+      db.ref("game/thuumUnlockEvent").set({
+        playerId,
+        word,
+        words: ["SKRAA", "VORTH", "NAAK"],
+        time: Date.now()
+      })
+      setTimeout(() => db.ref("game/thuumUnlockEvent").remove(), 2000)
+      showNotification("SKRAA donne a " + playerId.toUpperCase())
     })
-    setTimeout(() => db.ref("game/thuumUnlockEvent").remove(), 2000)
-    showNotification("SKRAA donne a " + playerId.toUpperCase())
   })
 }
 
@@ -1467,7 +1475,7 @@ function showIntroLayer() {
 function startGame() {
       db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
       db.ref("combat/usedThuum").remove()
-      db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/thuumCast").remove()
+      db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
     db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
