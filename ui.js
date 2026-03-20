@@ -150,7 +150,6 @@ function showCombatHUD() {
   })
   document.getElementById("combatHUD").style.display = "none"
   const btn = document.getElementById("playerAttackBtn"); if (btn && myToken) btn.style.display = "flex"
-  const allyViewBtn = document.getElementById("playerAllyBtn"); if (allyViewBtn && !isGM) allyViewBtn.style.display = "flex"
 }
 
 function togglePlayerAttacks() {
@@ -929,11 +928,8 @@ function openAllyPNJPanel() {
   const existing = document.getElementById("allyPNJPanel")
   if (existing) {
     existing.remove()
-    db.ref("game/allyPanelOpen").remove()
     return
   }
-  // Signaler aux joueurs que le panel est ouvert
-  db.ref("game/allyPanelOpen").set({ time: Date.now() })
   const panel = document.createElement("div"); panel.id = "allyPNJPanel"
   panel.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,20,24,0.97);border:1px solid #1e5a66;box-shadow:0 0 0 1px #8a6520,0 0 40px rgba(0,0,0,0.9);border-radius:3px;padding:16px;z-index:99999999;min-width:380px;max-width:92vw;max-height:82vh;overflow-y:auto;font-family:Cinzel,serif;"
 
@@ -961,6 +957,15 @@ function openAllyPNJPanel() {
           btn.onmouseenter=()=>btn.style.background=`rgba(20,40,52,0.95)`
           btn.onmouseleave=()=>btn.style.background=`rgba(8,20,24,0.9)`
           btn.onclick=()=>triggerAllyAction(pnj, action, panel)
+
+          const grantBtn = document.createElement("button")
+          grantBtn.innerText = "Donner"
+          grantBtn.style.cssText = "padding:5px 8px;font-family:Cinzel,serif;font-size:10px;background:rgba(70,20,90,0.75);color:#f0d0ff;border:1px solid rgba(180,120,255,0.45);border-radius:3px;cursor:pointer;margin-left:6px;white-space:nowrap;"
+          grantBtn.onclick = e => {
+            e.stopPropagation()
+            grantAllyActionToPlayers(pnj, action)
+          }
+          btn.appendChild(grantBtn)
         }
         block.appendChild(btn)
       })
@@ -992,6 +997,7 @@ function _allyChooseTarget(pnj, action, panel) {
 
 function _executeAllyAction(pnj, action, targetId, panel) {
   db.ref("combat/usedAllies/"+action.id).set(true)
+  db.ref("game/playerAllyAccess").remove()
   if (panel) panel.remove()
   _allyInvocationCinematic(pnj, action, targetId)
 }
@@ -1209,31 +1215,42 @@ function _playAllyAnim(animType, color, isCrit) {
 
 function openAllyPNJViewer() {
   const existing = document.getElementById("allyViewerPanel"); if (existing) { existing.remove(); return }
-  const panel = document.createElement("div"); panel.id = "allyViewerPanel"
-  panel.style.cssText = "position:fixed;bottom:80px;left:84px;background:rgba(8,20,24,0.97);border:1px solid rgba(140,80,255,0.4);box-shadow:0 0 0 1px rgba(80,40,160,0.3),0 0 30px rgba(0,0,0,0.9);border-radius:3px;padding:14px;z-index:99999999;min-width:300px;max-width:88vw;max-height:75vh;overflow-y:auto;font-family:Cinzel,serif;"
+  db.ref("game/playerAllyAccess").once("value", snap => {
+    const access = snap.val()
+    if (!access) {
+      showNotification("Aucune invocation donnée par le MJ")
+      return
+    }
 
-  const title = document.createElement("div"); title.style.cssText = "font-size:10px;letter-spacing:3px;color:#a880ff;margin-bottom:12px;border-bottom:1px solid rgba(140,80,255,0.2);padding-bottom:6px;display:flex;justify-content:space-between;"
-  title.innerHTML = '<span>✦ DIVINITÉS ALLIÉES</span><span style="cursor:pointer;color:#ff8888;" onclick="document.getElementById(\'allyViewerPanel\').remove()">✕</span>'
-  panel.appendChild(title)
-
-  db.ref("combat/usedAllies").once("value", snap => {
-    const used = snap.val() || {}
+    let granted = null
     ALLY_PNJS.forEach(pnj => {
-      const block = document.createElement("div"); block.style.cssText = "margin-bottom:14px;border-bottom:1px solid rgba(140,80,255,0.1);padding-bottom:10px;"
-      const header = document.createElement("div"); header.style.cssText = "display:flex;align-items:center;gap:10px;margin-bottom:6px;"
-      const img = document.createElement("img"); img.src = "images/"+pnj.image; img.style.cssText = `width:36px;height:36px;border-radius:50%;border:1px solid ${pnj.color}66;object-fit:contain;filter:grayscale(20%);`; img.onerror=()=>img.style.opacity="0.3"
-      const info = document.createElement("div")
-      info.innerHTML = `<div style="font-size:13px;color:${pnj.color};letter-spacing:1px;">${pnj.name}</div><div style="font-size:9px;color:#4a6a7a;font-style:italic;margin-top:2px;">${pnj.lore}</div>`
-      header.appendChild(img); header.appendChild(info); block.appendChild(header)
-
       pnj.actions.forEach(action => {
-        const isUsed = !!used[action.id]
-        const row = document.createElement("div"); row.style.cssText = `display:flex;align-items:flex-start;gap:8px;padding:6px 8px;margin-bottom:3px;border-radius:2px;border:1px solid ${isUsed?"rgba(30,30,30,0.3)":"rgba(140,80,255,0.15)"};background:rgba(8,15,22,0.6);opacity:${isUsed?"0.4":"1"};`
-        row.innerHTML = `<span style="font-size:16px;margin-top:1px;">${action.icon}</span><div style="flex:1;"><div style="font-size:11px;color:${isUsed?"#444":pnj.color};letter-spacing:1px;">${action.label} <span style="color:#5555aa;font-size:9px;">(D${action.dice})</span>${isUsed?' <span style="color:#444;font-size:9px;">— utilisé</span>':''}</div><div style="font-size:10px;color:#3a5a6a;margin-top:3px;line-height:1.5;">${action.desc}</div></div>`
-        block.appendChild(row)
+        if (action.id === access.actionId) granted = { pnj, action }
       })
-      panel.appendChild(block)
     })
+    if (!granted) {
+      showNotification("Invocation introuvable")
+      return
+    }
+
+    const panel = document.createElement("div"); panel.id = "allyViewerPanel"
+    panel.style.cssText = "position:fixed;bottom:80px;left:84px;background:rgba(8,20,24,0.97);border:1px solid rgba(140,80,255,0.4);box-shadow:0 0 0 1px rgba(80,40,160,0.3),0 0 30px rgba(0,0,0,0.9);border-radius:3px;padding:14px;z-index:99999999;min-width:300px;max-width:88vw;max-height:75vh;overflow-y:auto;font-family:Cinzel,serif;"
+
+    const title = document.createElement("div"); title.style.cssText = "font-size:10px;letter-spacing:3px;color:#a880ff;margin-bottom:12px;border-bottom:1px solid rgba(140,80,255,0.2);padding-bottom:6px;display:flex;justify-content:space-between;"
+    title.innerHTML = '<span>✦ INVOCATION AUTORISÉE</span><span style="cursor:pointer;color:#ff8888;" onclick="document.getElementById(\'allyViewerPanel\').remove()">✕</span>'
+    panel.appendChild(title)
+
+    const block = document.createElement("div"); block.style.cssText = "margin-bottom:6px;border-bottom:1px solid rgba(140,80,255,0.1);padding-bottom:10px;"
+    const header = document.createElement("div"); header.style.cssText = "display:flex;align-items:center;gap:10px;margin-bottom:6px;"
+    const img = document.createElement("img"); img.src = "images/"+granted.pnj.image; img.style.cssText = `width:36px;height:36px;border-radius:50%;border:1px solid ${granted.pnj.color}66;object-fit:contain;filter:grayscale(20%);`; img.onerror=()=>img.style.opacity="0.3"
+    const info = document.createElement("div")
+    info.innerHTML = `<div style="font-size:13px;color:${granted.pnj.color};letter-spacing:1px;">${granted.pnj.name}</div><div style="font-size:9px;color:#4a6a7a;font-style:italic;margin-top:2px;">${granted.pnj.lore}</div>`
+    header.appendChild(img); header.appendChild(info); block.appendChild(header)
+
+    const row = document.createElement("div"); row.style.cssText = "display:flex;align-items:flex-start;gap:8px;padding:8px 8px;margin-bottom:3px;border-radius:2px;border:1px solid rgba(140,80,255,0.2);background:rgba(8,15,22,0.6);"
+    row.innerHTML = `<span style="font-size:16px;margin-top:1px;">${granted.action.icon}</span><div style="flex:1;"><div style="font-size:11px;color:${granted.pnj.color};letter-spacing:1px;">${granted.action.label} <span style="color:#5555aa;font-size:9px;">(D${granted.action.dice})</span></div><div style="font-size:10px;color:#3a5a6a;margin-top:3px;line-height:1.5;">${granted.action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(80,40,160,0.25);color:#d8b0ff;letter-spacing:1px;">AUTORISÉE</span>`
+    block.appendChild(row)
+    panel.appendChild(block)
     document.body.appendChild(panel)
   })
 }
@@ -1430,4 +1447,14 @@ function _renderDocument(data) {
   document.body.appendChild(overlay)
   setTimeout(() => overlay.style.opacity = "1", 30)
   playSound("parcheminSound", 0.7)
+}
+
+function grantAllyActionToPlayers(pnj, action) {
+  db.ref("game/playerAllyAccess").set({
+    pnjName: pnj.name,
+    actionId: action.id,
+    time: Date.now()
+  }).then(() => {
+    showNotification("✦ " + action.label + " donnée aux joueurs")
+  })
 }

@@ -425,16 +425,15 @@ db.ref("game/document").on("value", snap => {
   _renderDocument(snap.val())
 })
 
-// ─── allyPanelOpen — panel invocations visible par tous ───
-db.ref("game/allyPanelOpen").on("value", snap => {
-  if (!snap.val() || isGM) return
-  // Ouvrir la vue lecture seule chez les joueurs
+// ─── playerAllyAccess — bouton invocations donné par le MJ ───
+db.ref("game/playerAllyAccess").on("value", snap => {
+  if (isGM) return
+  const data = snap.val()
+  const btn = document.getElementById("playerAllyBtn")
   const existing = document.getElementById("allyViewerPanel")
-  if (snap.val()) {
-    if (!existing) openAllyPNJViewer()
-  } else {
-    if (existing) existing.remove()
-  }
+
+  if (btn) btn.style.display = (data && combatActive) ? "flex" : "none"
+  if (!data && existing) existing.remove()
 })
 
 // ─── allyAction — PNJ allié en combat ───

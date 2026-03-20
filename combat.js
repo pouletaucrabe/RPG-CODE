@@ -214,7 +214,6 @@ function _startCombatSequence(mob, tierMob) {
 
           if (tierMob === "boss") startBossFireEffect()
           const allyBtn = document.getElementById("allyBtn"); if (allyBtn && isGM) allyBtn.style.display = "flex"
-          const playerAllyBtn = document.getElementById("playerAllyBtn"); if (playerAllyBtn && !isGM) playerAllyBtn.style.display = "flex"
           showCombatHUD()
 
           db.ref("combat/mob").once("value", () => {
@@ -435,6 +434,7 @@ function endCombat() {
     ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
     db.ref("combat/usedAllies").remove()
     db.ref("game/allyPanelOpen").remove()
+    db.ref("game/playerAllyAccess").remove()
     _syncCombatEnd()
   }
 }
