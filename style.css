@@ -1889,6 +1889,104 @@ body {
   transition: opacity 0.6s ease, box-shadow 0.6s ease, filter 0.6s ease;
 }
 
+#playerThuumBtn {
+  position: fixed;
+  bottom: 86px;
+  right: 20px;
+  display: none;
+  min-width: 150px;
+  padding: 12px 18px;
+  border: 1px solid rgba(180, 150, 85, 0.75);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(52, 34, 14, 0.96), rgba(18, 10, 6, 0.96));
+  color: #f2dfb4;
+  font-family: var(--font-title);
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px rgba(255, 215, 120, 0.45), 0 0 3px black;
+  box-shadow: 0 0 0 1px rgba(85, 58, 16, 0.9), 0 0 18px rgba(0, 0, 0, 0.75);
+  cursor: pointer;
+  z-index: 99999999;
+  transition: transform 0.18s ease, opacity 0.18s ease, filter 0.18s ease;
+}
+
+#playerThuumBtn:hover {
+  transform: scale(1.04);
+  filter: brightness(1.08);
+}
+
+#playerThuumBtn:disabled {
+  cursor: default;
+  opacity: 0.6;
+  filter: grayscale(0.25);
+}
+
+#thuumUnlockScreen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(175, 200, 255, 0.16) 0%, rgba(18, 25, 45, 0.35) 28%, rgba(0, 0, 0, 0.9) 100%);
+  z-index: 999999999;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+#thuumUnlockScreen.active {
+  display: flex;
+  opacity: 1;
+}
+
+#thuumUnlockInner {
+  min-width: min(760px, 90vw);
+  padding: 42px 50px;
+  border: 1px solid rgba(175, 155, 110, 0.7);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(18, 16, 18, 0.97), rgba(6, 7, 12, 0.98)),
+    radial-gradient(circle at 50% 50%, rgba(90, 120, 200, 0.15), transparent 70%);
+  box-shadow: 0 0 0 1px rgba(70, 55, 25, 0.95), 0 0 50px rgba(0, 0, 0, 0.85), inset 0 0 40px rgba(130, 160, 255, 0.08);
+  text-align: center;
+  animation: thuumReveal 4s ease both;
+}
+
+#thuumUnlockTitle {
+  font-family: var(--font-title);
+  font-size: clamp(24px, 3vw, 38px);
+  letter-spacing: 4px;
+  color: #ebe1c3;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(188, 208, 255, 0.45), 0 0 4px black;
+}
+
+#thuumUnlockWords {
+  margin-top: 18px;
+  font-family: var(--font-title);
+  font-size: clamp(32px, 5vw, 64px);
+  letter-spacing: 10px;
+  color: #cfe0ff;
+  text-shadow: 0 0 28px rgba(140, 175, 255, 0.9), 0 0 10px rgba(90, 120, 255, 0.8);
+}
+
+#thuumUnlockPlayer {
+  margin-top: 18px;
+  font-family: var(--font-body);
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: #e6cf98;
+  text-transform: uppercase;
+}
+
+@keyframes thuumReveal {
+  0%   { transform: scale(0.75); opacity: 0; filter: blur(8px); }
+  15%  { transform: scale(1.04); opacity: 1; filter: blur(0); }
+  80%  { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.98); opacity: 1; }
+}
+
 #madnessOverlay.active {
   opacity: 1;
 }

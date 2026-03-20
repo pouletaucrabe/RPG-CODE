@@ -214,9 +214,10 @@ function _startCombatSequence(mob, tierMob) {
             }
           })
 
-          if (tierMob === "boss") startBossFireEffect()
-          const allyBtn = document.getElementById("allyBtn"); if (allyBtn && isGM) allyBtn.style.display = "flex"
-          showCombatHUD()
+            if (tierMob === "boss") startBossFireEffect()
+            const allyBtn = document.getElementById("allyBtn"); if (allyBtn && isGM) allyBtn.style.display = "flex"
+            showCombatHUD()
+            if (typeof updateThuumButton === "function") updateThuumButton()
 
           db.ref("combat/mob").once("value", () => {
             activeMobSlots["mob"] = true
@@ -447,10 +448,12 @@ function endCombat() {
 
   const hud = document.getElementById("combatHUD"); if (hud) hud.style.display = "none"
   const attackBtn = document.getElementById("playerAttackBtn"); if (attackBtn) attackBtn.style.display = "none"
+  const thuumBtn = document.getElementById("playerThuumBtn"); if (thuumBtn) thuumBtn.style.display = "none"
   if (isGM) {
     db.ref("combat/mob").remove()
     ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
     db.ref("combat/usedAllies").remove()
+    db.ref("combat/usedThuum").remove()
     db.ref("game/allyPanelOpen").remove()
     db.ref("game/playerAllyAccess").remove()
     _syncCombatEnd()
@@ -714,6 +717,7 @@ function _startRemoteCombat(data) {
   combatStarting = false
   setGameState("COMBAT")
   combatSequence(data.mainMob, data.tier)
+  setTimeout(() => { if (typeof updateThuumButton === "function") updateThuumButton() }, 250)
 }
 
 function _playRemoteCombatExit() {

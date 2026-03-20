@@ -21,6 +21,10 @@ const db = firebase.database()
 window.groupMadness = 0
 window.groupMadnessTier = 0
 window.madnessShakeInterval = null
+window.playerThuumData = {}
+window.usedThuumData = {}
+window.__lastThuumUnlockTime = 0
+window.__lastThuumCastTime = 0
 
 function getMadnessZoneFactor() {
   const map = (currentMap || "").toLowerCase()
@@ -203,6 +207,140 @@ function ensureMadnessGMButton() {
   const allyBtn = document.getElementById("allyBtn")
   if (allyBtn) bar.insertBefore(btn, allyBtn)
   else bar.appendChild(btn)
+}
+
+function getMyThuumWords() {
+  if (!myToken || !window.playerThuumData) return {}
+  return window.playerThuumData[myToken.id] || {}
+}
+
+function hasUnlockedThuum(word) {
+  const words = getMyThuumWords()
+  return !!words[word]
+}
+
+function isThuumUsedThisCombat(word) {
+  if (!myToken || !window.usedThuumData) return false
+  return !!(window.usedThuumData[myToken.id] && window.usedThuumData[myToken.id][word])
+}
+
+function updateThuumButton() {
+  const btn = document.getElementById("playerThuumBtn")
+  if (!btn) return
+
+  if (!myToken || !combatActive || !hasUnlockedThuum("SKRAA")) {
+    btn.style.display = "none"
+    btn.disabled = false
+    btn.innerText = "ᚦ SKRAA"
+    return
+  }
+
+  btn.style.display = "block"
+  const used = isThuumUsedThisCombat("SKRAA")
+  btn.disabled = used
+  btn.innerText = used ? "ᚦ SKRAA - utilise" : "ᚦ SKRAA"
+}
+
+function showThuumUnlockCinematic(data) {
+  const screen = document.getElementById("thuumUnlockScreen")
+  const title = document.getElementById("thuumUnlockTitle")
+  const words = document.getElementById("thuumUnlockWords")
+  const player = document.getElementById("thuumUnlockPlayer")
+  if (!screen || !title || !words || !player) return
+
+  title.innerText = "Nouveau Cri de Mouches appris : " + data.word
+  words.innerText = "SKRAA • VORTH • NAAK"
+  player.innerText = data.playerId ? ("Porteur choisi : " + data.playerId.toUpperCase()) : ""
+
+  const snd = document.getElementById("thuumSound")
+  if (snd) {
+    snd.currentTime = 0
+    snd.volume = 0.85
+    snd.play().catch(() => {})
+  }
+
+  screen.style.display = "flex"
+  requestAnimationFrame(() => screen.classList.add("active"))
+  flashGold()
+  flashGold()
+  screenShakeHard()
+
+  setTimeout(() => {
+    screen.classList.remove("active")
+    setTimeout(() => { screen.style.display = "none" }, 600)
+  }, 4200)
+}
+
+function playThuumCastEffect(data) {
+  const snd = document.getElementById("criSound")
+  if (snd) {
+    snd.currentTime = 0
+    snd.volume = 0.85
+    snd.play().catch(() => {})
+  }
+  flashRed()
+  screenShake()
+  showNotification("ᚦ " + (data.word || "SKRAA") + " - " + (data.playerId || "").toUpperCase())
+}
+
+function grantThuumToPlayer(playerId, word) {
+  if (!isGM) return
+  if (currentMap !== "prebalraug.jpg") {
+    showNotification("SKRAA ne peut etre revele que sur prebalraug.jpg")
+    return
+  }
+
+  db.ref("game/playerThuum/" + playerId + "/" + word).set({
+    unlocked: true,
+    rank: 1,
+    words: ["SKRAA", "VORTH", "NAAK"],
+    time: Date.now()
+  }).then(() => {
+    db.ref("game/thuumUnlockEvent").set({
+      playerId,
+      word,
+      words: ["SKRAA", "VORTH", "NAAK"],
+      time: Date.now()
+    })
+    setTimeout(() => db.ref("game/thuumUnlockEvent").remove(), 2000)
+    showNotification("SKRAA donne a " + playerId.toUpperCase())
+  })
+}
+
+function usePlayerThuum() {
+  if (!myToken || !combatActive) return
+  if (!hasUnlockedThuum("SKRAA")) return
+  if (isThuumUsedThisCombat("SKRAA")) {
+    showNotification("SKRAA est deja utilise pour ce combat")
+    return
+  }
+
+  const playerId = myToken.id
+  db.ref("combat/usedThuum/" + playerId + "/SKRAA").set(true)
+  db.ref("game/thuumCast").set({
+    playerId,
+    word: "SKRAA",
+    time: Date.now()
+  })
+  setTimeout(() => db.ref("game/thuumCast").remove(), 1500)
+
+  const rank = ((getMyThuumWords().SKRAA || {}).rank || 1)
+  const mainDmg = 16 + rank * 8
+  const splash = 6 + rank * 4
+
+  db.ref("combat/mob").once("value", snap => {
+    const mob = snap.val()
+    if (mob) db.ref("combat/mob/hp").set(Math.max(0, (mob.hp || 0) - mainDmg))
+  })
+
+  ;["mob2", "mob3"].forEach(slot => {
+    db.ref("combat/" + slot).once("value", snap => {
+      const mob = snap.val()
+      if (mob) db.ref("combat/" + slot + "/hp").set(Math.max(0, (mob.hp || 0) - splash))
+    })
+  })
+
+  updateThuumButton()
 }
 
 /* ========================= */
@@ -649,6 +787,36 @@ db.ref("game/playerAllyAccess").on("value", snap => {
 
   if (btn) btn.style.display = (data && combatActive) ? "flex" : "none"
   if (!data && existing) existing.remove()
+})
+
+// ─── playerThuum — cris débloqués ───
+db.ref("game/playerThuum").on("value", snap => {
+  window.playerThuumData = snap.val() || {}
+  updateThuumButton()
+})
+
+// ─── usedThuum — cooldown par combat ───
+db.ref("combat/usedThuum").on("value", snap => {
+  window.usedThuumData = snap.val() || {}
+  updateThuumButton()
+})
+
+// ─── thuumUnlockEvent — découverte globale ───
+db.ref("game/thuumUnlockEvent").on("value", snap => {
+  const data = snap.val()
+  if (!data || !data.time) return
+  if (data.time <= window.__lastThuumUnlockTime) return
+  window.__lastThuumUnlockTime = data.time
+  showThuumUnlockCinematic(data)
+})
+
+// ─── thuumCast — utilisation globale ───
+db.ref("game/thuumCast").on("value", snap => {
+  const data = snap.val()
+  if (!data || !data.time) return
+  if (data.time <= window.__lastThuumCastTime) return
+  window.__lastThuumCastTime = data.time
+  playThuumCastEffect(data)
 })
 
 // ─── allyAction — PNJ allié en combat ───
@@ -1239,6 +1407,7 @@ function setGameState(state) {
         break
     }
     setTimeout(updateMadnessVisibility, 30)
+    setTimeout(updateThuumButton, 30)
   }
 
 function hideIntroLayers() {
@@ -1272,8 +1441,9 @@ function showIntroLayer() {
 }
 
 function startGame() {
-    db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
-    db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove()
+      db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
+      db.ref("combat/usedThuum").remove()
+      db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/thuumCast").remove()
     db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
@@ -1283,7 +1453,9 @@ function startGame() {
     window.__combatOutcomeShowing = false
     updateMadnessVisibility()
     const playerAllyBtn = document.getElementById("playerAllyBtn")
-  if (playerAllyBtn) playerAllyBtn.style.display = "none"
+    if (playerAllyBtn) playerAllyBtn.style.display = "none"
+    const playerThuumBtn = document.getElementById("playerThuumBtn")
+    if (playerThuumBtn) playerThuumBtn.style.display = "none"
   stopMenuSparks()
   const titleEl = document.getElementById("gameTitle")
   if (titleEl) { titleEl.classList.remove("visible"); titleEl.innerText = "" }
@@ -1390,9 +1562,10 @@ function activateGM() {
     document.getElementById("mjRollBtn").style.display = "inline-block"
     document.getElementById("mjLog").style.display     = "block"
     document.getElementById("gmSaveBar").style.display = "block"
-    ensureMadnessGMButton()
+      ensureMadnessGMButton()
+      updateThuumButton()
     showNotification("🎲 Mode MJ activé")
-  }
+    }
 
 function toggleGMSection(id) {
   const section = document.getElementById(id); if (!section) return
@@ -1455,14 +1628,16 @@ function choosePlayer(id) {
     document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer", "gmSelected"))
     if (myToken) myToken.classList.add("selectedPlayer")
     showNotification("🎭 MJ joue : " + id.toUpperCase())
-    setTimeout(() => openCharacterSheet(id), 50)
-    return
+      updateThuumButton()
+      setTimeout(() => openCharacterSheet(id), 50)
+      return
   }
   if (myToken) { showNotification("Personnage déjà choisi"); return }
   document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer"))
   myToken = document.getElementById(id); window.myToken = myToken
   myToken.classList.add("selectedPlayer")
   showNotification("✨ Votre héros est : " + id.toUpperCase())
+  updateThuumButton()
   watchFreePoints(id)
   // Réduire le menu en mini badge
   _collapsePlayerMenu(id)

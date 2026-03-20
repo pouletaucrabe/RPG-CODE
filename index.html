@@ -219,6 +219,8 @@
 <audio id="madnessHigh" loop><source src="audio/madness_high.mp3" type="audio/mpeg"></audio>
 <audio id="madnessPeak" loop><source src="audio/madness_peak.mp3" type="audio/mpeg"></audio>
 <audio id="whisperHit"><source src="audio/whisper_hit.mp3" type="audio/mpeg"></audio>
+<audio id="thuumSound"><source src="audio/thuum.mp3" type="audio/mpeg"></audio>
+<audio id="criSound"><source src="audio/cri.mp3" type="audio/mpeg"></audio>
 
 <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.8">
 
@@ -475,6 +477,13 @@
     <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:8px;display:flex;flex-direction:column;gap:4px;">
       <button onclick="triggerAurora()" style="width:100%;background:rgba(0,180,120,0.15);color:#a0ffcc;border:1px solid rgba(0,200,150,0.4);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">🌌 Déclencher Aurore</button>
       <button onclick="cemeteryEventDone=false;triggerCemeteryEvent()" style="width:100%;background:rgba(80,0,120,0.3);color:#cc88ff;border:1px solid rgba(120,0,180,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">⚡ Sort Cimetière</button>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(200,160,80,0.2);">
+        <div style="font-family:Cinzel,serif;font-size:10px;color:#d6b77a;text-align:center;letter-spacing:2px;margin-bottom:6px;">CRI DE MOUCHES - SKRAA</div>
+        <button onclick="grantThuumToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a GREG</button>
+        <button onclick="grantThuumToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a JU</button>
+        <button onclick="grantThuumToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a ELO</button>
+        <button onclick="grantThuumToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a BIBI</button>
+      </div>
     </div>
   </div>
   <div id="elemCartes" class="pnjTabContent"></div>
@@ -627,9 +636,17 @@
 <div id="combatIntro"><div id="combatIntroText">⚔ PREPAREZ-VOUS À COMBATTRE ⚔</div></div>
 <div id="victoryScreen"><div id="victoryText">VICTOIRE!</div></div>
 <div id="combatFilter"></div>
+<div id="thuumUnlockScreen">
+  <div id="thuumUnlockInner">
+    <div id="thuumUnlockTitle">Nouveau Cri de Mouches appris : SKRAA</div>
+    <div id="thuumUnlockWords">SKRAA • VORTH • NAAK</div>
+    <div id="thuumUnlockPlayer"></div>
+  </div>
+</div>
 
 <button id="playerAttackBtn" onclick="togglePlayerAttacks()" style="display:none;">⚔</button>
 <button id="playerAllyBtn" onclick="openAllyPNJViewer()" style="display:none;">✦</button>
+<button id="playerThuumBtn" onclick="usePlayerThuum()" style="display:none;">ᚦ SKRAA</button>
 
 <div id="combatHUD">
   <img id="combatHUDPortrait">
