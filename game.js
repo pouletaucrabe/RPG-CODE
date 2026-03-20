@@ -1027,6 +1027,36 @@ function setGameState(state) {
   }
 }
 
+function hideIntroLayers() {
+  const start = document.getElementById("startScreen")
+  const intro = document.getElementById("intro")
+
+  if (start) {
+    start.style.display = "none"
+    start.style.opacity = "0"
+    start.style.pointerEvents = "none"
+    start.style.visibility = "hidden"
+  }
+
+  if (intro) {
+    intro.style.display = "none"
+    intro.style.opacity = "0"
+    intro.style.pointerEvents = "none"
+    intro.style.visibility = "hidden"
+    intro.style.zIndex = "-1"
+  }
+}
+
+function showIntroLayer() {
+  const intro = document.getElementById("intro")
+  if (!intro) return
+  intro.style.display = "flex"
+  intro.style.opacity = "1"
+  intro.style.pointerEvents = "auto"
+  intro.style.visibility = "visible"
+  intro.style.zIndex = "15"
+}
+
 function startGame() {
   db.ref("combat/mob").remove(); db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
@@ -1038,7 +1068,7 @@ function startGame() {
   document.body.focus()
   if (gameStarted) return
   gameStarted = true
-  document.getElementById("intro").style.display = "none"
+  hideIntroLayers()
   setGameState(GAME_STATE.INTRO)
   const fade = document.getElementById("fadeScreen"); fade.style.opacity = 1
   const music = document.getElementById("music"); if (music) { music.pause(); music.currentTime = 0 }
@@ -1059,6 +1089,7 @@ function fadeOut() {
 }
 
 function showTavern() {
+  hideIntroLayers()
   setGameState("GAME")
   const fade = document.getElementById("fadeScreen"); const map = document.getElementById("map")
   fadeOut()
@@ -1082,7 +1113,9 @@ function startIntro() {
   start.classList.add("fadeOut")
   setTimeout(() => {
     start.style.display = "none"
-    document.getElementById("intro").style.display = "flex"
+    start.style.pointerEvents = "none"
+    start.style.visibility = "hidden"
+    showIntroLayer()
     const music = document.getElementById("music"); music.volume = 0; music.play().catch(() => {})
     let v = 0
     const fade = setInterval(() => { if (v < 0.8) { v += 0.05; music.volume = v } else clearInterval(fade) }, 200)
@@ -1097,6 +1130,7 @@ function animateGameTitle() {
 }
 
 function startDialogue() {
+  hideIntroLayers()
   setGameState("DIALOGUE")
   index = 0
   document.getElementById("dialogueBox").style.display = "flex"
