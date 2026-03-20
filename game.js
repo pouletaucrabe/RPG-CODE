@@ -339,12 +339,14 @@ db.ref("game/playerDeath").on("value", snap => {
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
-    if (!isGM && myToken && myToken.id === pid && combatActive && !window.__combatOutcomeShowing) {
+  if (!isGM && myToken && myToken.id === pid && combatActive && !window.__combatOutcomeShowing) {
       showDefeat()
     }
   if (isGM) {
-    if (!document.getElementById("revive_" + pid)) {
-      const revBtn = document.createElement("button"); revBtn.id = "revive_" + pid
+      db.ref("game/combatOutcome").set({ type: "defeat", player: pid, time: Date.now() })
+      setTimeout(() => db.ref("game/combatOutcome").remove(), 1500)
+      if (!document.getElementById("revive_" + pid)) {
+        const revBtn = document.createElement("button"); revBtn.id = "revive_" + pid
       revBtn.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;padding:10px 24px;font-family:'Cinzel Decorative',serif;font-size:13px;background:linear-gradient(rgba(0,80,0,0.8),rgba(0,40,0,0.8));color:#88ff88;border:2px solid rgba(50,180,50,0.6);border-radius:6px;cursor:pointer;letter-spacing:2px;animation:bifrostPulse 1.5s ease-in-out infinite alternate;"
       revBtn.innerText = "✦ Ressusciter " + pid.toUpperCase()
       revBtn.onclick = () => { revivePlayer(pid); revBtn.remove() }
@@ -353,6 +355,22 @@ db.ref("game/playerDeath").on("value", snap => {
   }
   if (isGM) db.ref("game/playerDeath").remove()
   })
+
+// ─── combatOutcome — victoire/défaite fiable côté joueurs ───
+db.ref("game/combatOutcome").on("value", snap => {
+  if (isGM) return
+  const data = snap.val()
+  if (!data || window.__combatOutcomeShowing) return
+
+  if (data.type === "victory" && combatActive) {
+    showVictory()
+    return
+  }
+
+  if (data.type === "defeat" && myToken && data.player === myToken.id && combatActive) {
+    showDefeat()
+  }
+})
 
 // ─── playerRevive ───
 db.ref("game/playerRevive").on("value", snap => {
@@ -1054,10 +1072,17 @@ function showIntroLayer() {
 }
 
 function startGame() {
-  db.ref("combat/mob").remove(); db.ref("elements").remove(); db.ref("game/shop").remove()
+  db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
+  db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove()
+  db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
   cemeteryEventDone = false
+  combatActive = false
+  combatStarting = false
+  window.__combatOutcomeShowing = false
+  const playerAllyBtn = document.getElementById("playerAllyBtn")
+  if (playerAllyBtn) playerAllyBtn.style.display = "none"
   stopMenuSparks()
   const titleEl = document.getElementById("gameTitle")
   if (titleEl) { titleEl.classList.remove("visible"); titleEl.innerText = "" }

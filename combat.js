@@ -355,6 +355,10 @@ function spawnMobToken(mob) {
 
 function showVictory() {
   window.__combatOutcomeShowing = true
+  if (isGM) {
+    db.ref("game/combatOutcome").set({ type: "victory", time: Date.now() })
+    setTimeout(() => db.ref("game/combatOutcome").remove(), 1500)
+  }
   playSound("victorySound", 0.45)
   fadeMusicOut(() => {})
 
