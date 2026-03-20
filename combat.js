@@ -696,6 +696,8 @@ function updateMobPreview() {
 
 function _startRemoteCombat(data) {
   if (isGM || !data || !data.active) return
+  if (!gameStarted) return
+  if (gameState !== "GAME" && gameState !== "COMBAT") return
   if (combatActive && currentMob === data.mainMob) return
 
   currentMob = data.mainMob
@@ -732,10 +734,13 @@ function _playRemoteCombatExit() {
 
   document.addEventListener("DOMContentLoaded", () => {
   db.ref("game/combatState").on("value", snap => {
-    const data = snap.val()
+      const data = snap.val()
 
-    if (!data || !data.active) {
-      if (!isGM && window.__combatOutcomeShowing) return
+      if (!gameStarted) return
+      if (gameState !== "GAME" && gameState !== "COMBAT" && gameState !== "DIALOGUE") return
+
+      if (!data || !data.active) {
+        if (!isGM && window.__combatOutcomeShowing) return
       if (!isGM && combatActive) {
         _playRemoteCombatExit()
       }
