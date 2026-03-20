@@ -212,7 +212,7 @@ html, body {
 #gmBar, .gmSection, #diceBar, #playerSelect,
 #diceLog, #mjLog, #notification, #gmSaveBar,
 #combatHUD, #gmCombatPanel, #gmDamagePanel,
-#mobHUD, #playerCombatPanel, #playerThuumBtn { pointer-events: auto !important; }
+#mobHUD, #playerCombatPanel, #playerThuumBtn, #playerThuumPanel { pointer-events: auto !important; }
 
 /* ========================= */
 /* GRILLE                    */
@@ -1925,6 +1925,94 @@ body {
   cursor: default;
   opacity: 0.6;
   filter: grayscale(0.25);
+}
+
+#playerThuumPanel {
+  position: fixed;
+  right: 24px;
+  bottom: 182px;
+  min-width: 260px;
+  max-width: 340px;
+  padding: 14px;
+  border: 1px solid rgba(180, 150, 85, 0.75);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(22, 14, 8, 0.97), rgba(10, 6, 5, 0.97));
+  box-shadow: 0 0 0 1px rgba(85, 58, 16, 0.9), 0 0 24px rgba(0, 0, 0, 0.8);
+  z-index: 99999998;
+}
+
+#playerThuumPanelTitle {
+  margin-bottom: 10px;
+  font-family: var(--font-title);
+  font-size: 16px;
+  letter-spacing: 3px;
+  color: #f2dfb4;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(255, 215, 120, 0.35), 0 0 3px black;
+}
+
+.playerThuumEntry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  border: 1px solid rgba(180, 150, 85, 0.35);
+  border-radius: 8px;
+  background: rgba(40, 24, 10, 0.72);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.playerThuumEntry:hover {
+  transform: scale(1.02);
+  filter: brightness(1.08);
+}
+
+.playerThuumEntry:disabled {
+  cursor: default;
+  opacity: 0.6;
+  filter: grayscale(0.35);
+}
+
+.playerThuumEntry img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(230, 210, 140, 0.35)) drop-shadow(0 0 18px rgba(0, 0, 0, 0.65));
+}
+
+.playerThuumEntryText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+}
+
+.playerThuumEntryName {
+  font-family: var(--font-title);
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: #f2dfb4;
+}
+
+.playerThuumEntryWords {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #d9caa0;
+  opacity: 0.95;
+}
+
+.playerThuumEntryState {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #b8d38a;
 }
 
 #thuumUnlockScreen {

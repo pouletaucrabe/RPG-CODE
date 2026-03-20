@@ -23,9 +23,20 @@ window.groupMadnessTier = 0
 window.madnessShakeInterval = null
 window.currentMadnessLoopId = null
 window.playerThuumData = {}
+window.playerThuumAccessData = {}
 window.usedThuumData = {}
 window.__lastThuumUnlockTime = 0
 window.__lastThuumCastTime = 0
+window.THUUMS = {
+  SKRAA: {
+    word: "SKRAA",
+    words: ["SKRAA", "VORTH", "NAAK"],
+    unlockMap: "prebalraug.jpg",
+    buttonImage: "images/runeskraa.png",
+    combatDamageByRank: rank => ({ main: 8 + rank * 4, splash: 3 + rank * 2 }),
+    outsideCombatMessage: "SKRAA retentit hors combat"
+  }
+}
 
 function getMadnessZoneFactor() {
   const map = (currentMap || "").toLowerCase()
@@ -260,6 +271,19 @@ function getMyThuumWords() {
   return key ? (window.playerThuumData[key] || {}) : {}
 }
 
+function getThuumDef(word) {
+  return (window.THUUMS && window.THUUMS[word]) || null
+}
+
+function getUnlockedThuumWords() {
+  return Object.keys(getMyThuumWords()).filter(word => !!getThuumDef(word))
+}
+
+function getPrimaryThuumWord() {
+  const unlocked = getUnlockedThuumWords()
+  return unlocked.length ? unlocked[0] : null
+}
+
 function hasUnlockedThuum(word) {
   const words = getMyThuumWords()
   return !!words[word]
@@ -274,25 +298,126 @@ function isThuumUsedThisCombat(word) {
   return !!(key && window.usedThuumData[key] && window.usedThuumData[key][word])
 }
 
+function hasThuumUseAccess(word) {
+  if (!myToken || !window.playerThuumAccessData) return false
+  if (window.playerThuumAccessData[myToken.id] && window.playerThuumAccessData[myToken.id][word] && window.playerThuumAccessData[myToken.id][word].allowed) return true
+
+  const wanted = String(myToken.id || "").toLowerCase()
+  const key = Object.keys(window.playerThuumAccessData).find(k => String(k).toLowerCase() === wanted)
+  return !!(key && window.playerThuumAccessData[key] && window.playerThuumAccessData[key][word] && window.playerThuumAccessData[key][word].allowed)
+}
+
 function updateThuumButton() {
   const btn = document.getElementById("playerThuumBtn")
   if (!btn) return
+  const activeWord = getPrimaryThuumWord()
+  const activeDef = activeWord ? getThuumDef(activeWord) : null
+  const img = btn.querySelector("img")
   
-  if (isGM || !myToken || !hasUnlockedThuum("SKRAA")) {
+  if (isGM || !myToken || !activeWord || !activeDef) {
     btn.style.display = "none"
     btn.disabled = false
+    btn.dataset.word = ""
+    closePlayerThuumPanel()
     return
   }
 
+  btn.dataset.word = activeWord
+  if (img && activeDef.buttonImage) img.src = activeDef.buttonImage
   btn.style.display = "block"
+  btn.disabled = false
   if (!combatActive) {
-    btn.disabled = true
-    btn.title = "Disponible en combat"
+    const allowedOutside = hasThuumUseAccess(activeWord)
+    btn.title = allowedOutside ? activeWord + " autorise par le MJ hors combat" : activeWord + " disponible en combat ou avec autorisation MJ"
+  } else {
+    const used = isThuumUsedThisCombat(activeWord)
+    btn.title = used ? activeWord + " deja utilise pour ce combat" : activeWord + " pret a etre lance"
+  }
+  renderPlayerThuumPanel()
+}
+
+function getThuumEntryState(word) {
+  if (combatActive) {
+    return isThuumUsedThisCombat(word) ? "Deja utilise pour ce combat" : "Utilisable en combat"
+  }
+  return hasThuumUseAccess(word) ? "Autorise par le MJ hors combat" : "Hors combat : autorisation MJ requise"
+}
+
+function canUseThuumNow(word) {
+  if (!hasUnlockedThuum(word)) return false
+  if (combatActive) return !isThuumUsedThisCombat(word)
+  return hasThuumUseAccess(word)
+}
+
+function closePlayerThuumPanel() {
+  const panel = document.getElementById("playerThuumPanel")
+  if (!panel) return
+  panel.style.display = "none"
+  panel.innerHTML = ""
+}
+
+function renderPlayerThuumPanel() {
+  const panel = document.getElementById("playerThuumPanel")
+  if (!panel || panel.style.display === "none") return
+
+  const unlocked = getUnlockedThuumWords()
+  panel.innerHTML = ""
+  if (!unlocked.length) {
+    panel.style.display = "none"
     return
   }
-  const used = isThuumUsedThisCombat("SKRAA")
-  btn.disabled = used
-  btn.title = used ? "Deja utilise pour ce combat" : "Pret a etre lance"
+
+  const title = document.createElement("div")
+  title.id = "playerThuumPanelTitle"
+  title.innerText = "Cris"
+  panel.appendChild(title)
+
+  unlocked.forEach(word => {
+    const def = getThuumDef(word)
+    if (!def) return
+
+    const entry = document.createElement("button")
+    entry.className = "playerThuumEntry"
+    entry.disabled = !canUseThuumNow(word)
+    entry.onclick = () => usePlayerThuum(word)
+
+    const img = document.createElement("img")
+    img.src = def.buttonImage || "images/runeskraa.png"
+    img.alt = word
+    entry.appendChild(img)
+
+    const text = document.createElement("div")
+    text.className = "playerThuumEntryText"
+
+    const name = document.createElement("div")
+    name.className = "playerThuumEntryName"
+    name.innerText = word
+    text.appendChild(name)
+
+    const words = document.createElement("div")
+    words.className = "playerThuumEntryWords"
+    words.innerText = (def.words || [word]).join(" • ")
+    text.appendChild(words)
+
+    const state = document.createElement("div")
+    state.className = "playerThuumEntryState"
+    state.innerText = getThuumEntryState(word)
+    text.appendChild(state)
+
+    entry.appendChild(text)
+    panel.appendChild(entry)
+  })
+}
+
+function togglePlayerThuumPanel() {
+  const panel = document.getElementById("playerThuumPanel")
+  if (!panel) return
+  if (panel.style.display === "block") {
+    closePlayerThuumPanel()
+    return
+  }
+  panel.style.display = "block"
+  renderPlayerThuumPanel()
 }
 
 function showThuumUnlockCinematic(data) {
@@ -303,12 +428,13 @@ function showThuumUnlockCinematic(data) {
     const player = document.getElementById("thuumUnlockPlayer")
     if (!screen || !title || !words || !player) return
 
+    const def = getThuumDef(data.word)
     if (image) image.src = "images/thuum.png"
     title.innerText = "Nouveau Cri de Mouches appris : " + data.word
-    words.innerText = (data.words && data.words.length ? data.words.join(" • ") : data.word)
+    words.innerText = (data.words && data.words.length ? data.words.join(" • ") : ((def && def.words) ? def.words.join(" • ") : data.word))
     player.innerText = data.playerId ? ("Porteur choisi : " + data.playerId.toUpperCase()) : ""
   if (myToken && data.playerId && String(myToken.id).toLowerCase() === String(data.playerId).toLowerCase()) {
-    showNotification("SKRAA est maintenant a vous")
+    showNotification((data.word || "Cri") + " est maintenant a vous")
   }
 
   const snd = document.getElementById("thuumSound")
@@ -344,8 +470,10 @@ function playThuumCastEffect(data) {
 
 function grantThuumToPlayer(playerId, word) {
   if (!isGM) return
-  if (currentMap !== "prebalraug.jpg") {
-    showNotification("SKRAA ne peut etre revele que sur prebalraug.jpg")
+  const def = getThuumDef(word)
+  if (!def) return
+  if (currentMap !== def.unlockMap) {
+    showNotification(word + " ne peut etre revele que sur " + def.unlockMap)
     return
   }
 
@@ -359,13 +487,13 @@ function grantThuumToPlayer(playerId, word) {
     db.ref("game/playerThuum/" + playerId + "/" + word).set({
       unlocked: true,
       rank: 1,
-      words: ["SKRAA", "VORTH", "NAAK"],
+      words: def.words || [word],
       time: Date.now()
     }).then(() => {
       db.ref("game/thuumUnlockEvent").set({
         playerId,
         word,
-        words: ["SKRAA", "VORTH", "NAAK"],
+        words: def.words || [word],
         time: Date.now()
       })
       setTimeout(() => db.ref("game/thuumUnlockEvent").remove(), 2000)
@@ -374,26 +502,59 @@ function grantThuumToPlayer(playerId, word) {
   })
 }
 
-function usePlayerThuum() {
-  if (!myToken || !combatActive) return
-  if (!hasUnlockedThuum("SKRAA")) return
-  if (isThuumUsedThisCombat("SKRAA")) {
-    showNotification("SKRAA est deja utilise pour ce combat")
+function grantThuumUseToPlayer(playerId, word) {
+  if (!isGM) return
+  db.ref("game/playerThuumAccess/" + playerId + "/" + word).set({
+    allowed: true,
+    time: Date.now()
+  }).then(() => {
+    showNotification(word + " autorise hors combat pour " + playerId.toUpperCase())
+  })
+}
+
+function usePlayerThuum(forcedWord) {
+  if (!myToken) return
+  const activeWord = forcedWord || getPrimaryThuumWord()
+  const def = activeWord ? getThuumDef(activeWord) : null
+  if (!activeWord || !def || !hasUnlockedThuum(activeWord)) return
+  if (combatActive && isThuumUsedThisCombat(activeWord)) {
+    showNotification(activeWord + " est deja utilise pour ce combat")
     return
   }
 
   const playerId = myToken.id
-  db.ref("combat/usedThuum/" + playerId + "/SKRAA").set(true)
+  if (!combatActive) {
+    if (!hasThuumUseAccess(activeWord)) {
+      showNotification("Le MJ doit autoriser " + activeWord + " hors combat")
+      return
+    }
+    db.ref("game/playerThuumAccess/" + playerId + "/" + activeWord).remove()
+    db.ref("game/thuumCast").set({
+      playerId,
+      word: activeWord,
+      time: Date.now(),
+      outsideCombat: true
+    })
+    setTimeout(() => db.ref("game/thuumCast").remove(), 1500)
+    showNotification(def.outsideCombatMessage || (activeWord + " retentit hors combat"))
+    closePlayerThuumPanel()
+    updateThuumButton()
+    return
+  }
+
+  db.ref("combat/usedThuum/" + playerId + "/" + activeWord).set(true)
   db.ref("game/thuumCast").set({
     playerId,
-    word: "SKRAA",
-    time: Date.now()
+    word: activeWord,
+    time: Date.now(),
+    outsideCombat: false
   })
   setTimeout(() => db.ref("game/thuumCast").remove(), 1500)
 
-  const rank = ((getMyThuumWords().SKRAA || {}).rank || 1)
-  const mainDmg = 8 + rank * 4
-  const splash = 3 + rank * 2
+  const rank = ((getMyThuumWords()[activeWord] || {}).rank || 1)
+  const damage = def.combatDamageByRank ? def.combatDamageByRank(rank) : { main: 8 + rank * 4, splash: 3 + rank * 2 }
+  const mainDmg = damage.main
+  const splash = damage.splash
 
   db.ref("combat/mob").once("value", snap => {
     const mob = snap.val()
@@ -407,6 +568,7 @@ function usePlayerThuum() {
     })
   })
 
+  closePlayerThuumPanel()
   updateThuumButton()
 }
 
@@ -869,6 +1031,11 @@ db.ref("game/playerThuum").on("value", snap => {
   window.playerThuumData = snap.val() || {}
   updateThuumButton()
   setTimeout(updateThuumButton, 150)
+})
+
+db.ref("game/playerThuumAccess").on("value", snap => {
+  window.playerThuumAccessData = snap.val() || {}
+  updateThuumButton()
 })
 
 // ─── usedThuum — cooldown par combat ───
@@ -1531,7 +1698,7 @@ function showIntroLayer() {
 function startGame() {
       db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
       db.ref("combat/usedThuum").remove()
-      db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
+      db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/playerThuumAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
     db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
@@ -1717,9 +1884,10 @@ function choosePlayer(id) {
     document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer", "gmSelected"))
     if (myToken) myToken.classList.add("selectedPlayer")
     showNotification("🎭 MJ joue : " + id.toUpperCase())
-      updateThuumButton()
-      setTimeout(() => openCharacterSheet(id), 50)
-      return
+    updateThuumButton()
+    _collapsePlayerMenu(id)
+    setTimeout(() => openCharacterSheet(id), 50)
+    return
   }
   if (myToken) { showNotification("Personnage déjà choisi"); return }
   document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer"))
@@ -1737,18 +1905,20 @@ function _collapsePlayerMenu(id) {
   const menu   = document.getElementById("playerMenu")
   const select = document.getElementById("playerSelect")
   if (!toggle || !select) return
+  const tokenImage = "images/" + id + ".png"
 
   // Fermer le menu
   if (menu) { menu.classList.remove("open"); menu.style.display = "none" }
+  select.classList.add("collapsed")
 
   // Réduire le bouton toggle — style direct, pas de classe
   toggle.style.width           = "36px"
   toggle.style.height          = "36px"
   toggle.style.fontSize        = "0px"
-  toggle.style.backgroundImage = `url('${id}.png')`
+  toggle.style.backgroundImage = `url('${tokenImage}')`
   toggle.style.backgroundSize  = "cover"
   toggle.style.backgroundPosition = "center"
-  toggle.style.background      = `url('${id}.png') center/cover no-repeat`
+  toggle.style.background      = `url('${tokenImage}') center/cover no-repeat`
   toggle.style.boxShadow       = "0 0 0 2px #1e5a66, 0 0 0 3px #d4a835"
   toggle.innerText = ""
   toggle.title     = id.toUpperCase()

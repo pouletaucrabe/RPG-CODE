@@ -488,6 +488,11 @@
         <button onclick="grantThuumToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a JU</button>
         <button onclick="grantThuumToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a ELO</button>
         <button onclick="grantThuumToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a BIBI</button>
+        <div style="height:8px;"></div>
+        <button onclick="grantThuumUseToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a GREG</button>
+        <button onclick="grantThuumUseToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a JU</button>
+        <button onclick="grantThuumUseToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a ELO</button>
+        <button onclick="grantThuumUseToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a BIBI</button>
       </div>
     </div>
   </div>
@@ -652,7 +657,8 @@
 
 <button id="playerAttackBtn" onclick="togglePlayerAttacks()" style="display:none;">⚔</button>
 <button id="playerAllyBtn" onclick="openAllyPNJViewer()" style="display:none;">✦</button>
-<button id="playerThuumBtn" onclick="usePlayerThuum()" style="display:none;" aria-label="SKRAA"><img src="images/runeskraa.png" alt="SKRAA"></button>
+<button id="playerThuumBtn" onclick="togglePlayerThuumPanel()" style="display:none;" aria-label="Thuum"><img src="images/runeskraa.png" alt="SKRAA"></button>
+<div id="playerThuumPanel" style="display:none;"></div>
 
 <div id="combatHUD">
   <img id="combatHUDPortrait">

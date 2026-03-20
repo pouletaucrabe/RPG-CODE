@@ -466,6 +466,7 @@ function endCombat() {
   const hud = document.getElementById("combatHUD"); if (hud) hud.style.display = "none"
   const attackBtn = document.getElementById("playerAttackBtn"); if (attackBtn) attackBtn.style.display = "none"
   const thuumBtn = document.getElementById("playerThuumBtn"); if (thuumBtn) thuumBtn.style.display = "none"
+  if (typeof closePlayerThuumPanel === "function") closePlayerThuumPanel()
   if (isGM) {
     db.ref("combat/mob").remove()
     ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
