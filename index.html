@@ -394,6 +394,12 @@
   </div>
 
   <div id="pnjCombatTab" class="pnjTabContent">
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatHumano', this)"><span class="arrow">â–¶</span> ðŸ—¡ HumanoÃ¯des</button>
+    <div id="pnjCombatHumano" class="mapCategory">
+      <button onclick="openMobDiff('ELO PION', event)"  style="width:100%;text-align:left;">ELO PION</button>
+      <button onclick="openMobDiff('ju pion', event)"   style="width:100%;text-align:left;">JU PION</button>
+      <button onclick="openMobDiff('greg pion', event)" style="width:100%;text-align:left;">GREG PION</button>
+    </div>
     <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatRivebois', this)"><span class="arrow">▶</span> 🍺 Rivebois</button>
     <div id="pnjCombatRivebois" class="mapCategory">
       <button onclick="openMobDiff('tavernier', event)"   style="width:100%;text-align:left;">Tavernier</button>
@@ -576,6 +582,7 @@
     <div id="mineMaps" class="mapCategory">
       <button onclick="changeMap('mine.jpg')">Entrée mine</button>
       <button onclick="changeMap('interieurmine.jpg')">Salle mine</button>
+      <button onclick="changeMap('prebalraug.jpg')">PrÃ©-Balraug</button>
       <button onclick="changeMap('balraug.jpg', 'balraug')">Antre de Balraug</button>
     </div>
     <button class="mapCategoryButton" onclick="toggleCategory('cimetiereMaps', this)"><span class="arrow">▶</span> ⚰ Cimetière</button>

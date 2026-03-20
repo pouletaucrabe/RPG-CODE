@@ -126,7 +126,10 @@ const mobStats = {
   basilic:           { tier:"boss",   baseHP:400 },
   odin:              { tier:"boss",   baseHP:600 },
   thor:              { tier:"boss",   baseHP:550 },
-  freya:             { tier:"boss",   baseHP:480 }
+  freya:             { tier:"boss",   baseHP:480 },
+  "ELO PION":        { tier:"weak",   baseHP:28  },
+  "ju pion":         { tier:"weak",   baseHP:28  },
+  "greg pion":       { tier:"weak",   baseHP:32  }
 }
 
 /* ========================= */
@@ -211,6 +214,7 @@ const mapMusic = {
   "trou.jpg":            "trou.mp3",
   "cristaux.jpg":        "cristaux.mp3",
   "interieurmine.jpg":   "mine.mp3",
+  "prebalraug.jpg":      "mine.mp3",
   "throne.jpg":          "throne.mp3",
   "interieurcastle.jpg": "castleofevil.mp3",
   "egout.jpg":           "egout.mp3",
@@ -237,6 +241,7 @@ const mapNames = {
   "castleofevil.jpg":    "The Castle of Evil",
   "cimetiere.jpg":       "Cimetière ancien",
   "mine.jpg":            "Mine du vent d'Est",
+  "prebalraug.jpg":      "PrÃ©-Balraug",
   "port.jpg":            "La Cité du Nord Brume",
   "portail.jpg":         "Portail de Vérité",
   "trou.jpg":            "Passage de l'Antre monde",
