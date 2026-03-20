@@ -29,6 +29,11 @@ function getMadnessZoneFactor() {
   return 1
 }
 
+function isMadnessActiveMap() {
+  const map = (currentMap || "").toLowerCase()
+  return map.includes("foret") || map.includes("portail")
+}
+
 function getMadnessTier(value) {
   if (value >= 100) return 4
   if (value >= 75) return 3
@@ -89,7 +94,7 @@ function updateMadnessVisibility() {
   const cameraEl = document.getElementById("camera")
   if (!gauge || !overlay) return
 
-  const visible = gameState === "GAME" && !combatActive
+  const visible = gameState === "GAME" && !combatActive && isMadnessActiveMap()
   gauge.style.display = visible ? "flex" : "none"
   overlay.style.display = visible ? "block" : "none"
 
@@ -112,6 +117,19 @@ function updateMadnessUI(value) {
   const overlay = document.getElementById("madnessOverlay")
   const cameraEl = document.getElementById("camera")
   if (!gauge || !fill || !glow || !label || !overlay) return
+
+  if (!isMadnessActiveMap()) {
+    gauge.style.display = "none"
+    overlay.style.display = "none"
+    overlay.style.opacity = "0"
+    stopMadnessLoops()
+    if (cameraEl) {
+      cameraEl.style.filter = ""
+      cameraEl.classList.remove("madnessWarp")
+    }
+    if (mjValue) mjValue.innerText = Math.max(0, Math.min(100, value)) + " / 100"
+    return
+  }
 
   const pct = Math.max(0, Math.min(100, value))
   const tier = getMadnessTier(pct)
