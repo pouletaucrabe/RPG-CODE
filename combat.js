@@ -1,5 +1,7 @@
 "use strict"
 
+window.__combatOutcomeShowing = false
+
 /* ========================= */
 /* DÉMARRAGE COMBAT          */
 /* ========================= */
@@ -352,6 +354,7 @@ function spawnMobToken(mob) {
 /* ========================= */
 
 function showVictory() {
+  window.__combatOutcomeShowing = true
   playSound("victorySound", 0.45)
   fadeMusicOut(() => {})
 
@@ -380,10 +383,12 @@ function showVictory() {
     } else {
       returnToMap()
     }
+    setTimeout(() => { window.__combatOutcomeShowing = false }, 300)
   }, 7000)
 }
 
 function showDefeat() {
+  window.__combatOutcomeShowing = true
   playSound("defeatSound")
   fadeMusicOut(() => {})
 
@@ -391,7 +396,12 @@ function showDefeat() {
   screen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"
   document.body.appendChild(screen)
   flashRed(); screenShakeHard()
-  setTimeout(() => { screen.style.display = "none"; endCombat(); returnToMap() }, 5000)
+  setTimeout(() => {
+    screen.style.display = "none"
+    endCombat()
+    returnToMap()
+    setTimeout(() => { window.__combatOutcomeShowing = false }, 300)
+  }, 5000)
 }
 
 function endCombat() {
@@ -698,6 +708,7 @@ function _startRemoteCombat(data) {
 
 function _playRemoteCombatExit() {
   if (isGM) return
+  if (window.__combatOutcomeShowing) return
   const fade = document.getElementById("fadeScreen")
   if (fade) {
     fade.style.transition = "opacity 0.6s ease"
@@ -711,11 +722,12 @@ function _playRemoteCombatExit() {
   }, 450)
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
   db.ref("game/combatState").on("value", snap => {
     const data = snap.val()
 
     if (!data || !data.active) {
+      if (!isGM && window.__combatOutcomeShowing) return
       if (!isGM && combatActive) {
         _playRemoteCombatExit()
       }

@@ -68,21 +68,20 @@ db.ref("combat/mob").on("value", snap => {
   const hpText = document.getElementById("mobHPText")
   if (hpText) hpText.innerText = data.hp + " / " + data.maxHP
 
-  if (isGM) {
-    hud.style.display = "block"
-    if (lastMobHP !== null && data.hp < lastMobHP) { flashRed(); screenShake() }
-    if (data.hp <= 0 && combatActive) { endCombat(); showVictory() }
-    lastMobHP = data.hp
-  } else {
-    if (combatActive) {
+    if (isGM) {
       hud.style.display = "block"
-      activeMobSlots["mob"] = true
+      if (lastMobHP !== null && data.hp < lastMobHP) { flashRed(); screenShake() }
+      if (data.hp <= 0 && combatActive && !window.__combatOutcomeShowing) { showVictory() }
+      lastMobHP = data.hp
+    } else {
+      if (combatActive) {
+        hud.style.display = "block"
+        activeMobSlots["mob"] = true
+      }
+      if (data.hp <= 0 && combatActive && !window.__combatOutcomeShowing) {
+        showVictory()
+      }
     }
-    if (data.hp <= 0 && combatActive) {
-      endCombat()
-      showVictory()
-    }
-  }
 })
 
 // ─── diceRoll ───
@@ -340,9 +339,9 @@ db.ref("game/playerDeath").on("value", snap => {
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
-  if (!isGM && myToken && myToken.id === pid && combatActive) {
-    showDefeat()
-  }
+    if (!isGM && myToken && myToken.id === pid && combatActive && !window.__combatOutcomeShowing) {
+      showDefeat()
+    }
   if (isGM) {
     if (!document.getElementById("revive_" + pid)) {
       const revBtn = document.createElement("button"); revBtn.id = "revive_" + pid
@@ -352,8 +351,8 @@ db.ref("game/playerDeath").on("value", snap => {
       document.body.appendChild(revBtn)
     }
   }
-  db.ref("game/playerDeath").remove()
-})
+  if (isGM) db.ref("game/playerDeath").remove()
+  })
 
 // ─── playerRevive ───
 db.ref("game/playerRevive").on("value", snap => {
