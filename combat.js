@@ -4,6 +4,26 @@
 /* DÉMARRAGE COMBAT          */
 /* ========================= */
 
+function _getCombatArenaMap(mob, tier) {
+  if (mob === "kraken") return "tourbillon.jpg"
+  return tier === "boss" ? "arenefinal.jpg" : "arene.jpg"
+}
+
+function _syncCombatStart(mainMob, tier, extraMobs) {
+  return db.ref("game/combatState").set({
+    active: true,
+    mainMob,
+    tier,
+    extraMobs: extraMobs || [],
+    returnMap: currentMap || "taverne.jpg",
+    time: Date.now()
+  })
+}
+
+function _syncCombatEnd() {
+  return db.ref("game/combatState").remove()
+}
+
 function startCombat(mob, forceTier) {
   if (combatStarting || !isGM) return
   // Balraug uniquement sur sa map
@@ -97,6 +117,7 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
         })
       }, i * 200)
     })
+    _syncCombatStart(mainMob, tier, extraMobs.filter(Boolean))
     combatSequence(mainMob, forceTier)
     combatStarting = false
   })
@@ -125,7 +146,7 @@ function playRoiIntro(mob, tierMob) {
     cf.style.opacity = "0.5"; cf.style.background = "rgba(120,0,0,0.5)"
     const box = document.getElementById("storyImage"); const img = document.getElementById("storyImageContent")
     if (box && img) {
-      img.src = "roi.png"; box.style.opacity = "0"; box.style.left = "50%"
+      img.src = "images/roi.png"; box.style.opacity = "0"; box.style.left = "50%"
       box.style.transform = "translateX(-50%)"; box.style.right = "auto"; box.style.display = "flex"
       setTimeout(() => { box.style.transition = "opacity 0.8s"; box.style.opacity = "1" }, 50)
     }
@@ -174,11 +195,7 @@ function _startCombatSequence(mob, tierMob) {
 
       setTimeout(() => {
         const map = document.getElementById("map")
-        if (currentMob === "kraken") {
-          map.style.backgroundImage = "url('tourbillon.jpg')"
-        } else {
-          map.style.backgroundImage = (tierMob === "boss") ? "url('arenefinal.jpg')" : "url('arene.jpg')"
-        }
+        map.style.backgroundImage = "url('images/" + _getCombatArenaMap(currentMob, tierMob) + "')"
         fadeToCombat()
         cf.style.display = "none"; cf.style.opacity = "1"
         fade.style.transition = "opacity 1s ease"; fade.style.opacity = "0"
@@ -256,7 +273,7 @@ function showMobIntro(mob) {
     if (!box || !img) return
     box.style.left = p.left; box.style.transform = p.transform; box.style.right = p.right || "auto"
     box.style.display = "flex"; box.style.opacity = "1"
-    img.src = "" + mobName + ".png"
+    img.src = "images/" + mobName + ".png"
     const title = document.createElement("div")
     title.innerText = mobName.toUpperCase()
     title.style.cssText = "position:absolute;bottom:10%;left:50%;transform:translateX(-50%);font-family:Cinzel;font-size:clamp(20px,3vw,40px);color:red;text-shadow:0 0 10px red;white-space:nowrap;"
@@ -305,7 +322,7 @@ function spawnMobToken(mob) {
 
   token.style.pointerEvents = "auto"; token.style.cursor = "grab"
   if (tokenZone) tokenZone.appendChild(token)
-  img.src = "" + mob + ".png"
+  img.src = "images/" + mob + ".png"
   token.style.width = "130px"; token.style.height = "130px"
   img.style.width   = "130px"; img.style.height  = "130px"
   token.style.left  = "600px"; token.style.top   = "180px"
@@ -394,12 +411,10 @@ function endCombat() {
   stopBossFireEffect()
 
   const atkPanel = document.getElementById("mobAttackPanel"); if (atkPanel) atkPanel.remove()
-  ;["mob2","mob3"].forEach(s => { db.ref("combat/" + s).remove(); activeMobSlots[s] = false })
+  ;["mob2","mob3"].forEach(s => { activeMobSlots[s] = false })
   activeMobSlots["mob"] = false
 
   const ap = document.getElementById("addMobPanel"); if (ap) ap.style.display = "none"
-  db.ref("combat/usedAllies").remove()
-  db.ref("game/allyPanelOpen").remove()
   const allyPanel = document.getElementById("allyPNJPanel"); if (allyPanel) allyPanel.remove()
   const allyBtn = document.getElementById("allyBtn"); if (allyBtn) allyBtn.style.display = "none"
   const playerAllyBtn = document.getElementById("playerAllyBtn"); if (playerAllyBtn) playerAllyBtn.style.display = "none"
@@ -415,7 +430,13 @@ function endCombat() {
 
   const hud = document.getElementById("combatHUD"); if (hud) hud.style.display = "none"
   const attackBtn = document.getElementById("playerAttackBtn"); if (attackBtn) attackBtn.style.display = "none"
-  db.ref("combat/mob").remove()
+  if (isGM) {
+    db.ref("combat/mob").remove()
+    ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
+    db.ref("combat/usedAllies").remove()
+    db.ref("game/allyPanelOpen").remove()
+    _syncCombatEnd()
+  }
 }
 
 function returnToMap() {
@@ -424,7 +445,7 @@ function returnToMap() {
 
   setTimeout(() => {
     const map = document.getElementById("map")
-    if (currentMap) map.style.backgroundImage = "url('" + currentMap + "')"
+    if (currentMap) map.style.backgroundImage = "url('images/" + currentMap + "')"
 
     ;["greg","ju","elo","bibi","mobToken"].forEach(id => {
       const token = document.getElementById(id)
@@ -654,3 +675,72 @@ function updateMobPreview() {
     preview.appendChild(div)
   })
 }
+
+function _startRemoteCombat(data) {
+  if (isGM || !data || !data.active) return
+  if (combatActive && currentMob === data.mainMob) return
+
+  currentMob = data.mainMob
+  if (data.returnMap) currentMap = data.returnMap
+
+  _state.pendingExtraMobs = {}
+  ;(data.extraMobs || []).forEach((mob, i) => {
+    const slot = ["mob2","mob3"][i]
+    if (!slot || !mob) return
+    _state.pendingExtraMobs[slot] = mob
+  })
+
+  combatActive = true
+  combatStarting = false
+  setGameState("COMBAT")
+
+  const fade = document.getElementById("fadeScreen")
+  const map = document.getElementById("map")
+  fade.style.transition = "opacity 0.5s ease"
+  fade.style.opacity = "1"
+
+  setTimeout(() => {
+    map.style.backgroundImage = "url('images/" + _getCombatArenaMap(data.mainMob, data.tier) + "')"
+    fadeToCombat()
+    spawnMobToken(data.mainMob)
+    activeMobSlots.mob = true
+
+    ;(data.extraMobs || []).forEach((mob, i) => {
+      const slot = ["mob2","mob3"][i]
+      if (!slot || !mob) return
+      db.ref("combat/" + slot).once("value", snap => {
+        const md = snap.val()
+        if (!md) return
+        const ex = document.getElementById("mobToken_" + slot)
+        if (ex) ex.remove()
+        spawnExtraMobToken(md, slot)
+        activeMobSlots[slot] = true
+      })
+    })
+
+    renderAllMobPanels()
+    loadPlayerCombatStats()
+    showCombatHUD()
+
+    const playerAllyBtn = document.getElementById("playerAllyBtn")
+    if (playerAllyBtn) playerAllyBtn.style.display = "flex"
+
+    fade.style.opacity = "0"
+  }, 500)
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  db.ref("game/combatState").on("value", snap => {
+    const data = snap.val()
+
+    if (!data || !data.active) {
+      if (!isGM && combatActive) {
+        endCombat()
+        returnToMap()
+      }
+      return
+    }
+
+    if (!isGM) _startRemoteCombat(data)
+  })
+})
