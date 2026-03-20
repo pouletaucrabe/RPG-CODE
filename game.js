@@ -235,7 +235,12 @@ function ensureMadnessGMButton() {
 
 function getMyThuumWords() {
   if (!myToken || !window.playerThuumData) return {}
-  return window.playerThuumData[myToken.id] || {}
+  const exact = window.playerThuumData[myToken.id]
+  if (exact) return exact
+
+  const wanted = String(myToken.id || "").toLowerCase()
+  const key = Object.keys(window.playerThuumData).find(k => String(k).toLowerCase() === wanted)
+  return key ? (window.playerThuumData[key] || {}) : {}
 }
 
 function hasUnlockedThuum(word) {
@@ -245,7 +250,11 @@ function hasUnlockedThuum(word) {
 
 function isThuumUsedThisCombat(word) {
   if (!myToken || !window.usedThuumData) return false
-  return !!(window.usedThuumData[myToken.id] && window.usedThuumData[myToken.id][word])
+  if (window.usedThuumData[myToken.id] && window.usedThuumData[myToken.id][word]) return true
+
+  const wanted = String(myToken.id || "").toLowerCase()
+  const key = Object.keys(window.usedThuumData).find(k => String(k).toLowerCase() === wanted)
+  return !!(key && window.usedThuumData[key] && window.usedThuumData[key][word])
 }
 
 function updateThuumButton() {
@@ -535,10 +544,17 @@ db.ref("game/map").on("value", snap => {
     if (isFirst) { calculateMinZoom(); cameraZoom = minZoom; updateCamera() }
     document.querySelectorAll(".token").forEach(t => spawnPortal(t.id))
     if (mapMusic[mapName] && !_state._pendingMapAudio) {
-      _musicTransitioning = false; _pendingMusic = null
-      if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
-      stopAllMusic()
-      setTimeout(() => crossfadeMusic(mapMusic[mapName]), 200)
+      const wantedMusic = /^(https?:|data:|blob:|\/|audio\/)/i.test(mapMusic[mapName]) ? mapMusic[mapName] : "audio/" + mapMusic[mapName]
+      const activeMusic = currentMusic === "A" ? document.getElementById("musicA") : document.getElementById("musicB")
+      const activeName = activeMusic && activeMusic.src ? decodeURIComponent(activeMusic.src.replace(/.*\//, "").replace(/%20/g, " ")) : ""
+      const wantedName = wantedMusic.replace(/.*\//, "").replace(/%20/g, " ")
+
+      if (!(activeName === wantedName && activeMusic && !activeMusic.paused && activeMusic.volume > 0.05)) {
+        _musicTransitioning = false; _pendingMusic = null
+        if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
+        stopAllMusic()
+        setTimeout(() => crossfadeMusic(mapMusic[mapName]), 200)
+      }
     }
   }, 800)
 
@@ -825,12 +841,14 @@ db.ref("game/playerAllyAccess").on("value", snap => {
 db.ref("game/playerThuum").on("value", snap => {
   window.playerThuumData = snap.val() || {}
   updateThuumButton()
+  setTimeout(updateThuumButton, 150)
 })
 
 // ─── usedThuum — cooldown par combat ───
 db.ref("combat/usedThuum").on("value", snap => {
   window.usedThuumData = snap.val() || {}
   updateThuumButton()
+  setTimeout(updateThuumButton, 150)
 })
 
 // ─── thuumUnlockEvent — découverte globale ───
@@ -840,6 +858,8 @@ db.ref("game/thuumUnlockEvent").on("value", snap => {
   if (data.time <= window.__lastThuumUnlockTime) return
   window.__lastThuumUnlockTime = data.time
   showThuumUnlockCinematic(data)
+  setTimeout(updateThuumButton, 250)
+  setTimeout(updateThuumButton, 1200)
 })
 
 // ─── thuumCast — utilisation globale ───
