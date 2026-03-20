@@ -227,23 +227,24 @@ function updateCamera() {
 /* ========================= */
 
 function crossfadeMusic(newMusic) {
-  if (auroraActive && newMusic !== "aurore.mp3") return
+  if (auroraActive && newMusic !== "aurore.mp3" && newMusic !== "audio/aurore.mp3") return
 
   const musicA = document.getElementById("musicA")
   const musicB = document.getElementById("musicB")
   if (!musicA || !musicB) return
 
-  const active    = currentMusic === "A" ? musicA : musicB
-  const activeSrc = active.src ? decodeURIComponent(active.src.replace(/.*\//, "").replace(/%20/g," ")) : ""
-  const newSrc    = newMusic.replace(/.*\//, "").replace(/%20/g," ")
+  const normalizedMusic = /^(https?:|data:|blob:|\/|audio\/)/i.test(newMusic) ? newMusic : "audio/" + newMusic
 
-  // Même musique déjà en cours — ne pas interrompre
+  const active = currentMusic === "A" ? musicA : musicB
+  const activeSrc = active.src ? decodeURIComponent(active.src.replace(/.*\//, "").replace(/%20/g," ")) : ""
+  const newSrc = normalizedMusic.replace(/.*\//, "").replace(/%20/g," ")
+
   if (activeSrc === newSrc && !active.paused && active.volume > 0.3) return
 
-  // Annuler toute transition en cours
   if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
   _musicTransitioning = false
   _pendingMusic = null
+
   const mA = document.getElementById("musicA")
   const mB = document.getElementById("musicB")
   if (mA && mA !== active) { mA.pause(); mA.volume = 0 }
@@ -251,36 +252,37 @@ function crossfadeMusic(newMusic) {
   _musicTransitioning = true
 
   const next = currentMusic === "A" ? musicB : musicA
-  next.pause(); next.volume = 0
+  next.pause()
+  next.volume = 0
 
   const fadeOutIv = setInterval(() => {
     if (active.volume > 0.06) {
       active.volume = Math.max(0, active.volume - 0.1)
     } else {
-      active.pause(); active.volume = 0
+      active.pause()
+      active.volume = 0
       clearInterval(fadeOutIv)
-      next.src = newMusic
-      next.loop = false  // On gère la boucle manuellement pour le fade
-      next.volume = 0; next.currentTime = 0
+      next.src = normalizedMusic
+      next.loop = false
+      next.volume = 0
+      next.currentTime = 0
       next.play().catch(() => {})
 
-      // Boucle avec fade — quand le son approche de la fin, on fade out/in
       next.onended = null
       next._loopFadeSetup = true
       next.addEventListener("timeupdate", function _loopFade() {
         if (!next._loopFadeSetup) { next.removeEventListener("timeupdate", _loopFade); return }
         if (next.duration && next.currentTime > next.duration - 3 && !next._fading) {
           next._fading = true
-          // Fade out progressif sur les 3 dernières secondes
           const fadeIv = setInterval(() => {
             if (next.volume > 0.05) {
               next.volume = Math.max(0, next.volume - 0.04)
             } else {
               clearInterval(fadeIv)
-              next.currentTime = 0; next.volume = 0
+              next.currentTime = 0
+              next.volume = 0
               next._fading = false
               next.play().catch(() => {})
-              // Fade in
               const fi = setInterval(() => {
                 if (next.volume < 0.8) next.volume = Math.min(0.8, next.volume + 0.05)
                 else clearInterval(fi)
@@ -294,10 +296,15 @@ function crossfadeMusic(newMusic) {
         if (next.volume < 0.8) {
           next.volume = Math.min(0.8, next.volume + 0.05)
         } else {
-          clearInterval(musicFadeInterval); musicFadeInterval = null
+          clearInterval(musicFadeInterval)
+          musicFadeInterval = null
           currentMusic = currentMusic === "A" ? "B" : "A"
           _musicTransitioning = false
-          if (_pendingMusic) { const pm = _pendingMusic; _pendingMusic = null; crossfadeMusic(pm) }
+          if (_pendingMusic) {
+            const pm = _pendingMusic
+            _pendingMusic = null
+            crossfadeMusic(pm)
+          }
         }
       }, 150)
     }
@@ -310,7 +317,6 @@ function stopAllMusic() {
   const mB = document.getElementById("musicB")
   if (mA) { mA.pause(); mA.volume = 0 }
   if (mB) { mB.pause(); mB.volume = 0 }
-  // Couper aussi les musiques spéciales hors système
   ;["sortPrisonMusic", "auroraMusic", "forsureMusic"].forEach(id => {
     const el = document.getElementById(id)
     if (el && !el.paused) { el.pause(); el.volume = 0 }
@@ -341,7 +347,8 @@ function fadeMusicOut(callback) {
       else { m.pause(); m.volume = 0; clearInterval(iv); done++; if (done === 2 && callback) callback() }
     }, 150)
   }
-  fadeOne(mA); fadeOne(mB)
+  fadeOne(mA)
+  fadeOne(mB)
 }
 
 function playSound(id, volume = 0.8) {
@@ -379,7 +386,8 @@ function spawnBloodDrop(token) {
 
   const trail = document.createElement("div")
   trail.className = "bloodTrail"
-  trail.style.left = cx + "%"; trail.style.top = cy + "%"
+  trail.style.left = cx + "%"
+  trail.style.top = cy + "%"
   trail.style.height = (4 + Math.random() * 8) + "px"
   trail.style.width  = (2 + Math.random() * 2) + "px"
   trail.style.animationDuration = (1.5 + Math.random()) + "s"
@@ -387,7 +395,8 @@ function spawnBloodDrop(token) {
 
   const drop = document.createElement("div")
   drop.className = "bloodDrop"
-  drop.style.left  = (cx - 1.5) + "%"; drop.style.top = cy + "%"
+  drop.style.left  = (cx - 1.5) + "%"
+  drop.style.top = cy + "%"
   drop.style.width = (3 + Math.random() * 3) + "px"
   drop.style.animationDuration = (1.2 + Math.random() * 0.8) + "s"
   token.appendChild(drop)
@@ -462,7 +471,8 @@ function spawnMenuSparks() {
       spark.style.setProperty("--dx", Math.cos(angle).toFixed(2))
       spark.style.setProperty("--dy", Math.sin(angle).toFixed(2))
       const size = (3 + Math.random() * 5).toFixed(1) + "px"
-      spark.style.width = size; spark.style.height = size
+      spark.style.width = size
+      spark.style.height = size
       const colors = ["gold","#fff8c0","#ffd700","#ffcc44","#ffe88a","white","#ffaa00"]
       const c = colors[Math.floor(Math.random() * colors.length)]
       spark.style.background = c
@@ -497,9 +507,13 @@ function showLocation(name) {
   banner.style.display = "flex"
   banner.classList.add("visible")
   banner.style.opacity = "1"
-  paper.style.width    = "540px"; paper.style.height    = "360px"
-  paper.style.minWidth = "540px"; paper.style.minHeight = "360px"
-  paper.classList.remove("open"); text.classList.remove("show"); text.innerHTML = ""
+  paper.style.width    = "540px"
+  paper.style.height    = "360px"
+  paper.style.minWidth = "540px"
+  paper.style.minHeight = "360px"
+  paper.classList.remove("open")
+  text.classList.remove("show")
+  text.innerHTML = ""
 
   spawnParticles()
   if (sound) { sound.currentTime = 0; sound.play().catch(() => {}) }
@@ -517,8 +531,14 @@ function showLocation(name) {
 /* ========================= */
 
 function preloadAssets() {
-  Object.keys(mapMusic).forEach(map => { const img = new Image(); img.src = "" + map })
-  Object.values(mapMusic).forEach(aud => { const a = new Audio(); a.src = aud })
+  Object.keys(mapMusic).forEach(map => {
+    const img = new Image()
+    img.src = "images/" + map
+  })
+  Object.values(mapMusic).forEach(aud => {
+    const a = new Audio()
+    a.src = aud.startsWith("audio/") ? aud : "audio/" + aud
+  })
 }
 
 function scanAssets() {
@@ -530,7 +550,7 @@ function scanAssets() {
   images.forEach(img => {
     const test = new Image()
     test.onerror = () => console.warn("❌ IMAGE MANQUANTE → " + img)
-    test.src = "" + img
+    test.src = "images/" + img
   })
 }
 
@@ -547,24 +567,20 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
-  // Fiche — scroll sans interférence caméra
   const sheet = document.getElementById("characterSheet")
   if (sheet) {
     sheet.addEventListener("wheel",     e => e.stopPropagation(), { passive: true })
     sheet.addEventListener("touchmove", e => e.stopPropagation(), { passive: true })
   }
 
-  // Fiche — autosave sur changement
   document.querySelectorAll(".sheetField").forEach(field => {
     field.addEventListener("input", () => { autoSaveCharacter(); updateWeightBar() })
   })
 
-  // Stats combat — autosave
   document.querySelectorAll("#playerCombatPanel input").forEach(field => {
     field.addEventListener("input", () => saveCombatStats())
   })
 
-  // Dégâts mob — Entrée pour appliquer
   const input = document.getElementById("mobDamageInput")
   if (input) {
     input.addEventListener("keydown", e => {
@@ -572,14 +588,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const damage = parseInt(input.value)
       if (isNaN(damage) || damage <= 0) return
       db.ref("combat/mob").once("value", snapshot => {
-        const mob = snapshot.val(); if (!mob) return
+        const mob = snapshot.val()
+        if (!mob) return
         db.ref("combat/mob/hp").set(Math.max(0, mob.hp - damage))
       })
       input.value = ""
     })
   }
 
-  // Focus body pour keydown
   document.addEventListener("click", e => {
     if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") document.body.focus()
   })
