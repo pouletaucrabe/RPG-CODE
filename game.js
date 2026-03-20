@@ -74,19 +74,14 @@ db.ref("combat/mob").on("value", snap => {
     if (data.hp <= 0 && combatActive) { endCombat(); showVictory() }
     lastMobHP = data.hp
   } else {
-    // Côté joueur — activer le HUD et le bouton invocations au début du combat
-    if (!combatActive && data && data.hp > 0) {
-      combatActive = true
+    if (combatActive) {
+      hud.style.display = "block"
       activeMobSlots["mob"] = true
-      setTimeout(() => {
-        showCombatHUD()
-        loadPlayerCombatStats()
-        renderAllMobPanels()
-        const allyBtn = document.getElementById("playerAllyBtn")
-        if (allyBtn && myToken) allyBtn.style.display = "flex"
-      }, 500)
     }
-    if (data.hp <= 0 && combatActive) endCombat()
+    if (data.hp <= 0 && combatActive) {
+      endCombat()
+      showVictory()
+    }
   }
 })
 
@@ -345,6 +340,9 @@ db.ref("game/playerDeath").on("value", snap => {
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
+  if (!isGM && myToken && myToken.id === pid && combatActive) {
+    showDefeat()
+  }
   if (isGM) {
     if (!document.getElementById("revive_" + pid)) {
       const revBtn = document.createElement("button"); revBtn.id = "revive_" + pid
