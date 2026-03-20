@@ -18,6 +18,175 @@ firebase.initializeApp(firebaseConfig)
 firebase.database().goOnline()
 const db = firebase.database()
 
+window.groupMadness = 0
+window.groupMadnessTier = 0
+window.madnessShakeInterval = null
+
+function getMadnessZoneFactor() {
+  const map = (currentMap || "").toLowerCase()
+  if (map.includes("foret")) return 1.35
+  if (map.includes("portail")) return 1.1
+  return 1
+}
+
+function getMadnessTier(value) {
+  if (value >= 100) return 4
+  if (value >= 75) return 3
+  if (value >= 50) return 2
+  if (value >= 25) return 1
+  return 0
+}
+
+function stopMadnessLoops() {
+  ;["madnessLow", "madnessMid", "madnessHigh", "madnessPeak"].forEach(id => {
+    const audio = document.getElementById(id)
+    if (!audio) return
+    audio.pause()
+    audio.currentTime = 0
+  })
+}
+
+function playMadnessLoopForTier(tier, value) {
+  stopMadnessLoops()
+  const audioMap = {
+    1: document.getElementById("madnessLow"),
+    2: document.getElementById("madnessMid"),
+    3: document.getElementById("madnessHigh"),
+    4: document.getElementById("madnessPeak")
+  }
+  const audio = audioMap[tier]
+  if (!audio || combatActive || gameState !== "GAME") return
+  audio.volume = Math.min(0.85, (0.18 + value / 180) * getMadnessZoneFactor())
+  audio.play().catch(() => {})
+}
+
+function playMadnessHit() {
+  const hit = document.getElementById("whisperHit")
+  if (!hit || combatActive || gameState !== "GAME") return
+  hit.currentTime = 0
+  hit.volume = Math.min(0.95, 0.45 * getMadnessZoneFactor())
+  hit.play().catch(() => {})
+}
+
+function startMadnessShake(tier) {
+  if (window.madnessShakeInterval) {
+    clearInterval(window.madnessShakeInterval)
+    window.madnessShakeInterval = null
+  }
+  if (tier < 2) return
+
+  const interval = tier >= 4 ? 2200 : tier === 3 ? 3400 : 5200
+  window.madnessShakeInterval = setInterval(() => {
+    if (combatActive || gameState !== "GAME") return
+    if (tier >= 4) screenShakeHard()
+    else screenShake()
+  }, interval)
+}
+
+function updateMadnessVisibility() {
+  const gauge = document.getElementById("madnessGauge")
+  const overlay = document.getElementById("madnessOverlay")
+  const cameraEl = document.getElementById("camera")
+  if (!gauge || !overlay) return
+
+  const visible = gameState === "GAME" && !combatActive
+  gauge.style.display = visible ? "flex" : "none"
+  overlay.style.display = visible ? "block" : "none"
+
+  if (!visible) {
+    stopMadnessLoops()
+    if (cameraEl) {
+      cameraEl.style.filter = ""
+      cameraEl.classList.remove("madnessWarp")
+    }
+  }
+  else if (window.groupMadnessTier > 0) playMadnessLoopForTier(window.groupMadnessTier, window.groupMadness)
+}
+
+function updateMadnessUI(value) {
+  const gauge = document.getElementById("madnessGauge")
+  const fill = document.getElementById("madnessGaugeFill")
+  const glow = document.getElementById("madnessGaugeGlow")
+  const label = document.getElementById("madnessGaugeValue")
+  const mjValue = document.getElementById("madnessMJValue")
+  const overlay = document.getElementById("madnessOverlay")
+  const cameraEl = document.getElementById("camera")
+  if (!gauge || !fill || !glow || !label || !overlay) return
+
+  const pct = Math.max(0, Math.min(100, value))
+  const tier = getMadnessTier(pct)
+  const zoneFactor = getMadnessZoneFactor()
+
+  gauge.classList.remove("tier-0", "tier-1", "tier-2", "tier-3", "tier-4")
+  gauge.classList.add("tier-" + tier)
+  fill.style.width = pct + "%"
+  glow.style.width = pct + "%"
+  label.innerText = pct + " / 100"
+  if (mjValue) mjValue.innerText = pct + " / 100"
+
+  overlay.classList.toggle("active", pct > 0)
+  overlay.classList.toggle("pulse", tier >= 2)
+  overlay.style.opacity = pct <= 0 ? "0" : String(Math.min(0.82, (pct / 140) * zoneFactor))
+  if (cameraEl) {
+    const blur = pct >= 75 ? 1.6 : pct >= 50 ? 1.1 : pct >= 25 ? 0.5 : 0
+    const brightness = pct >= 75 ? 0.82 : pct >= 50 ? 0.9 : pct >= 25 ? 0.96 : 1
+    cameraEl.style.filter = combatActive ? "" : `blur(${blur}px) brightness(${brightness}) saturate(${1 + pct / 250})`
+    if (pct >= 75 && gameState === "GAME" && !combatActive) {
+      cameraEl.classList.add("madnessWarp")
+      setTimeout(() => cameraEl.classList.remove("madnessWarp"), 350)
+    }
+  }
+
+  if (tier >= 4) {
+    overlay.style.background = "radial-gradient(circle at 50% 50%, rgba(150,20,20,0.14) 0%, rgba(50,0,0,0.24) 42%, rgba(0,0,0,0.64) 100%)"
+  } else if (tier >= 2) {
+    overlay.style.background = "radial-gradient(circle at 50% 50%, rgba(110,30,20,0.1) 0%, rgba(24,0,0,0.16) 48%, rgba(0,0,0,0.48) 100%)"
+  } else {
+    overlay.style.background = "radial-gradient(circle at 50% 50%, rgba(90,40,20,0.06) 0%, rgba(12,0,0,0.12) 48%, rgba(0,0,0,0.38) 100%)"
+  }
+
+  if (tier !== window.groupMadnessTier) {
+    if (tier > 0) playMadnessHit()
+    window.groupMadnessTier = tier
+  }
+
+  startMadnessShake(tier)
+  updateMadnessVisibility()
+}
+
+function setGroupMadness(value) {
+  if (!isGM) return
+  const clamped = Math.max(0, Math.min(100, value))
+  db.ref("game/groupMadness").set(clamped)
+}
+
+function changeGroupMadness(delta) {
+  if (!isGM) return
+  db.ref("game/groupMadness").once("value", snap => {
+    const current = parseInt(snap.val(), 10) || 0
+    setGroupMadness(current + delta)
+  })
+}
+
+function resetGroupMadness() {
+  setGroupMadness(0)
+}
+
+function ensureMadnessGMButton() {
+  if (!isGM) return
+  const bar = document.getElementById("gmBar")
+  if (!bar || document.getElementById("madnessGMButton")) return
+  const btn = document.createElement("button")
+  btn.id = "madnessGMButton"
+  btn.className = "gmIcon"
+  btn.title = "Folie"
+  btn.innerText = "☾"
+  btn.onclick = () => toggleGMSection("madnessMenu")
+  const allyBtn = document.getElementById("allyBtn")
+  if (allyBtn) bar.insertBefore(btn, allyBtn)
+  else bar.appendChild(btn)
+}
+
 /* ========================= */
 /* FIREBASE LISTENERS        */
 /* UN SEUL par chemin        */
@@ -31,6 +200,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const el = document.getElementById(id)
   if (el) { el.style.display = "none"; el.style.opacity = "0" }
 })
+
+const madnessGauge = document.getElementById("madnessGauge")
+if (madnessGauge) madnessGauge.style.display = "none"
 
 // ─── combat/mob — listener unique fusionné ───
 db.ref("combat/mob").on("value", snap => {
@@ -163,6 +335,7 @@ db.ref("game/map").on("value", snap => {
   const isFirst = firstMapLoad
   if (isFirst) firstMapLoad = false
   currentMap = mapName
+  updateMadnessUI(window.groupMadness || 0)
   setTimeout(() => updateBifrostBtn(), 100)
 
   fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = 1; fade.style.pointerEvents = "none"
@@ -191,6 +364,13 @@ db.ref("game/map").on("value", snap => {
     if (isGM && !auroraActive && Math.random() < 0.03) triggerAurora()
     if (isGM && mapName === "cimetiere.jpg" && !cemeteryEventDone) setTimeout(() => triggerCemeteryEvent(), 1500)
   }, 2200)
+})
+
+// ─── groupMadness — jauge folie du groupe ───
+db.ref("game/groupMadness").on("value", snap => {
+  const value = Math.max(0, Math.min(100, parseInt(snap.val(), 10) || 0))
+  window.groupMadness = value
+  updateMadnessUI(value)
 })
 
 // ─── shop ───
@@ -890,10 +1070,11 @@ function newGame() {
     const s = getPlayerStatsAtLevel(pid, 1)
     initChars[pid] = { lvl:1, xp:0, hp:s.hp, poids:s.poids, force:s.force, charme:s.charme, perspi:s.perspi, chance:s.chance, defense:s.defense, curse:0, corruption:0, inventaire:"", notes:"" }
   })
-  db.ref("characters").set(initChars)
-  db.ref("tokens").set({ greg:{x:200,y:300}, ju:{x:300,y:300}, elo:{x:400,y:300}, bibi:{x:600,y:300} })
-  db.ref("game/map").set("taverne.jpg")
-  db.ref("diceRoll").remove()
+    db.ref("characters").set(initChars)
+    db.ref("tokens").set({ greg:{x:200,y:300}, ju:{x:300,y:300}, elo:{x:400,y:300}, bibi:{x:600,y:300} })
+    db.ref("game/map").set("taverne.jpg")
+    db.ref("game/groupMadness").set(0)
+    db.ref("diceRoll").remove()
   db.ref("game/storyImage").set(null)
   showNotification("🆕 Nouvelle partie créée")
   setGameState("MENU")
@@ -1036,10 +1217,11 @@ function setGameState(state) {
         })
       }, 500)
       break
-    case "COMBAT":
-      break
+      case "COMBAT":
+        break
+    }
+    setTimeout(updateMadnessVisibility, 30)
   }
-}
 
 function hideIntroLayers() {
   const start = document.getElementById("startScreen")
@@ -1072,16 +1254,17 @@ function showIntroLayer() {
 }
 
 function startGame() {
-  db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
-  db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove()
-  db.ref("elements").remove(); db.ref("game/shop").remove()
+    db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
+    db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove()
+    db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
   cemeteryEventDone = false
   combatActive = false
-  combatStarting = false
-  window.__combatOutcomeShowing = false
-  const playerAllyBtn = document.getElementById("playerAllyBtn")
+    combatStarting = false
+    window.__combatOutcomeShowing = false
+    updateMadnessVisibility()
+    const playerAllyBtn = document.getElementById("playerAllyBtn")
   if (playerAllyBtn) playerAllyBtn.style.display = "none"
   stopMenuSparks()
   const titleEl = document.getElementById("gameTitle")
@@ -1184,13 +1367,14 @@ function requestGM() {
 }
 
 function activateGM() {
-  isGM = true
-  document.getElementById("gmBar").style.display     = "flex"
-  document.getElementById("mjRollBtn").style.display = "inline-block"
-  document.getElementById("mjLog").style.display     = "block"
-  document.getElementById("gmSaveBar").style.display = "block"
-  showNotification("🎲 Mode MJ activé")
-}
+    isGM = true
+    document.getElementById("gmBar").style.display     = "flex"
+    document.getElementById("mjRollBtn").style.display = "inline-block"
+    document.getElementById("mjLog").style.display     = "block"
+    document.getElementById("gmSaveBar").style.display = "block"
+    ensureMadnessGMButton()
+    showNotification("🎲 Mode MJ activé")
+  }
 
 function toggleGMSection(id) {
   const section = document.getElementById(id); if (!section) return

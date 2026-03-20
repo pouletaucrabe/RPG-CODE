@@ -39,6 +39,15 @@
   </div>
 
   <div id="fadeScreen"></div>
+  <div id="madnessOverlay"></div>
+  <div id="madnessGauge">
+    <div id="madnessGaugeTitle">Folie du Groupe</div>
+    <div id="madnessGaugeFrame">
+      <div id="madnessGaugeFill"></div>
+      <div id="madnessGaugeGlow"></div>
+      <div id="madnessGaugeValue">0 / 100</div>
+    </div>
+  </div>
 
   <div id="playerSelect">
     <button id="playerToggle" onclick="togglePlayerMenu()">🎭</button>
@@ -205,6 +214,11 @@
 <audio id="forsureMusic" loop><source src="audio/forsure.mp3" type="audio/mpeg"></audio>
 <audio id="musicB" loop></audio>
 <audio id="auroraMusic" loop><source src="audio/aurore.mp3" type="audio/mpeg"></audio>
+<audio id="madnessLow" loop><source src="audio/madness_low.mp3" type="audio/mpeg"></audio>
+<audio id="madnessMid" loop><source src="audio/madness_mid.mp3" type="audio/mpeg"></audio>
+<audio id="madnessHigh" loop><source src="audio/madness_high.mp3" type="audio/mpeg"></audio>
+<audio id="madnessPeak" loop><source src="audio/madness_peak.mp3" type="audio/mpeg"></audio>
+<audio id="whisperHit"><source src="audio/whisper_hit.mp3" type="audio/mpeg"></audio>
 
 <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.8">
 
@@ -234,13 +248,24 @@
 </div>
 
 <div id="xpMenu" class="gmSection">
-  <button class="gmButton" onclick="giveXP(10)">+10 XP</button>
-  <button class="gmButton" onclick="giveXP(20)">+20 XP</button>
-  <button class="gmButton" onclick="giveXP(50)">+50 XP</button>
-  <button class="gmButton" onclick="giveXP(80)">+80 XP</button>
-  <button class="gmButton" onclick="giveXP(120)">+120 XP</button>
-  <button class="gmButton" onclick="giveXP(200)">+200 XP</button>
-</div>
+    <button class="gmButton" onclick="giveXP(10)">+10 XP</button>
+    <button class="gmButton" onclick="giveXP(20)">+20 XP</button>
+    <button class="gmButton" onclick="giveXP(50)">+50 XP</button>
+    <button class="gmButton" onclick="giveXP(80)">+80 XP</button>
+    <button class="gmButton" onclick="giveXP(120)">+120 XP</button>
+    <button class="gmButton" onclick="giveXP(200)">+200 XP</button>
+  </div>
+  
+  <div id="madnessMenu" class="gmSection">
+    <div class="mjTitle">Folie du Groupe</div>
+    <div id="madnessMJValue">0 / 100</div>
+    <div id="madnessMJButtons">
+      <button class="gmButton" onclick="changeGroupMadness(5)">+5</button>
+      <button class="gmButton" onclick="changeGroupMadness(10)">+10</button>
+      <button class="gmButton" onclick="changeGroupMadness(-5)">-5</button>
+      <button class="gmButton" onclick="resetGroupMadness()">Reset</button>
+    </div>
+  </div>
 
 <!-- MENU PNJ / HIGH PNJ -->
 <div id="pnjMenu" class="gmSection">
