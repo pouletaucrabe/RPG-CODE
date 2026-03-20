@@ -174,7 +174,7 @@ db.ref("game/map").on("value", snap => {
   fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = 1; fade.style.pointerEvents = "none"
 
   setTimeout(() => {
-    map.style.backgroundImage = "url('" + mapName + "')"
+    map.style.backgroundImage = "url('images/" + mapName + "')"
     if (mapName === "MAPMONDE.jpg") { map.style.backgroundSize = "contain"; map.style.backgroundColor = "#0a0a1a" }
     else                            { map.style.backgroundSize = "cover";   map.style.backgroundColor = "" }
     if (isFirst) { calculateMinZoom(); cameraZoom = minZoom; updateCamera() }
@@ -1097,7 +1097,7 @@ function showTavern() {
   document.getElementById("playerSelect").style.display = "block"
   document.getElementById("diceBar").style.display      = "flex"
   document.getElementById("diceLog").style.display      = "block"
-  map.style.backgroundImage = "url('taverne.jpg')"; currentMap = "taverne.jpg"
+  map.style.backgroundImage = "url('images/taverne.jpg')"; currentMap = "taverne.jpg"
   calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   setTimeout(() => { fade.style.opacity = 0 }, 500)
   setTimeout(() => { if (mapMusic["taverne.jpg"]) crossfadeMusic(mapMusic["taverne.jpg"]) }, 800)
