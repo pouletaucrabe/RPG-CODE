@@ -482,20 +482,7 @@ function resetGroupMadness() {
   setGroupMadness(0)
 }
 
-function ensureMadnessGMButton() {
-  if (!isGM) return
-  const bar = document.getElementById("gmBar")
-  if (!bar || document.getElementById("madnessGMButton")) return
-  const btn = document.createElement("button")
-  btn.id = "madnessGMButton"
-  btn.className = "gmIcon"
-  btn.title = "Folie"
-  btn.innerText = "☾"
-  btn.onclick = () => toggleGMSection("madnessMenu")
-  const allyBtn = document.getElementById("allyBtn")
-  if (allyBtn) bar.insertBefore(btn, allyBtn)
-  else bar.appendChild(btn)
-}
+function ensureMadnessGMButton() {}
 
 function getMyThuumWords() {
   if (!myToken || !window.playerThuumData) return {}
@@ -902,6 +889,26 @@ function playThuumCastEffect(data) {
   setTimeout(() => flashRed(), 90)
   screenShakeHard()
   setTimeout(() => screenShake(), 180)
+  const casterId = String(data.playerId || "").toLowerCase()
+  if (casterId) {
+    const casterToken = Array.from(document.querySelectorAll(".token")).find(t => String(t.id || "").toLowerCase() === casterId)
+    if (casterToken) {
+      let flame = casterToken.querySelector(".thuumBlueFlame")
+      if (!flame) {
+        flame = document.createElement("div")
+        flame.className = "thuumBlueFlame"
+        flame.style.cssText = "position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:84px;height:118px;border-radius:50% 50% 42% 42%;background:radial-gradient(ellipse at 50% 82%, rgba(180,245,255,0.92) 0%, rgba(88,205,255,0.8) 18%, rgba(45,126,255,0.64) 46%, rgba(24,62,170,0.18) 70%, transparent 100%);mix-blend-mode:screen;filter:blur(6px);opacity:0;"
+        casterToken.appendChild(flame)
+      }
+      casterToken.classList.remove("thuumCaster")
+      void casterToken.offsetWidth
+      casterToken.classList.add("thuumCaster")
+      setTimeout(() => {
+        casterToken.classList.remove("thuumCaster")
+        if (flame) flame.style.opacity = "0"
+      }, 1700)
+    }
+  }
   showNotification("ᚦ " + (data.word || "SKRAA") + " - " + (data.playerId || "").toUpperCase())
 }
 
@@ -1179,14 +1186,23 @@ db.ref("game/map").on("value", snap => {
     if (isFirst) { calculateMinZoom(); cameraZoom = minZoom; updateCamera() }
     document.querySelectorAll(".token").forEach(t => spawnPortal(t.id))
     if (mapMusic[mapName] && !_state._pendingMapAudio) {
+      const shouldKeepAuroraMusic = auroraActive && mapName !== "bifrost.jpg"
       const wantedMusic = /^(https?:|data:|blob:|\/|audio\/)/i.test(mapMusic[mapName]) ? mapMusic[mapName] : "audio/" + mapMusic[mapName]
       const activeMusic = currentMusic === "A" ? document.getElementById("musicA") : document.getElementById("musicB")
       const activeName = activeMusic && activeMusic.src ? decodeURIComponent(activeMusic.src.replace(/.*\//, "").replace(/%20/g, " ")) : ""
       const wantedName = wantedMusic.replace(/.*\//, "").replace(/%20/g, " ")
 
-      if (!(activeName === wantedName && activeMusic && !activeMusic.paused && activeMusic.volume > 0.05)) {
+      if (!shouldKeepAuroraMusic && !(activeName === wantedName && activeMusic && !activeMusic.paused && activeMusic.volume > 0.05)) {
         _musicTransitioning = false; _pendingMusic = null
         if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
+        if (auroraActive && mapName === "bifrost.jpg") {
+          const aurora = document.getElementById("auroraMusic")
+          if (aurora) {
+            aurora.pause()
+            aurora.currentTime = 0
+            aurora.volume = 0
+          }
+        }
         stopAllMusic()
         setTimeout(() => crossfadeMusic(mapMusic[mapName]), 200)
       }

@@ -287,6 +287,83 @@ html, body {
   50%      { box-shadow: 0 0 16px rgba(30,180,200,0.4), inset 0 0 12px rgba(30,180,200,0.15); }
 }
 
+.token.thuumCaster {
+  z-index: 120 !important;
+}
+
+.token.thuumCaster img {
+  animation: thuumTokenPulse 1.35s ease-out;
+  box-shadow:
+    0 0 0 2px #4ac6ff,
+    0 0 0 4px rgba(145,220,255,0.95),
+    0 0 0 6px rgba(12,55,86,0.9),
+    0 0 18px rgba(98,214,255,0.92),
+    0 0 42px rgba(70,160,255,0.7),
+    0 0 78px rgba(42,112,255,0.48),
+    inset 0 0 16px rgba(190,240,255,0.35) !important;
+  filter: brightness(1.18) saturate(1.28);
+}
+
+.token.thuumCaster::before {
+  animation: thuumRingPulse 1.35s ease-out;
+  border-color: rgba(124,220,255,0.96) !important;
+  box-shadow:
+    0 0 24px rgba(120,220,255,0.88),
+    0 0 54px rgba(52,120,255,0.45),
+    inset 0 0 24px rgba(150,230,255,0.22) !important;
+}
+
+.token.thuumCaster::after {
+  animation: thuumOuterPulse 1.35s ease-out;
+  border-color: rgba(155,230,255,0.75) !important;
+  box-shadow:
+    0 0 36px rgba(76,185,255,0.4),
+    0 0 72px rgba(32,108,255,0.25);
+}
+
+.token.thuumCaster::before,
+.token.thuumCaster::after {
+  content: "";
+}
+
+.token.thuumCaster .thuumBlueFlame,
+.token .thuumBlueFlame {
+  pointer-events: none;
+}
+
+.token.thuumCaster .thuumBlueFlame {
+  opacity: 1;
+  animation: thuumFlameRise 0.55s ease-out infinite alternate;
+}
+
+@keyframes thuumTokenPulse {
+  0%   { transform: scale(1) translateY(0); }
+  12%  { transform: scale(1.22) translateY(-5px); }
+  20%  { transform: scale(1.16) translateY(-3px) translateX(-2px); }
+  28%  { transform: scale(1.18) translateY(-4px) translateX(2px); }
+  36%  { transform: scale(1.14) translateY(-2px) translateX(-2px); }
+  46%  { transform: scale(1.12) translateY(-3px) translateX(2px); }
+  60%  { transform: scale(1.08) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+@keyframes thuumRingPulse {
+  0%   { transform: translate(-50%,-50%) scale(1); opacity: 0.4; }
+  30%  { transform: translate(-50%,-50%) scale(1.22); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1.06); opacity: 0.7; }
+}
+
+@keyframes thuumOuterPulse {
+  0%   { transform: translate(-50%,-50%) scale(0.96); opacity: 0.3; }
+  38%  { transform: translate(-50%,-50%) scale(1.28); opacity: 0.88; }
+  100% { transform: translate(-50%,-50%) scale(1.08); opacity: 0.52; }
+}
+
+@keyframes thuumFlameRise {
+  0%   { transform: translateX(-50%) scaleY(0.88) scaleX(0.92); opacity: 0.72; }
+  100% { transform: translateX(-50%) scaleY(1.14) scaleX(1.05); opacity: 1; }
+}
+
 .gmSelected img {
   box-shadow:
     0 0 0 2px #1e5a66,
@@ -2855,6 +2932,30 @@ body {
     0 0 10px rgba(255,96,96,0.28),
     0 0 24px rgba(140,0,0,0.9),
     0 0 44px rgba(80,0,0,0.85) !important;
+}
+
+/* Intro final hard alignment */
+#introBox > #startButton,
+#introBox .menuButton {
+  width: calc(100% - 140px) !important;
+  max-width: calc(100% - 140px) !important;
+  min-width: 0 !important;
+  align-self: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+#introBox > div {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 14px !important;
+  margin-top: 18px !important;
+}
+
+#introBox > #startButton {
+  margin-top: 26px !important;
 }
 
 @keyframes bookFloatIdle {

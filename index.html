@@ -478,6 +478,7 @@
     <button class="pnjTab" onclick="openPNJTab('elemEffets', this)">✨</button>
     <button class="pnjTab" onclick="openPNJTab('elemCartes', this)">ᚦ</button>
     <button class="pnjTab" onclick="openPNJTab('elemJeu', this)">ᚱ</button>
+    <button class="pnjTab" onclick="openPNJTab('elemFolie', this)">☾</button>
     <button class="pnjTab" onclick="openPNJTab('elemWanted', this)">🎯</button>
   </div>
   <div id="elemIndices" class="pnjTabContent active">
@@ -534,6 +535,18 @@
         <button onclick="revealRuneLetter('T')" class="runeLetBtn">T</button><button onclick="revealRuneLetter('U')" class="runeLetBtn">U</button>
         <button onclick="revealRuneLetter('V')" class="runeLetBtn">V</button><button onclick="revealRuneLetter('W')" class="runeLetBtn">W</button>
         <button onclick="revealRuneLetter('Y')" class="runeLetBtn">Y</button><button onclick="revealRuneLetter('Z')" class="runeLetBtn">Z</button>
+      </div>
+    </div>
+  </div>
+  <div id="elemFolie" class="pnjTabContent">
+    <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(200,160,80,0.18);">
+      <div style="font-family:Cinzel;font-size:11px;color:#8a6830;text-align:center;margin-bottom:8px;letter-spacing:2px;">FOLIE DU GROUPE</div>
+      <div id="madnessMJValue" style="text-align:center;font-family:Cinzel,serif;font-size:13px;color:#d8c28a;margin-bottom:8px;">0 / 100</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+        <button onclick="changeGroupMadness(5)" style="padding:7px;background:rgba(80,50,10,0.42);color:#f2d49a;border:1px solid rgba(180,130,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">+5</button>
+        <button onclick="changeGroupMadness(10)" style="padding:7px;background:rgba(80,50,10,0.42);color:#f2d49a;border:1px solid rgba(180,130,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">+10</button>
+        <button onclick="changeGroupMadness(-5)" style="padding:7px;background:rgba(40,70,20,0.42);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">-5</button>
+        <button onclick="resetGroupMadness()" style="padding:7px;background:rgba(90,20,20,0.42);color:#ffb0b0;border:1px solid rgba(180,60,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Reset</button>
       </div>
     </div>
   </div>
