@@ -33,6 +33,8 @@ window.THUUMS = {
   SKRAA: {
     word: "SKRAA",
     words: ["SKRAA", "VORTH", "NAAK"],
+    translation: "Fragmentation • Rupture • Dispersion finale",
+    description: "Fracasse la cible principale et blesse les ennemis autour.",
     unlockMap: "prebalraug.jpg",
     buttonImage: "images/runeskraa.png",
     combatDamageByRank: rank => ({ main: 8 + rank * 4, splash: 3 + rank * 2 }),
@@ -439,6 +441,14 @@ function renderPlayerThuumPanel() {
     words.className = "playerThuumEntryWords"
     words.innerText = (def.words || [word]).join(" • ")
     text.appendChild(words)
+
+    const translation = document.createElement("div")
+    translation.className = "playerThuumEntryState"
+    translation.style.color = "#d8c28a"
+    translation.style.fontStyle = "italic"
+    translation.style.opacity = "0.92"
+    translation.innerText = def.translation || def.description || ""
+    if (translation.innerText) text.appendChild(translation)
 
     const state = document.createElement("div")
     state.className = "playerThuumEntryState"
@@ -979,7 +989,7 @@ db.ref("game/playerDeath").on("value", snap => {
     skull.innerText = "💀"; tok.appendChild(skull)
   }
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
-  const snd = new Audio("defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
+  const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
   if (!isGM && myToken && myToken.id === pid && combatActive && !window.__combatOutcomeShowing) {
       showDefeat()
