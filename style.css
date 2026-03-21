@@ -86,10 +86,10 @@ html, body {
 
 #introBox {
   position: relative;
-  background-image: url("images/menu%20intro.png");
-  background-size: 100% 100%; background-repeat: no-repeat;
+  background-image: none;
   padding: 80px 80px 70px 80px;
   width: 760px; max-width: 92vw;
+  min-height: 760px;
   text-align: center;
   font-family: var(--font-text);
   color: #2b1a10;
@@ -552,11 +552,9 @@ html, body {
 
 #diceBar {
   position: fixed; bottom: 20px; right: 20px;
-  background: url("images/boutonnoir.png") center/100% 100% no-repeat;
+  background: none;
   border: none;
-  box-shadow:
-    0 -2px 30px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(255,215,120,0.12);
+  box-shadow: none;
   backdrop-filter: none;
   padding: 16px 20px; border-radius: 4px;
   display: flex; gap: 6px; align-items: center;
@@ -718,7 +716,7 @@ html, body {
   bottom: 20px; left: 50%; transform: translateX(-50%);
   gap: 10px;
   background:
-    url("images/boutonnoir.png") center/100% 100% no-repeat,
+    url("images/cadrefinbleu.png") center/100% 100% no-repeat,
     linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(0,0,0,0.98) 100%);
   border: none;
   box-shadow:
