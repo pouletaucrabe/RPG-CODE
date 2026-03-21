@@ -582,15 +582,18 @@ html, body {
 
 #notification {
   position: fixed; top: 120px; right: 20px;
-  background: var(--panel-bg);
-  border: 1px solid var(--teal-border);
-  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
-  color: var(--cream);
-  padding: 12px 22px;
+  background:
+    linear-gradient(180deg, rgba(24,16,10,0.96), rgba(10,8,8,0.98));
+  border: 1px solid rgba(181, 145, 82, 0.72);
+  box-shadow: 0 0 0 1px rgba(78, 52, 18, 0.95), 0 0 28px rgba(0,0,0,0.88);
+  color: #f3e6c2;
+  padding: 14px 24px;
   font-family: var(--font-body); font-size: 16px;
-  border-radius: 3px;
+  border-radius: 10px;
   opacity: 0; transition: opacity 0.5s;
   z-index: 10001;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0,0,0,0.8), 0 0 4px black;
 }
 
 .selectedPlayer img { transform: scale(1.15); transition: transform 0.3s; border-radius: 50%; }
@@ -666,16 +669,17 @@ html, body {
 #diceLog {
   position: fixed; right: 20px; bottom: 90px;
   width: 220px; max-height: 260px; overflow-y: auto;
-  background: var(--panel-bg);
-  border: 1px solid var(--teal-border);
-  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 20px rgba(0,0,0,0.8);
-  color: var(--cream);
+  background:
+    linear-gradient(180deg, rgba(18,14,10,0.97), rgba(8,8,8,0.98));
+  border: 1px solid rgba(181,145,82,0.68);
+  box-shadow: 0 0 0 1px rgba(72,46,16,0.95), 0 0 24px rgba(0,0,0,0.86);
+  color: #f0e1bc;
   font-family: var(--font-body);
-  padding: 10px; border-radius: 3px;
+  padding: 12px 12px 10px; border-radius: 10px;
   z-index: 9999999;
 }
 
-.logEntry { padding: 4px 0; border-bottom: 1px solid rgba(30,90,102,0.2); }
+.logEntry { padding: 5px 0; border-bottom: 1px solid rgba(181,145,82,0.16); }
 .logMJ { color: var(--gold); }
 .logCrit { color: var(--gold); text-shadow: 0 0 8px gold; }
 .logFail { color: #ff5050; text-shadow: 0 0 8px red; }
@@ -846,10 +850,12 @@ html, body {
 
 .gmSection {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-  background: linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
-  border: none;
-  box-shadow: 0 0 30px rgba(0,0,0,0.9);
-  padding: 22px 20px; border-radius: 3px;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(195,135,48,0.12), transparent 32%),
+    linear-gradient(180deg, rgba(22,18,12,0.97) 0%, rgba(10,10,10,0.99) 100%);
+  border: 1px solid rgba(181,145,82,0.56);
+  box-shadow: 0 0 0 1px rgba(74,48,18,0.92), 0 0 34px rgba(0,0,0,0.92);
+  padding: 24px 22px 20px; border-radius: 12px;
   display: none; z-index: 99999999; pointer-events: auto;
   max-height: 70vh; overflow-y: auto;
 }
@@ -858,8 +864,8 @@ html, body {
 .gmSection::before {
   content: "";
   display: block; width: 100%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--teal-border), transparent);
-  margin-bottom: 10px;
+  background: linear-gradient(90deg, transparent, rgba(220,178,104,0.08), rgba(220,178,104,0.88), rgba(220,178,104,0.08), transparent);
+  margin-bottom: 12px;
 }
 
 .gmButton {
@@ -2006,11 +2012,13 @@ body {
   bottom: 182px;
   min-width: 260px;
   max-width: 340px;
-  padding: 14px;
-  border: 1px solid rgba(180, 150, 85, 0.75);
-  border-radius: 10px;
-  background: linear-gradient(180deg, rgba(22, 14, 8, 0.97), rgba(10, 6, 5, 0.97));
-  box-shadow: 0 0 0 1px rgba(85, 58, 16, 0.9), 0 0 24px rgba(0, 0, 0, 0.8);
+  padding: 16px;
+  border: 1px solid rgba(202, 170, 96, 0.75);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(210, 170, 88, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(24, 16, 10, 0.975), rgba(10, 6, 5, 0.985));
+  box-shadow: 0 0 0 1px rgba(92, 62, 18, 0.92), 0 0 28px rgba(0, 0, 0, 0.86);
   z-index: 99999998;
 }
 
@@ -2030,10 +2038,10 @@ body {
   gap: 12px;
   width: 100%;
   margin-bottom: 8px;
-  padding: 10px;
-  border: 1px solid rgba(180, 150, 85, 0.35);
-  border-radius: 8px;
-  background: rgba(40, 24, 10, 0.72);
+  padding: 12px;
+  border: 1px solid rgba(194, 162, 92, 0.38);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(48, 30, 14, 0.76), rgba(24, 14, 8, 0.76));
   cursor: pointer;
   transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
 }
