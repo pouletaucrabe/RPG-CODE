@@ -25,10 +25,10 @@
   <div id="intro">
     <div id="gameTitle"></div>
     <div id="introBox" style="background:url('images/menu%20intro.png') center/contain no-repeat;">
-      <button id="startButton" onclick="startGame()"><span class="btn-inner">▶ Continuer</span></button>
+      <button id="startButton" onclick="startGame()"><span class="btn-inner">CONTINUER</span></button>
       <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px;">
-        <button class="menuButton" onclick="newGame()"><span class="btn-inner">🆕 Nouvelle Partie</span></button>
-        <button class="menuButton" onclick="loadGame()"><span class="btn-inner">📂 Charger Partie</span></button>
+        <button class="menuButton" onclick="newGame()"><span class="btn-inner">NOUVELLE PARTIE</span></button>
+        <button class="menuButton" onclick="loadGame()"><span class="btn-inner">CHARGER PARTIE</span></button>
       </div>
     </div>
   </div>
@@ -546,7 +546,7 @@
 
   <!-- VILLES -->
   <div id="mapVilles" class="pnjTabContent active">
-    <button class="mapCategoryButton" onclick="toggleCategory('villageMaps', this)"><span class="arrow">▶</span> 🏘 Rivebois</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('villageMaps', this)"><span class="arrow">▶</span> Rivebois</button>
     <div id="villageMaps" class="mapCategory">
       <button onclick="changeMap('taverne.jpg')">Taverne</button>
       <button onclick="changeMap('village1.jpg')">Village</button>
@@ -557,7 +557,7 @@
       <button onclick="changeMap('epouventail.jpg')">Épouvantail</button>
       <button onclick="changeMap('rivebois.jpg')">Rivebois</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('portMaps', this)"><span class="arrow">▶</span> ⚓ Brume</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('portMaps', this)"><span class="arrow">▶</span> Brume</button>
     <div id="portMaps" class="mapCategory">
       <button onclick="changeMap('port.jpg')">Entrée Brume</button>
       <button onclick="changeMap('bateaunord.png')">Bateau Nord</button>
@@ -567,30 +567,30 @@
       <button onclick="changeMap('palaisville.jpg')">Palais de l'intendant Macron</button>
       <button onclick="changeMap('bateau.jpg', 'forsure')">Le for sure</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('auroraHunterMaps', this)"><span class="arrow">▶</span> 🌌 Chasseur d'Aurores</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('auroraHunterMaps', this)"><span class="arrow">▶</span> Chasseur d'Aurores</button>
     <div id="auroraHunterMaps" class="mapCategory">
       <button onclick="changeMap('chasseuraurore.jpg')">Camp chasseurs</button>
       <button onclick="changeMap('tenteaurore.jpg')">Tente du général</button>
       <button onclick="changeMap('bateau1.jpg')">L'Oregon III</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('asgardMaps', this)"><span class="arrow">▶</span> ⚡ Asgard</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('asgardMaps', this)"><span class="arrow">▶</span> Asgard</button>
     <div id="asgardMaps" class="mapCategory">
       <button onclick="changeMap('bifrost.jpg')">Bifrost</button>
       <button onclick="changeMap('asgard.jpg')">Cité des dieux Asgard</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('niflheimMaps', this)"><span class="arrow">▶</span> 🌊 Niflheim</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('niflheimMaps', this)"><span class="arrow">▶</span> Niflheim</button>
     <div id="niflheimMaps" class="mapCategory">
       <button onclick="changeMap('tourbillon.jpg')">Maelstrom</button>
       <button onclick="changeMap('niflheim.jpg')">Cité engloutie Niflheim</button>
       <button onclick="changeMap('hvergelmir.jpg')">Source sacrée Hvergelmir</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('castleofevilMaps', this)"><span class="arrow">▶</span> 🏰 Castle of Evil</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('castleofevilMaps', this)"><span class="arrow">▶</span> Castle of Evil</button>
     <div id="castleofevilMaps" class="mapCategory">
       <button onclick="changeMap('castleofevil.jpg')">Entrée castle</button>
       <button onclick="changeMap('interieurcastle.jpg')">Salle castle</button>
       <button onclick="changeMap('throne.jpg')">Throne</button>
     </div>
-    <button class="mapWorldButton" onclick="changeMap('MAPMONDE.jpg')">🌍 MAP MONDE</button>
+    <button class="mapWorldButton" onclick="changeMap('MAPMONDE.jpg')">MAP MONDE</button>
     <button class="mapWorldButton" onclick="toggleWorldMapFogTopLeft()" style="margin-top:8px;background:rgba(80,80,80,0.22);color:#d9d9d9;border:1px solid rgba(200,200,200,0.22);">☁ Fog haut-gauche</button>
   </div>
 
@@ -602,25 +602,25 @@
 
   <!-- LIEUX -->
   <div id="mapLieux" class="pnjTabContent">
-    <button class="mapCategoryButton" onclick="toggleCategory('forestMaps', this)"><span class="arrow">▶</span> 🌲 Forêt</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('forestMaps', this)"><span class="arrow">▶</span> Forêt</button>
     <div id="forestMaps" class="mapCategory">
       <button onclick="changeMap('foret.jpg')">Forêt</button>
       <button onclick="changeMap('arbre.jpg')">Arbre</button>
       <button onclick="changeMap('portail.jpg')">Portail</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('mineMaps', this)"><span class="arrow">▶</span> ⛏ Mine</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('mineMaps', this)"><span class="arrow">▶</span> Mine</button>
     <div id="mineMaps" class="mapCategory">
       <button onclick="changeMap('mine.jpg')">Entrée mine</button>
       <button onclick="changeMap('interieurmine.jpg')">Salle mine</button>
       <button onclick="changeMap('prebalraug.jpg')">Pre-Balraug</button>
       <button onclick="changeMap('balraug.jpg', 'balraug')">Antre de Balraug</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('cimetiereMaps', this)"><span class="arrow">▶</span> ⚰ Cimetière</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('cimetiereMaps', this)"><span class="arrow">▶</span> Cimetière</button>
     <div id="cimetiereMaps" class="mapCategory">
       <button onclick="changeMap('cimetiere.jpg')">Cimetière</button>
       <button onclick="changeMap('chapelle.jpg')">Chapelle</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('antreMaps', this)"><span class="arrow">▶</span> 🕳 Antre</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('antreMaps', this)"><span class="arrow">▶</span> Antre</button>
     <div id="antreMaps" class="mapCategory">
       <button onclick="changeMap('trou.jpg')">Passage</button>
       <button onclick="changeMap('antre.jpg')">L'Antre</button>
@@ -629,7 +629,7 @@
     <div id="ruinesBaldurMaps" class="mapCategory">
       <button onclick="changeMap('ruines.jpg')">Village du Jarl</button>
     </div>
-    <button class="mapCategoryButton" onclick="toggleCategory('autreMaps', this)"><span class="arrow">▶</span> 📦 Autres</button>
+    <button class="mapCategoryButton" onclick="toggleCategory('autreMaps', this)"><span class="arrow">▶</span> Autres</button>
     <div id="autreMaps" class="mapCategory">
       <button onclick="changeMap('cristaux.jpg')">Cristaux</button>
     </div>

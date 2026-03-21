@@ -765,12 +765,20 @@ function _playRemoteCombatExit() {
 
       if (!data || !data.active) {
         if (!isGM && window.__combatOutcomeShowing) return
-      if (!isGM && combatActive) {
-        _playRemoteCombatExit()
+        if (!isGM && combatActive) {
+          db.ref("game/combatOutcome").once("value", outcomeSnap => {
+            const outcome = outcomeSnap.val()
+            if (window.__combatOutcomeShowing) return
+            if (outcome && outcome.type === "defeat") {
+              showDefeat()
+              return
+            }
+            _playRemoteCombatExit()
+          })
+        }
+        return
       }
-      return
-    }
 
-    if (!isGM) _startRemoteCombat(data)
+      if (!isGM) _startRemoteCombat(data)
   })
 })

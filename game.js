@@ -23,6 +23,7 @@ window.groupMadnessTier = 0
 window.madnessShakeInterval = null
 window.currentMadnessLoopId = null
 window.worldMapFogTopLeftHidden = false
+window.__worldMapFogTopLeftReady = false
 window.playerThuumData = {}
 window.playerThuumAccessData = {}
 window.usedThuumData = {}
@@ -116,6 +117,8 @@ function updateWorldMapFogTopLeft() {
   const fog = document.getElementById("worldMapFogTopLeft")
   if (!fog) return
   const shouldShow = currentMap === "MAPMONDE.jpg" && !window.worldMapFogTopLeftHidden && gameState === "GAME"
+  fog.style.transition = "opacity 0.5s ease"
+  fog.style.filter = "drop-shadow(0 0 18px rgba(0,0,0,0.55))"
   fog.style.display = shouldShow ? "block" : "none"
   fog.style.opacity = shouldShow ? "0.98" : "0"
 }
@@ -123,6 +126,30 @@ function updateWorldMapFogTopLeft() {
 function toggleWorldMapFogTopLeft() {
   if (!isGM) return
   db.ref("game/worldMapFogTopLeftHidden").set(!window.worldMapFogTopLeftHidden)
+}
+
+function revealWorldMapFogTopLeft() {
+  const fog = document.getElementById("worldMapFogTopLeft")
+  if (!fog || currentMap !== "MAPMONDE.jpg" || gameState !== "GAME") return
+  fog.style.display = "block"
+  fog.style.opacity = "0.98"
+  fog.style.transition = "opacity 2s ease, filter 2s ease, transform 0.18s ease"
+  fog.style.filter = "brightness(1.4) drop-shadow(0 0 26px rgba(255,220,160,0.55))"
+  fog.style.transform = "scale(1.03)"
+  playSound("powerSound", 0.85)
+  screenShakeHard()
+  setTimeout(() => screenShake(), 180)
+  requestAnimationFrame(() => {
+    fog.style.opacity = "0"
+    fog.style.filter = "brightness(1.05) drop-shadow(0 0 10px rgba(255,220,160,0.18))"
+    fog.style.transform = "scale(1)"
+  })
+  setTimeout(() => {
+    fog.style.display = "none"
+    fog.style.transition = "opacity 0.5s ease"
+    fog.style.filter = "drop-shadow(0 0 18px rgba(0,0,0,0.55))"
+    fog.style.transform = ""
+  }, 2050)
 }
 
 function startMadnessShake(tier) {
@@ -477,8 +504,20 @@ function playThuumCastEffect(data) {
     snd.volume = 0.85
     snd.play().catch(() => {})
   }
+  const flash = document.createElement("div")
+  flash.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:999999998;background:radial-gradient(circle at center,rgba(190,220,255,0.85) 0%,rgba(120,180,255,0.42) 22%,rgba(255,255,255,0.22) 38%,rgba(170,0,0,0.18) 68%,rgba(0,0,0,0) 100%);opacity:0;mix-blend-mode:screen;transition:opacity 0.08s ease;"
+  document.body.appendChild(flash)
+  requestAnimationFrame(() => { flash.style.opacity = "1" })
+  setTimeout(() => {
+    flash.style.transition = "opacity 0.55s ease"
+    flash.style.opacity = "0"
+  }, 110)
+  setTimeout(() => flash.remove(), 760)
+
   flashRed()
-  screenShake()
+  setTimeout(() => flashRed(), 90)
+  screenShakeHard()
+  setTimeout(() => screenShake(), 180)
   showNotification("ᚦ " + (data.word || "SKRAA") + " - " + (data.playerId || "").toUpperCase())
 }
 
@@ -785,7 +824,13 @@ db.ref("game/groupMadness").on("value", snap => {
 })
 
 db.ref("game/worldMapFogTopLeftHidden").on("value", snap => {
-  window.worldMapFogTopLeftHidden = !!snap.val()
+  const prevHidden = !!window.worldMapFogTopLeftHidden
+  const nextHidden = !!snap.val()
+  window.worldMapFogTopLeftHidden = nextHidden
+  if (window.__worldMapFogTopLeftReady && !prevHidden && nextHidden) {
+    revealWorldMapFogTopLeft()
+  }
+  window.__worldMapFogTopLeftReady = true
   updateWorldMapFogTopLeft()
 })
 
@@ -941,7 +986,7 @@ db.ref("game/playerDeath").on("value", snap => {
     }
   if (isGM) {
       db.ref("game/combatOutcome").set({ type: "defeat", player: pid, time: Date.now() })
-      setTimeout(() => db.ref("game/combatOutcome").remove(), 1500)
+      setTimeout(() => db.ref("game/combatOutcome").remove(), 6500)
       if (!document.getElementById("revive_" + pid)) {
         const revBtn = document.createElement("button"); revBtn.id = "revive_" + pid
       revBtn.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;padding:10px 24px;font-family:'Cinzel Decorative',serif;font-size:13px;background:linear-gradient(rgba(0,80,0,0.8),rgba(0,40,0,0.8));color:#88ff88;border:2px solid rgba(50,180,50,0.6);border-radius:6px;cursor:pointer;letter-spacing:2px;animation:bifrostPulse 1.5s ease-in-out infinite alternate;"
