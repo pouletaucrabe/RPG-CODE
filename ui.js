@@ -545,7 +545,11 @@ function hideStoryImage() {
   setTimeout(()=>{ box.style.display="none"; updatePNJPositions() },500); pnjSlotOrder=pnjSlotOrder.filter(s=>s!==1)
 }
 
-function showHighPNJ(image, name) { db.ref("game/storyImage").set(image); db.ref("game/highPNJName").set({ name, time:Date.now() }) }
+function showHighPNJ(image, name) {
+  const resolved = resolvePNJImageSrc(image)
+  db.ref("game/storyImage").set(resolved)
+  db.ref("game/highPNJName").set({ name, time:Date.now() })
+}
 function showHighPNJScroll(name) {
   const old=document.getElementById("highPNJScroll"); if(old) old.remove()
   const scroll=document.createElement("div"); scroll.id="highPNJScroll"; scroll.style.cssText="position:fixed;bottom:8%;left:50%;transform:translateX(-50%);pointer-events:none;z-index:99999999;"

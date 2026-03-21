@@ -112,7 +112,9 @@ html, body {
 
 #startButton {
   position: relative; margin-top: 26px; padding: 0;
-  width: 980px; max-width: 148%; height: 122px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 980px; max-width: none; height: 122px;
   font-size: 24px; font-family: var(--font-body);
   letter-spacing: 3px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -138,8 +140,10 @@ html, body {
 
 .menuButton {
   position: relative; display: inline-block;
-  margin: 10px 8px; padding: 0;
-  width: 980px; max-width: 148%; height: 118px;
+  margin: 10px 0; padding: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 980px; max-width: none; height: 118px;
   font-size: 20px; font-family: var(--font-body);
   letter-spacing: 2px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -714,7 +718,7 @@ html, body {
   font-size: 72px;
   margin: 0;
   line-height: 1;
-  transform: translateY(28px);
+  transform: translateY(18px);
 }
 .crit { color: gold; text-shadow: 0 0 40px gold, 0 0 80px orange; }
 .fail { color: red; text-shadow: 0 0 40px red; }
@@ -2565,7 +2569,7 @@ body {
   min-height: 118px !important;
   position: fixed !important;
   left: 50% !important;
-  bottom: 8px !important;
+  bottom: 20px !important;
   top: auto !important;
   transform: translateX(-50%) !important;
   overflow: visible !important;
