@@ -112,7 +112,7 @@ html, body {
 
 #startButton {
   position: relative; margin-top: 20px; padding: 0;
-  width: 760px; max-width: 112%; height: 104px;
+  width: 900px; max-width: 132%; height: 110px;
   font-size: 20px; font-family: var(--font-body);
   letter-spacing: 2px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -139,7 +139,7 @@ html, body {
 .menuButton {
   position: relative; display: inline-block;
   margin: 8px; padding: 0;
-  width: 760px; max-width: 112%; height: 104px;
+  width: 900px; max-width: 132%; height: 110px;
   font-size: 17px; font-family: var(--font-body);
   letter-spacing: 1px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
