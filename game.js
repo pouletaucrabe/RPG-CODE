@@ -311,9 +311,10 @@ function getMyThuumWords() {
   const exact = window.playerThuumData[myToken.id]
   if (exact) return exact
 
-  const wanted = String(myToken.id || "").toLowerCase()
-  const key = Object.keys(window.playerThuumData).find(k => String(k).toLowerCase() === wanted)
-  return key ? (window.playerThuumData[key] || {}) : {}
+  const loose = (typeof getObjectValueLoose === "function")
+    ? getObjectValueLoose(window.playerThuumData, myToken.id)
+    : null
+  return loose || {}
 }
 
 function getThuumDef(word) {
@@ -335,7 +336,7 @@ function getPrimaryThuumWord() {
 
 function hasUnlockedThuum(word) {
   const words = getMyThuumWords()
-  return !!words[word]
+  return !!(words[word] && words[word].unlocked)
 }
 
 function isThuumUsedThisCombat(word) {
@@ -961,11 +962,11 @@ function ensureCemeteryGlyphIntro() {
     g.id = "glipheOverlay"
     g.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:99999990;opacity:0;transition:opacity 1s ease;"
     const im = document.createElement("img")
-    im.src = "images/gliphe.png"
+    im.src = (typeof resolveImagePath === "function") ? resolveImagePath("gliphe.png") : "images/gliphe.png"
     im.style.cssText = "max-height:70vh;max-width:70vw;object-fit:contain;filter:drop-shadow(0 0 30px purple);"
     g.appendChild(im)
     document.body.appendChild(g)
-    const s2 = new Audio("audio/spell.mp3")
+    const s2 = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("spell.mp3") : "audio/spell.mp3")
     s2.volume = 0.9
     s2.play().catch(() => {})
   }
@@ -995,7 +996,7 @@ db.ref("game/cemeterySpell").on("value", snap => {
     const mg = document.getElementById("spellMiniGame")
     if (mg) { mg.style.opacity = "0"; setTimeout(() => { if (mg.parentNode) mg.remove() }, 800) }
     if (!data.failedByZombie) showSpellFreed()
-    db.ref("game/cemeterySpell").remove()
+    if (isGM) db.ref("game/cemeterySpell").remove()
     return
   }
 
@@ -1007,14 +1008,15 @@ db.ref("game/playerDeath").on("value", snap => {
   const data = snap.val()
   if (!data) return
   const pid = data.player
-  const tok = document.getElementById(pid)
-  if (!tok) return
   deadPlayers[pid] = true
-  tok.classList.add("playerDead")
-  if (!document.getElementById("skull_" + pid)) {
-    const skull = document.createElement("div"); skull.id = "skull_" + pid
-    skull.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;z-index:10;animation:skullFloat 2s ease-in-out infinite alternate;"
-    skull.innerText = "💀"; tok.appendChild(skull)
+  const tok = Array.from(document.querySelectorAll(".token")).find(t => String(t.id || "").toLowerCase() === String(pid || "").toLowerCase())
+  if (tok) {
+    tok.classList.add("playerDead")
+    if (!document.getElementById("skull_" + pid)) {
+      const skull = document.createElement("div"); skull.id = "skull_" + pid
+      skull.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;z-index:10;animation:skullFloat 2s ease-in-out infinite alternate;"
+      skull.innerText = "💀"; tok.appendChild(skull)
+    }
   }
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
@@ -1022,7 +1024,7 @@ db.ref("game/playerDeath").on("value", snap => {
   if (!isGM && myToken && String(myToken.id || "").toLowerCase() === String(pid || "").toLowerCase() && !window.__combatOutcomeShowing) {
       combatActive = true
       setGameState("COMBAT")
-      setTimeout(() => showDefeat(), 40)
+      setTimeout(() => showDefeat(), 80)
     }
   if (isGM) {
       db.ref("game/combatOutcome").set({ type: "defeat", player: pid, time: Date.now() })
@@ -1035,7 +1037,7 @@ db.ref("game/playerDeath").on("value", snap => {
       document.body.appendChild(revBtn)
     }
   }
-  if (isGM) db.ref("game/playerDeath").remove()
+  if (isGM) setTimeout(() => db.ref("game/playerDeath").remove(), 1200)
   })
 
 // ─── combatOutcome — victoire/défaite fiable côté joueurs ───

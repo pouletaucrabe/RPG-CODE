@@ -504,6 +504,7 @@ function getPNJDisplayName(image) {
 function resolvePNJImageSrc(image) {
   const src = String(image || "")
   if (!src) return ""
+  if (typeof resolveImagePath === "function") return resolveImagePath(src)
   if (/^(https?:|data:|blob:|\/|images\/)/i.test(src)) return src
   return "images/" + src
 }

@@ -547,6 +547,7 @@
     <button class="pnjTab active" onclick="openPNJTab('mapVilles', this)">🏙 Villes</button>
     <button class="pnjTab" onclick="openPNJTab('mapLandscape', this)">🌄 Landscape</button>
     <button class="pnjTab" onclick="openPNJTab('mapLieux', this)">🗺 Lieux</button>
+    <button class="pnjTab" onclick="openPNJTab('mapMondeTab', this)">Mapmonde</button>
   </div>
 
   <!-- VILLES -->
@@ -595,8 +596,6 @@
       <button onclick="changeMap('interieurcastle.jpg')">Salle castle</button>
       <button onclick="changeMap('throne.jpg')">Throne</button>
     </div>
-    <button class="mapWorldButton" onclick="changeMap('MAPMONDE.jpg')">MAP MONDE</button>
-    <button class="mapWorldButton" onclick="toggleWorldMapFogTopLeft()" style="margin-top:8px;background:rgba(80,80,80,0.22);color:#d9d9d9;border:1px solid rgba(200,200,200,0.22);">☁ Fog haut-gauche</button>
   </div>
 
   <!-- LANDSCAPE -->
@@ -638,6 +637,12 @@
     <div id="autreMaps" class="mapCategory">
       <button onclick="changeMap('cristaux.jpg')">Cristaux</button>
     </div>
+  </div>
+
+  <!-- MAPMONDE -->
+  <div id="mapMondeTab" class="pnjTabContent">
+    <button onclick="changeMap('MAPMONDE.jpg')" style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">MAP MONDE</button>
+    <button onclick="toggleWorldMapFogTopLeft()" style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">Fog haut-gauche</button>
   </div>
 </div>
 

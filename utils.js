@@ -1,6 +1,44 @@
 "use strict"
 
 /* ========================= */
+/* HELPERS GÉNÉRAUX         */
+/* ========================= */
+
+function idsEqualLoose(a, b) {
+  return String(a || "").toLowerCase() === String(b || "").toLowerCase()
+}
+
+function getObjectKeyLoose(obj, wantedKey) {
+  if (!obj || typeof obj !== "object") return null
+  const wanted = String(wantedKey || "").toLowerCase()
+  return Object.keys(obj).find(k => String(k || "").toLowerCase() === wanted) || null
+}
+
+function getObjectValueLoose(obj, wantedKey) {
+  const key = getObjectKeyLoose(obj, wantedKey)
+  return key ? obj[key] : null
+}
+
+function resolveImagePath(path) {
+  const src = String(path || "")
+  if (!src) return ""
+  if (/^(https?:|data:|blob:|\/|images\/)/i.test(src)) return src
+  return "images/" + src
+}
+
+function resolveAudioPath(path) {
+  const src = String(path || "")
+  if (!src) return ""
+  if (/^(https?:|data:|blob:|\/|audio\/)/i.test(src)) return src
+  return "audio/" + src
+}
+
+function safeRemoveElement(id) {
+  const el = typeof id === "string" ? document.getElementById(id) : id
+  if (el && el.parentNode) el.parentNode.removeChild(el)
+}
+
+/* ========================= */
 /* NOTIFICATIONS             */
 /* ========================= */
 
