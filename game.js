@@ -1814,7 +1814,7 @@ function showIntroLayer() {
 function startGame() {
         db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
         db.ref("combat/usedThuum").remove()
-        db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/playerThuumAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
+        db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/playerThuum").remove(); db.ref("game/playerThuumAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
       db.ref("game/worldMapFogTopLeftHidden").set(false)
       db.ref("events/aurora").remove()
       db.ref("elements").remove(); db.ref("game/shop").remove()
@@ -1824,6 +1824,9 @@ function startGame() {
   combatActive = false
     combatStarting = false
     window.__combatOutcomeShowing = false
+    window.playerThuumData = {}
+    window.playerThuumAccessData = {}
+    window.usedThuumData = {}
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     updateMadnessVisibility()
