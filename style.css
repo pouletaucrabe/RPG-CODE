@@ -551,14 +551,15 @@ html, body {
 
 #diceBar {
   position: fixed; bottom: 20px; right: 20px;
-  background: linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
-  border: 1px solid var(--teal-border);
+  background:
+    url("boutonnoir.png") center/100% 100% no-repeat,
+    linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
+  border: none;
   box-shadow:
-    0 0 0 1px var(--gold-dim),
     0 -2px 30px rgba(0,0,0,0.8),
     inset 0 1px 0 rgba(30,90,102,0.3);
   backdrop-filter: blur(6px);
-  padding: 10px 14px; border-radius: 4px;
+  padding: 16px 20px; border-radius: 4px;
   display: flex; gap: 6px; align-items: center;
   font-family: var(--font-body);
   z-index: 9999999;
@@ -717,13 +718,14 @@ html, body {
   display: none; position: fixed;
   bottom: 20px; left: 50%; transform: translateX(-50%);
   gap: 10px;
-  background: linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
-  border: 1px solid var(--teal-border);
+  background:
+    url("boutonnoir.png") center/100% 100% no-repeat,
+    linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
+  border: none;
   box-shadow:
-    0 0 0 1px var(--gold-dim),
     0 -2px 30px rgba(0,0,0,0.8),
     inset 0 1px 0 rgba(30,90,102,0.3);
-  padding: 10px 16px; border-radius: 4px;
+  padding: 16px 22px; border-radius: 4px;
   z-index: 99999999; pointer-events: auto;
 }
 
@@ -773,10 +775,12 @@ html, body {
 
 .gmSection {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-  background: var(--panel-bg);
-  border: 1px solid var(--teal-border);
-  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 30px rgba(0,0,0,0.9);
-  padding: 14px; border-radius: 3px;
+  background:
+    url("boutonnoirlarge.png") center/100% 100% no-repeat,
+    var(--panel-bg);
+  border: none;
+  box-shadow: 0 0 30px rgba(0,0,0,0.9);
+  padding: 22px 20px; border-radius: 3px;
   display: none; z-index: 99999999; pointer-events: auto;
   max-height: 70vh; overflow-y: auto;
 }
