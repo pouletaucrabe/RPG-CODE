@@ -312,6 +312,9 @@
     <button class="mapCategoryButton" onclick="toggleCategory('pnjAutre', this)"><span class="arrow">▶</span> 📦 Autre</button>
     <div id="pnjAutre" class="mapCategory">
       <button onclick="setPNJImage('oldmessager.png')">Vieux Messager</button>
+      <button onclick="setPNJImage('ELO PION.png')">ELO PION</button>
+      <button onclick="setPNJImage('ju pion.png')">JU PION</button>
+      <button onclick="setPNJImage('greg pion.png')">GREG PION</button>
     </div>
     <button class="mapCategoryButton" onclick="toggleCategory('pnjMine', this)"><span class="arrow">▶</span> ⛏ Mine</button>
     <div id="pnjMine" class="mapCategory">
@@ -449,6 +452,11 @@
       <button onclick="startCombat('odin','boss')">Odin</button>
       <button onclick="startCombat('thor','boss')">Thor</button>
       <button onclick="startCombat('freya','boss')">Freya</button>
+    </div>
+    <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatMine', this)"><span class="arrow">▶</span> ⛏ Mine</button>
+    <div id="pnjCombatMine" class="mapCategory">
+      <button onclick="openMobDiff('mysterefemme', event)"  style="width:100%;text-align:left;">Femme mysterieuse</button>
+      <button onclick="openMobDiff('mysterefemme1', event)" style="width:100%;text-align:left;">Glinda</button>
     </div>
   </div>
 </div>
