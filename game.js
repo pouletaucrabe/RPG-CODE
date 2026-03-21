@@ -22,6 +22,7 @@ window.groupMadness = 0
 window.groupMadnessTier = 0
 window.madnessShakeInterval = null
 window.currentMadnessLoopId = null
+window.worldMapFogTopLeftHidden = false
 window.playerThuumData = {}
 window.playerThuumAccessData = {}
 window.usedThuumData = {}
@@ -109,6 +110,19 @@ function playMadnessHit() {
   hit.currentTime = 0
   hit.volume = Math.min(0.95, 0.45 * getMadnessZoneFactor())
   hit.play().catch(() => {})
+}
+
+function updateWorldMapFogTopLeft() {
+  const fog = document.getElementById("worldMapFogTopLeft")
+  if (!fog) return
+  const shouldShow = currentMap === "MAPMONDE.jpg" && !window.worldMapFogTopLeftHidden && gameState === "GAME"
+  fog.style.display = shouldShow ? "block" : "none"
+  fog.style.opacity = shouldShow ? "0.98" : "0"
+}
+
+function toggleWorldMapFogTopLeft() {
+  if (!isGM) return
+  db.ref("game/worldMapFogTopLeftHidden").set(!window.worldMapFogTopLeftHidden)
 }
 
 function startMadnessShake(tier) {
@@ -724,6 +738,7 @@ db.ref("game/map").on("value", snap => {
   if (isFirst) firstMapLoad = false
   currentMap = mapName
   updateMadnessUI(window.groupMadness || 0)
+  updateWorldMapFogTopLeft()
   setTimeout(() => updateBifrostBtn(), 100)
 
   fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = 1; fade.style.pointerEvents = "none"
@@ -732,6 +747,7 @@ db.ref("game/map").on("value", snap => {
     map.style.backgroundImage = "url('images/" + mapName + "')"
     if (mapName === "MAPMONDE.jpg") { map.style.backgroundSize = "contain"; map.style.backgroundColor = "#0a0a1a" }
     else                            { map.style.backgroundSize = "cover";   map.style.backgroundColor = "" }
+    updateWorldMapFogTopLeft()
     if (isFirst) { calculateMinZoom(); cameraZoom = minZoom; updateCamera() }
     document.querySelectorAll(".token").forEach(t => spawnPortal(t.id))
     if (mapMusic[mapName] && !_state._pendingMapAudio) {
@@ -766,6 +782,11 @@ db.ref("game/groupMadness").on("value", snap => {
   const value = Math.max(0, Math.min(100, parseInt(snap.val(), 10) || 0))
   window.groupMadness = value
   updateMadnessUI(value)
+})
+
+db.ref("game/worldMapFogTopLeftHidden").on("value", snap => {
+  window.worldMapFogTopLeftHidden = !!snap.val()
+  updateWorldMapFogTopLeft()
 })
 
 // ─── shop ───
@@ -1518,6 +1539,7 @@ function newGame() {
     db.ref("tokens").set({ greg:{x:200,y:300}, ju:{x:300,y:300}, elo:{x:400,y:300}, bibi:{x:600,y:300} })
     db.ref("game/map").set("taverne.jpg")
     db.ref("game/groupMadness").set(0)
+    db.ref("game/worldMapFogTopLeftHidden").set(false)
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     db.ref("events/aurora").remove()
@@ -1705,6 +1727,7 @@ function startGame() {
         db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
         db.ref("combat/usedThuum").remove()
         db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/playerThuumAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
+      db.ref("game/worldMapFogTopLeftHidden").set(false)
       db.ref("events/aurora").remove()
       db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()

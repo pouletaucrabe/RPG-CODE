@@ -63,7 +63,7 @@
 </div>
 
 <!-- CAMÉRA -->
-<div id="camera" tabindex="-1">
+  <div id="camera" tabindex="-1">
   <div id="map" tabindex="-1">
 
     <div class="token" id="mobToken" style="left:500px;top:200px;display:none;">
@@ -75,6 +75,7 @@
     </div>
 
     <div id="grid"></div>
+    <div id="worldMapFogTopLeft"></div>
 
     <div class="token" id="greg" style="left:200px;top:300px;">
       <div class="tokenStats" id="stats_greg"></div>
@@ -226,7 +227,6 @@
 
 <!-- BARRE MJ SAUVEGARDE -->
 <div id="gmSaveBar">
-  <button onclick="resetAllPlayerStats()" style="padding:4px 10px;font-family:Cinzel,serif;font-size:10px;background:rgba(100,50,0,0.5);color:#ffddaa;border:1px solid rgba(160,100,40,0.5);border-radius:3px;cursor:pointer;margin-bottom:4px;width:100%;" title="Recalculer les stats selon le niveau actuel">⚙ Reset Stats</button>
   <button id="gmSaveBtn" onclick="showSaveMenu()">💾 Sauvegarder</button>
 </div>
 
@@ -591,6 +591,7 @@
       <button onclick="changeMap('throne.jpg')">Throne</button>
     </div>
     <button class="mapWorldButton" onclick="changeMap('MAPMONDE.jpg')">🌍 MAP MONDE</button>
+    <button class="mapWorldButton" onclick="toggleWorldMapFogTopLeft()" style="margin-top:8px;background:rgba(80,80,80,0.22);color:#d9d9d9;border:1px solid rgba(200,200,200,0.22);">☁ Fog haut-gauche</button>
   </div>
 
   <!-- LANDSCAPE -->

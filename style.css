@@ -361,10 +361,12 @@ html, body {
   font-family: var(--font-body); font-size: 13px; font-weight: bold;
   text-shadow: 0 0 4px black, 0 1px 3px black, 0 -1px 3px black;
   pointer-events: none;
-  background: rgba(8,20,24,0.85);
-  border: 1px solid rgba(30,90,102,0.5);
-  border-radius: 3px; padding: 2px 10px;
-  white-space: nowrap; min-width: 60px; text-align: center;
+  background: url("images/bouton.png") center/100% 100% no-repeat;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 18px 9px;
+  white-space: nowrap; min-width: 88px; text-align: center;
+  background-color: transparent;
 }
 
 .faceLeft img { transform: scaleX(-1); }
@@ -429,20 +431,19 @@ html, body {
 }
 
 #playerMenu {
-  position: absolute; top: 65px; right: 0; width: 220px;
+  position: absolute; top: 65px; right: 0; width: 280px;
   background:
     url("images/charac.png") center/100% 100% no-repeat,
     linear-gradient(160deg, rgba(18,18,18,0.96) 0%, #060606 40%, rgba(18,18,18,0.98) 100%);
-  padding: 0; border-radius: 3px; overflow: hidden;
+  padding: 92px 26px 84px; border-radius: 3px; overflow: hidden;
   max-height: 0;
   transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
   border: none;
-  box-shadow:
-    0 0 30px rgba(0,0,0,0.9),
-    inset 0 0 40px rgba(0,0,0,0.5);
+  box-shadow: 0 0 30px rgba(0,0,0,0.9);
+  box-sizing: border-box;
 }
 
-#playerMenu.open { max-height: 70vh; overflow-y: auto; }
+#playerMenu.open { max-height: 640px; overflow-y: auto; }
 
 #playerMenu::before {
   content: "⚜";
@@ -716,7 +717,7 @@ html, body {
   bottom: 20px; left: 50%; transform: translateX(-50%);
   gap: 10px;
   background:
-    url("images/cadrefinbleu.png") center/100% 100% no-repeat,
+    url("images/boutonnoir.png") center/100% 100% no-repeat,
     linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(0,0,0,0.98) 100%);
   border: none;
   box-shadow:
@@ -772,9 +773,7 @@ html, body {
 
 .gmSection {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-  background:
-    url("images/boutonnoirlarge.png") center/100% 100% no-repeat,
-    linear-gradient(180deg, rgba(18,18,18,0.97) 0%, rgba(0,0,0,0.99) 100%);
+  background: linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
   border: none;
   box-shadow: 0 0 30px rgba(0,0,0,0.9);
   padding: 22px 20px; border-radius: 3px;
@@ -2191,6 +2190,25 @@ body {
   z-index: 5;
 }
 
+#worldMapFogTopLeft {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 36vw;
+  height: 36vh;
+  min-width: 320px;
+  min-height: 240px;
+  max-width: 640px;
+  max-height: 460px;
+  background: url("images/nuage.png") top left / contain no-repeat;
+  pointer-events: none;
+  z-index: 9;
+  display: none;
+  opacity: 0.98;
+  filter: drop-shadow(0 0 18px rgba(0,0,0,0.55));
+  transition: opacity 0.5s ease;
+}
+
 #madnessGauge.tier-1 #madnessGaugeFill,
 #madnessGauge.tier-1 #madnessGaugeGlow {
   background: linear-gradient(90deg, #32463d 0%, #5d6a48 52%, #8b623a 100%);
@@ -2254,4 +2272,95 @@ body {
   50% { transform: translateX(5px); }
   75% { transform: translateX(-3px); }
   100% { transform: translateX(0); }
+}
+
+/* ========================= */
+/* OVERRIDE MENU PERSO       */
+/* ========================= */
+
+#playerMenu::before {
+  content: "" !important;
+  display: none !important;
+}
+
+#playerMenu {
+  width: 280px !important;
+  padding: 92px 26px 84px !important;
+  box-shadow: 0 0 30px rgba(0,0,0,0.9) !important;
+  box-sizing: border-box !important;
+}
+
+#playerMenu.open {
+  max-height: 640px !important;
+}
+
+.menuLabel {
+  margin: 2px 0 10px !important;
+  color: #d8c38b !important;
+  border-bottom: 1px solid rgba(212,168,53,0.35) !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.85) !important;
+  opacity: 0.95 !important;
+}
+
+#playerSelect button {
+  width: 100% !important;
+  margin: 6px 0 !important;
+  background: linear-gradient(135deg,
+    rgba(20,20,20,0.78) 0%,
+    rgba(6,6,6,0.9) 50%,
+    rgba(20,20,20,0.78) 100%) !important;
+  border: 1px solid rgba(212,168,53,0.35) !important;
+  box-shadow: inset 0 1px 0 rgba(255,220,140,0.08), inset 0 -1px 0 rgba(0,0,0,0.4) !important;
+}
+
+#playerSelect button::before,
+#playerSelect button::after {
+  content: "✦" !important;
+  color: #d8c38b !important;
+}
+
+#playerSelect button:hover {
+  background: linear-gradient(135deg,
+    rgba(48,36,16,0.84) 0%,
+    rgba(20,14,8,0.94) 50%,
+    rgba(48,36,16,0.84) 100%) !important;
+  border-color: rgba(212,168,53,0.7) !important;
+  color: #fff1c0 !important;
+  box-shadow: 0 0 12px rgba(212,168,53,0.25), inset 0 1px 0 rgba(255,220,140,0.16) !important;
+}
+
+#playerSelect button:hover::before,
+#playerSelect button:hover::after {
+  color: #f2d48a !important;
+}
+
+#playerMenu::after {
+  content: "— ✦ —" !important;
+  color: rgba(212,168,53,0.45) !important;
+}
+
+/* ========================= */
+/* OVERRIDE DÉS / MJ         */
+/* ========================= */
+
+#diceBar,
+#diceBar::before,
+#diceBar::after {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+#gmBar {
+  background:
+    url("images/boutonnoir.png") center/100% 100% no-repeat !important,
+    linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(0,0,0,0.98) 100%) !important;
+  border: none !important;
+  box-shadow: 0 0 24px rgba(0,0,0,0.6) !important;
+}
+
+.gmSection {
+  background: linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%) !important;
 }
