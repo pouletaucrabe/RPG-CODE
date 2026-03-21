@@ -219,6 +219,7 @@ const mapMusic = {
   "throne.jpg":          "throne.mp3",
   "interieurcastle.jpg": "castleofevil.mp3",
   "egout.jpg":           "egout.mp3",
+  "tavernebrume.png":    "ambiancetaverne.mp3",
   "armurerie1.jpg":      "brumeinside.mp3",  // Armurerie de Brume
   "marche1.jpg":         "port.mp3",
   "palaisville.jpg":     "brumeinside.mp3",
@@ -259,6 +260,7 @@ const mapNames = {
   "egout.jpg":           "🌊 Égout de Brume",
   "bateau.jpg":           "Le for sure",
   "bateau1.jpg":         "L'Oregon III",
+  "tavernebrume.png":    "Taverne de Brume",
   "armurerie1.jpg":      "Armurerie de Brume",
   "marche1.jpg":         "Place du Marché de Brume",
   "mairemaison.jpg":     "🏛 Mairie de Rivebois",

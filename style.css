@@ -714,7 +714,7 @@ html, body {
   font-size: 72px;
   margin: 0;
   line-height: 1;
-  transform: translateY(18px);
+  transform: translateY(10px);
 }
 .crit { color: gold; text-shadow: 0 0 40px gold, 0 0 80px orange; }
 .fail { color: red; text-shadow: 0 0 40px red; }
@@ -2617,6 +2617,244 @@ body {
   border: 1px solid rgba(30,90,102,0.55) !important;
   border-radius: 6px !important;
   box-shadow: 0 0 26px rgba(0,0,0,0.85) !important;
+}
+
+/* ========================= */
+/* FINAL ART DIRECTION PASS  */
+/* ========================= */
+
+#introBox {
+  width: 760px !important;
+  max-width: 78vw !important;
+  aspect-ratio: 665 / 878 !important;
+  padding: 150px 28px 88px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 16px !important;
+  background-position: center top !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+}
+
+#introBox h1 {
+  margin: 12px 0 28px !important;
+  font-family: "Cinzel Decorative", "Cinzel", serif !important;
+  font-size: clamp(56px, 5vw, 84px) !important;
+  letter-spacing: 5px !important;
+  color: #ecd28a !important;
+  text-shadow:
+    0 0 2px rgba(255, 232, 174, 0.95),
+    0 0 12px rgba(199, 150, 49, 0.72),
+    0 2px 8px rgba(0,0,0,0.9) !important;
+}
+
+#startButton,
+.menuButton {
+  width: min(840px, 88vw) !important;
+  max-width: min(840px, 88vw) !important;
+  display: block !important;
+  margin: 0 auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+#startButton {
+  height: 128px !important;
+  margin-top: 30px !important;
+}
+
+.menuButton {
+  height: 120px !important;
+  margin-top: 6px !important;
+}
+
+#startButton .btn-inner,
+.menuButton .btn-inner {
+  background-position: center center !important;
+  background-size: 100% 100% !important;
+  color: #f9e5a5 !important;
+  text-shadow:
+    0 0 2px rgba(255,245,210,0.55),
+    0 2px 5px rgba(0,0,0,0.96),
+    0 0 16px rgba(27, 86, 141, 0.55) !important;
+  filter:
+    drop-shadow(0 8px 18px rgba(0,0,0,0.72))
+    drop-shadow(0 0 22px rgba(214, 175, 78, 0.18)) !important;
+}
+
+#startButton .btn-inner {
+  font-size: 26px !important;
+  letter-spacing: 4px !important;
+}
+
+.menuButton .btn-inner {
+  font-size: 23px !important;
+  letter-spacing: 3px !important;
+}
+
+#gmBar {
+  bottom: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  min-width: 720px !important;
+  min-height: 108px !important;
+  padding: 18px 34px !important;
+  display: none;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  background: url("images/menu%20fin.png") center/100% 100% no-repeat !important;
+  box-shadow:
+    0 18px 36px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(52, 33, 10, 0.25) !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+#gmBar::before,
+#gmBar::after {
+  display: none !important;
+  content: none !important;
+}
+
+.gmIcon {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(83, 168, 194, 0.38) !important;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(40,127,152,0.95), rgba(12,56,71,0.98) 48%, rgba(5,17,22,1) 100%) !important;
+  box-shadow:
+    inset 0 0 16px rgba(104, 222, 255, 0.12),
+    0 0 0 2px rgba(9, 40, 53, 0.72),
+    0 8px 18px rgba(0,0,0,0.42) !important;
+}
+
+.gmIcon:hover {
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow:
+    inset 0 0 18px rgba(104, 222, 255, 0.16),
+    0 0 0 2px rgba(22, 77, 97, 0.86),
+    0 0 18px rgba(57, 193, 229, 0.24) !important;
+}
+
+.gmSection {
+  bottom: 112px !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(191,150,67,0.15), transparent 26%),
+    linear-gradient(180deg, rgba(20,18,14,0.97) 0%, rgba(8,10,12,0.99) 100%) !important;
+  border: 1px solid rgba(183, 145, 80, 0.6) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 0 0 1px rgba(75, 49, 18, 0.9),
+    0 16px 44px rgba(0,0,0,0.82),
+    inset 0 1px 0 rgba(255,236,185,0.06) !important;
+}
+
+.gmSection::before {
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(232,200,129,0.18), rgba(232,200,129,0.9), rgba(232,200,129,0.18), transparent) !important;
+}
+
+.gmButton {
+  min-width: 180px !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(29,38,45,0.96), rgba(12,16,20,0.98)) !important;
+  border: 1px solid rgba(181,145,82,0.42) !important;
+  color: #f1e2ba !important;
+  box-shadow: inset 0 1px 0 rgba(255,224,164,0.05) !important;
+}
+
+.gmButton:hover {
+  transform: translateY(-1px) !important;
+  background:
+    linear-gradient(180deg, rgba(49,60,69,0.98), rgba(15,21,26,0.99)) !important;
+  box-shadow:
+    0 0 16px rgba(189,148,67,0.12),
+    inset 0 1px 0 rgba(255,224,164,0.08) !important;
+}
+
+#diceLog,
+#mjLog {
+  background:
+    linear-gradient(180deg, rgba(18,14,10,0.96), rgba(8,8,8,0.99)) !important;
+  border: 1px solid rgba(181,145,82,0.7) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 0 0 1px rgba(76,50,18,0.95),
+    0 16px 38px rgba(0,0,0,0.84) !important;
+}
+
+#notification {
+  background:
+    linear-gradient(180deg, rgba(26,20,14,0.98), rgba(10,8,8,0.99)) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 0 0 1px rgba(77,52,18,0.96),
+    0 10px 28px rgba(0,0,0,0.84),
+    0 0 16px rgba(183,145,80,0.12) !important;
+}
+
+#playerThuumPanel {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(199,162,82,0.16), transparent 30%),
+    linear-gradient(180deg, rgba(24,18,12,0.98), rgba(8,8,8,0.99)) !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(196,161,90,0.74) !important;
+  box-shadow:
+    0 0 0 1px rgba(85,56,18,0.92),
+    0 18px 36px rgba(0,0,0,0.86) !important;
+}
+
+#combatIntro {
+  background:
+    radial-gradient(circle at center, rgba(71, 8, 8, 0.26), transparent 30%),
+    linear-gradient(180deg, rgba(6,4,4,0.97), rgba(0,0,0,0.99)) !important;
+}
+
+#combatIntroText {
+  font-family: "Cinzel Decorative", "Cinzel", serif !important;
+  color: #f1db9b !important;
+  text-shadow:
+    0 0 4px rgba(255,243,210,0.6),
+    0 0 18px rgba(186,40,24,0.56),
+    0 0 36px rgba(104,6,6,0.7) !important;
+  letter-spacing: 8px !important;
+}
+
+#victoryScreen {
+  background:
+    radial-gradient(circle at center, rgba(209,165,64,0.14), transparent 30%),
+    rgba(0,0,0,0.9) !important;
+}
+
+#victoryText {
+  font-family: "Cinzel Decorative", "Cinzel", serif !important;
+  color: #f7dc8d !important;
+  text-shadow:
+    0 0 6px rgba(255,240,186,0.6),
+    0 0 22px rgba(255,197,67,0.84),
+    0 0 48px rgba(161,102,12,0.66) !important;
+}
+
+#defeatScreen {
+  background:
+    radial-gradient(circle at center, rgba(125,14,14,0.12), transparent 30%),
+    rgba(0,0,0,0.95) !important;
+}
+
+#defeatText {
+  font-family: "Cinzel Decorative", "Cinzel", serif !important;
+  color: #d55858 !important;
+  text-shadow:
+    0 0 10px rgba(255,96,96,0.28),
+    0 0 24px rgba(140,0,0,0.9),
+    0 0 44px rgba(80,0,0,0.85) !important;
 }
 
 #playerMenu::before {
