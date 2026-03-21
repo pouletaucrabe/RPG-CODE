@@ -86,7 +86,7 @@ html, body {
 
 #introBox {
   position: relative;
-  background-image: url("images/menu intro.png");
+  background-image: url("images/menu%20intro.png");
   background-size: 100% 100%; background-repeat: no-repeat;
   padding: 80px 80px 70px 80px;
   width: 760px; max-width: 92vw;
@@ -430,13 +430,14 @@ html, body {
 
 #playerMenu {
   position: absolute; top: 65px; right: 0; width: 220px;
-  background: linear-gradient(160deg, var(--teal-dark) 0%, #060e12 40%, var(--teal-dark) 100%);
+  background:
+    url("images/charac.png") center/100% 100% no-repeat,
+    linear-gradient(160deg, rgba(18,18,18,0.96) 0%, #060606 40%, rgba(18,18,18,0.98) 100%);
   padding: 0; border-radius: 3px; overflow: hidden;
   max-height: 0;
   transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
-  border: 1px solid var(--teal-border);
+  border: none;
   box-shadow:
-    0 0 0 1px var(--gold-dim),
     0 0 30px rgba(0,0,0,0.9),
     inset 0 0 40px rgba(0,0,0,0.5);
 }
@@ -551,14 +552,12 @@ html, body {
 
 #diceBar {
   position: fixed; bottom: 20px; right: 20px;
-  background:
-    url("images/boutonnoir.png") center/100% 100% no-repeat,
-    linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
+  background: url("images/boutonnoir.png") center/100% 100% no-repeat;
   border: none;
   box-shadow:
     0 -2px 30px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(30,90,102,0.3);
-  backdrop-filter: blur(6px);
+    inset 0 1px 0 rgba(255,215,120,0.12);
+  backdrop-filter: none;
   padding: 16px 20px; border-radius: 4px;
   display: flex; gap: 6px; align-items: center;
   font-family: var(--font-body);
@@ -720,7 +719,7 @@ html, body {
   gap: 10px;
   background:
     url("images/boutonnoir.png") center/100% 100% no-repeat,
-    linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
+    linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(0,0,0,0.98) 100%);
   border: none;
   box-shadow:
     0 -2px 30px rgba(0,0,0,0.8),
@@ -777,7 +776,7 @@ html, body {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
   background:
     url("images/boutonnoirlarge.png") center/100% 100% no-repeat,
-    var(--panel-bg);
+    linear-gradient(180deg, rgba(18,18,18,0.97) 0%, rgba(0,0,0,0.99) 100%);
   border: none;
   box-shadow: 0 0 30px rgba(0,0,0,0.9);
   padding: 22px 20px; border-radius: 3px;
