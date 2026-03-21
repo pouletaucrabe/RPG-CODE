@@ -938,12 +938,19 @@ db.ref("curse/wheel").on("value", snap => {
   if (data.state === "result") showCurseResult(data.player, data.result)
 })
 
+function cleanupRuneChallengeUI() {
+  const overlay = document.getElementById("runeChallengeOverlay")
+  if (overlay) overlay.remove()
+  const playerBtn = document.getElementById("playerCodeBtn")
+  if (playerBtn) playerBtn.remove()
+  _state.runeJustOpened = false
+}
+
 // ─── runeChallenge ───
 db.ref("game/runeChallenge").on("value", snap => {
   const data = snap.val()
   if (!data || !data.active) {
-    const overlay = document.getElementById("runeChallengeOverlay")
-    if (overlay) overlay.remove()
+    cleanupRuneChallengeUI()
     updateRuneMenuBtn(false)
     return
   }
@@ -1022,6 +1029,7 @@ db.ref("game/playerDeath").on("value", snap => {
   const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
   if (!isGM && myToken && String(myToken.id || "").toLowerCase() === String(pid || "").toLowerCase() && !window.__combatOutcomeShowing) {
+      window.__pendingLocalDefeat = true
       combatActive = true
       setGameState("COMBAT")
       setTimeout(() => showDefeat(), 80)
@@ -1053,6 +1061,7 @@ db.ref("game/combatOutcome").on("value", snap => {
 
   if (data.type === "defeat") {
     if (data.player && myToken && String(data.player).toLowerCase() !== String(myToken.id || "").toLowerCase()) return
+    window.__pendingLocalDefeat = true
     showDefeat()
   }
 })
@@ -1741,6 +1750,7 @@ function rollStat(stat) {
 function setGameState(state) {
   gameState = state
   console.log("Game State →", state)
+  if (state !== "GAME" && state !== "COMBAT" && typeof cleanupRuneChallengeUI === "function") cleanupRuneChallengeUI()
   switch (state) {
     case "MENU":
       document.getElementById("intro").style.display    = "flex"
@@ -1824,6 +1834,7 @@ function startGame() {
   combatActive = false
     combatStarting = false
     window.__combatOutcomeShowing = false
+    window.__pendingLocalDefeat = false
     window.playerThuumData = {}
     window.playerThuumAccessData = {}
     window.usedThuumData = {}

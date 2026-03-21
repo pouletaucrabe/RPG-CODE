@@ -111,9 +111,8 @@ html, body {
 }
 
 #startButton {
-  position: relative; margin-top: 26px; padding: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative; margin: 26px auto 0; padding: 0;
+  display: block;
   width: 980px; max-width: none; height: 122px;
   font-size: 24px; font-family: var(--font-body);
   letter-spacing: 3px; text-transform: uppercase;
@@ -139,15 +138,12 @@ html, body {
 #startButton:active .btn-inner { transform: translateY(1px) scale(0.995); filter: brightness(0.9); }
 
 .menuButton {
-  position: relative; display: inline-block;
-  margin: 10px 0; padding: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative; display: block;
+  margin: 10px auto; padding: 0;
   width: 980px; max-width: none; height: 118px;
   font-size: 20px; font-family: var(--font-body);
   letter-spacing: 2px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
-  vertical-align: middle;
 }
 
 .menuButton .btn-inner {

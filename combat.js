@@ -1,6 +1,7 @@
 "use strict"
 
 window.__combatOutcomeShowing = false
+window.__pendingLocalDefeat = false
 
 /* ========================= */
 /* DÉMARRAGE COMBAT          */
@@ -416,6 +417,7 @@ function showVictory() {
 
 function showDefeat() {
   window.__combatOutcomeShowing = true
+  window.__pendingLocalDefeat = false
   combatActive = true
   setGameState("COMBAT")
   playSound("defeatSound")
@@ -429,7 +431,7 @@ function showDefeat() {
     screen.style.display = "none"
     endCombat()
     returnToMap()
-    setTimeout(() => { window.__combatOutcomeShowing = false }, 300)
+    setTimeout(() => { window.__combatOutcomeShowing = false; window.__pendingLocalDefeat = false }, 300)
   }, 5000)
 }
 
@@ -745,7 +747,7 @@ function _startRemoteCombat(data) {
 
 function _playRemoteCombatExit() {
   if (isGM) return
-  if (window.__combatOutcomeShowing) return
+  if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
   const fade = document.getElementById("fadeScreen")
   if (fade) {
     fade.style.transition = "opacity 0.6s ease"
@@ -767,16 +769,17 @@ function _playRemoteCombatExit() {
       if (gameState !== "GAME" && gameState !== "COMBAT" && gameState !== "DIALOGUE") return
 
       if (!data || !data.active) {
-        if (!isGM && window.__combatOutcomeShowing) return
-        if (!isGM && (combatActive || gameState === "COMBAT" || window.__combatOutcomeShowing)) {
+        if (!isGM && (window.__combatOutcomeShowing || window.__pendingLocalDefeat)) return
+        if (!isGM && (combatActive || gameState === "COMBAT" || window.__combatOutcomeShowing || window.__pendingLocalDefeat)) {
           db.ref("game/combatOutcome").once("value", outcomeSnap => {
             const outcome = outcomeSnap.val()
-            if (window.__combatOutcomeShowing) return
+            if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
             if (outcome && outcome.type === "defeat") {
               if (outcome.player && myToken && String(outcome.player).toLowerCase() !== String(myToken.id || "").toLowerCase()) {
                 _playRemoteCombatExit()
                 return
               }
+              window.__pendingLocalDefeat = true
               showDefeat()
               return
             }
