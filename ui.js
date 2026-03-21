@@ -1265,6 +1265,11 @@ function openAllyPNJViewer() {
 
     const row = document.createElement("div"); row.style.cssText = "display:flex;align-items:flex-start;gap:8px;padding:8px 8px;margin-bottom:3px;border-radius:2px;border:1px solid rgba(140,80,255,0.2);background:rgba(8,15,22,0.6);"
     row.innerHTML = `<span style="font-size:16px;margin-top:1px;">${granted.action.icon}</span><div style="flex:1;"><div style="font-size:11px;color:${granted.pnj.color};letter-spacing:1px;">${granted.action.label} <span style="color:#5555aa;font-size:9px;">(D${granted.action.dice})</span></div><div style="font-size:10px;color:#3a5a6a;margin-top:3px;line-height:1.5;">${granted.action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(80,40,160,0.25);color:#d8b0ff;letter-spacing:1px;">AUTORISÉE</span>`
+    row.style.cursor = "pointer"
+    row.style.transition = "background 0.15s,border-color 0.15s,transform 0.15s"
+    row.onmouseenter = () => { row.style.background = "rgba(20,30,48,0.85)"; row.style.borderColor = granted.pnj.color + "88"; row.style.transform = "translateX(-2px)" }
+    row.onmouseleave = () => { row.style.background = "rgba(8,15,22,0.6)"; row.style.borderColor = "rgba(140,80,255,0.2)"; row.style.transform = "" }
+    row.onclick = () => triggerAllyAction(granted.pnj, granted.action, panel)
     block.appendChild(row)
     panel.appendChild(block)
     document.body.appendChild(panel)

@@ -128,8 +128,8 @@ const mobStats = {
   thor:              { tier:"boss",   baseHP:550 },
   freya:             { tier:"boss",   baseHP:480 },
   "ELO PION":        { tier:"weak",   baseHP:28  },
-  "ju pion":         { tier:"weak",   baseHP:28  },
-  "greg pion":       { tier:"weak",   baseHP:32  }
+  "JU PION":         { tier:"weak",   baseHP:28  },
+  "GREG PION":       { tier:"weak",   baseHP:32  }
 }
 
 /* ========================= */

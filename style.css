@@ -87,9 +87,9 @@ html, body {
 #introBox {
   position: relative;
   background-image: none;
-  padding: 80px 80px 70px 80px;
-  width: 760px; max-width: 92vw;
-  min-height: 760px;
+  padding: 52px 46px 40px 46px;
+  width: 470px; max-width: 78vw;
+  min-height: 500px;
   text-align: center;
   font-family: var(--font-text);
   color: #2b1a10;
@@ -110,7 +110,7 @@ html, body {
 
 #startButton {
   position: relative; margin-top: 20px; padding: 0;
-  width: 660px; height: 80px;
+  width: 340px; max-width: 100%; height: 68px;
   font-size: 20px; font-family: var(--font-body);
   letter-spacing: 2px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -137,7 +137,7 @@ html, body {
 .menuButton {
   position: relative; display: inline-block;
   margin: 8px; padding: 0;
-  width: 620px; height: 80px;
+  width: 340px; max-width: 100%; height: 68px;
   font-size: 17px; font-family: var(--font-body);
   letter-spacing: 1px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -375,7 +375,53 @@ html, body {
 /* VOLUME                    */
 /* ========================= */
 
-#volumeSlider { position: fixed; top: 20px; right: 20px; width: 150px; z-index: 10000; }
+#volumeSlider {
+  position: fixed; top: 18px; right: 18px; width: 170px; z-index: 10000;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 22px;
+  background: transparent;
+  padding: 0;
+}
+
+#volumeSlider::-webkit-slider-runnable-track {
+  height: 8px;
+  background: linear-gradient(90deg, rgba(30,18,8,0.95), rgba(90,62,22,0.95), rgba(30,18,8,0.95));
+  border: 1px solid rgba(212,168,53,0.6);
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.55), inset 0 1px 2px rgba(255,220,140,0.15);
+}
+
+#volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f7de92 0%, #c9972d 52%, #6a430b 100%);
+  border: 1px solid rgba(255,232,160,0.8);
+  box-shadow: 0 0 10px rgba(212,168,53,0.45), inset 0 1px 2px rgba(255,255,255,0.35);
+  cursor: pointer;
+}
+
+#volumeSlider::-moz-range-track {
+  height: 8px;
+  background: linear-gradient(90deg, rgba(30,18,8,0.95), rgba(90,62,22,0.95), rgba(30,18,8,0.95));
+  border: 1px solid rgba(212,168,53,0.6);
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.55), inset 0 1px 2px rgba(255,220,140,0.15);
+}
+
+#volumeSlider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f7de92 0%, #c9972d 52%, #6a430b 100%);
+  border: 1px solid rgba(255,232,160,0.8);
+  box-shadow: 0 0 10px rgba(212,168,53,0.45), inset 0 1px 2px rgba(255,255,255,0.35);
+  cursor: pointer;
+}
 
 /* ========================= */
 /* SÉLECTION JOUEUR          */
@@ -398,7 +444,7 @@ html, body {
 }
 
 #playerSelect.collapsed {
-  top: 10px !important;
+  top: 52px !important;
   right: 10px !important;
 }
 
@@ -553,14 +599,25 @@ html, body {
 
 #diceBar {
   position: fixed; bottom: 20px; right: 20px;
-  background: none;
+  background: transparent;
   border: none;
   box-shadow: none;
   backdrop-filter: none;
-  padding: 16px 20px; border-radius: 4px;
+  padding: 18px 26px; border-radius: 4px;
   display: flex; gap: 6px; align-items: center;
   font-family: var(--font-body);
   z-index: 9999999;
+  isolation: isolate;
+}
+
+#diceBar::before {
+  content: "";
+  position: absolute;
+  inset: -14px -24px;
+  background: url("images/boutonnoirlarge.png") center/100% 100% no-repeat;
+  pointer-events: none;
+  z-index: -1;
+  filter: drop-shadow(0 0 18px rgba(0,0,0,0.5));
 }
 
 #diceBar button {
@@ -2346,11 +2403,6 @@ body {
 #diceBar,
 #diceBar::before,
 #diceBar::after {
-  background: transparent !important;
-  background-image: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
 }
 
 #gmBar {
