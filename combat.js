@@ -765,7 +765,7 @@ function _playRemoteCombatExit() {
 
       if (!data || !data.active) {
         if (!isGM && window.__combatOutcomeShowing) return
-        if (!isGM && combatActive) {
+        if (!isGM && (combatActive || gameState === "COMBAT")) {
           db.ref("game/combatOutcome").once("value", outcomeSnap => {
             const outcome = outcomeSnap.val()
             if (window.__combatOutcomeShowing) return

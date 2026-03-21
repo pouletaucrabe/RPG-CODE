@@ -991,7 +991,7 @@ db.ref("game/playerDeath").on("value", snap => {
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
-  if (!isGM && myToken && myToken.id === pid && combatActive && !window.__combatOutcomeShowing) {
+  if (!isGM && myToken && myToken.id === pid && (combatActive || gameState === "COMBAT") && !window.__combatOutcomeShowing) {
       showDefeat()
     }
   if (isGM) {
@@ -1014,12 +1014,12 @@ db.ref("game/combatOutcome").on("value", snap => {
   const data = snap.val()
   if (!data || window.__combatOutcomeShowing) return
 
-  if (data.type === "victory" && combatActive) {
+  if (data.type === "victory" && (combatActive || gameState === "COMBAT")) {
     showVictory()
     return
   }
 
-  if (data.type === "defeat" && combatActive) {
+  if (data.type === "defeat" && (combatActive || gameState === "COMBAT")) {
     showDefeat()
   }
 })
