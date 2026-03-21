@@ -112,7 +112,7 @@ html, body {
 
 #startButton {
   position: relative; margin-top: 20px; padding: 0;
-  width: 610px; max-width: 100%; height: 78px;
+  width: 680px; max-width: 100%; height: 90px;
   font-size: 20px; font-family: var(--font-body);
   letter-spacing: 2px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -139,7 +139,7 @@ html, body {
 .menuButton {
   position: relative; display: inline-block;
   margin: 8px; padding: 0;
-  width: 610px; max-width: 100%; height: 78px;
+  width: 680px; max-width: 100%; height: 90px;
   font-size: 17px; font-family: var(--font-body);
   letter-spacing: 1px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -689,9 +689,9 @@ html, body {
   transform: translate(-50%,-50%);
   width: 360px; height: 220px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px;
+  gap: 4px;
   background: url("images/d%C3%A9.png") center/contain no-repeat;
-  padding: 0; border-radius: 0;
+  padding: 18px 0 0 0; border-radius: 0;
   font-family: var(--font-body); font-size: 28px; color: #2b1a10;
   text-align: center; line-height: 1;
   box-shadow: none;
@@ -702,7 +702,7 @@ html, body {
   transform-origin: center center;
 }
 
-.diceNumber { font-size: 72px; margin-top: -22px; line-height: 1; }
+.diceNumber { font-size: 68px; margin-top: 0; line-height: 1; }
 .crit { color: gold; text-shadow: 0 0 40px gold, 0 0 80px orange; }
 .fail { color: red; text-shadow: 0 0 40px red; }
 
@@ -2257,7 +2257,7 @@ body {
 #worldMapFogTopLeft {
   position: absolute;
   top: 0;
-  left: 82px;
+  left: 116px;
   width: 20vw;
   height: 20vh;
   min-width: 170px;
@@ -2539,11 +2539,13 @@ body {
 /* ========================= */
 
 #gmBar {
-  background: transparent !important;
+  background: url("images/menu%20fin.png") center/100% 100% no-repeat !important;
   border: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
-  padding: 10px 18px !important;
+  padding: 18px 34px !important;
+  min-width: 620px !important;
+  min-height: 118px !important;
   position: fixed !important;
   overflow: visible !important;
   isolation: isolate !important;
@@ -2551,18 +2553,10 @@ body {
 
 #gmBar::before,
 #gmBar::after {
-  content: "" !important;
-  display: block !important;
-  position: absolute !important;
-  inset: -8px -14px !important;
-  pointer-events: none !important;
-  z-index: 0 !important;
-  background: url("images/menu%20fin.png") center/100% 100% no-repeat !important;
-}
-
-#gmBar::after {
   content: none !important;
   display: none !important;
+  background: none !important;
+  background-image: none !important;
 }
 
 #gmBar > * {
