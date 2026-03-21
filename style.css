@@ -2857,6 +2857,12 @@ body {
     0 0 44px rgba(80,0,0,0.85) !important;
 }
 
+@keyframes bookFloatIdle {
+  0%   { transform: translateY(0px) rotate(-2deg); }
+  50%  { transform: translateY(-8px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(-2deg); }
+}
+
 #playerMenu::before {
   content: "⚜" !important;
   display: block !important;

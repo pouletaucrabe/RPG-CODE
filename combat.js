@@ -761,6 +761,42 @@ function _playRemoteCombatExit() {
   }, 450)
 }
 
+function _resolveRemoteCombatEnd(attempt = 0) {
+  if (isGM) return
+  if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
+  const maxAttempts = 6
+
+  db.ref("game/combatOutcome").once("value", outcomeSnap => {
+    const outcome = outcomeSnap.val()
+
+    if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
+
+    if (outcome && outcome.type === "defeat") {
+      const localId = myToken ? String(myToken.id || "").toLowerCase() : ""
+      const targetId = String(outcome.player || "").toLowerCase()
+      if (targetId && localId && targetId === localId) {
+        window.__pendingLocalDefeat = true
+        showDefeat()
+        return
+      }
+      _playRemoteCombatExit()
+      return
+    }
+
+    if (outcome && outcome.type === "victory") {
+      _playRemoteCombatExit()
+      return
+    }
+
+    if (attempt < maxAttempts) {
+      setTimeout(() => _resolveRemoteCombatEnd(attempt + 1), 180)
+      return
+    }
+
+    _playRemoteCombatExit()
+  })
+}
+
   document.addEventListener("DOMContentLoaded", () => {
   db.ref("game/combatState").on("value", snap => {
       const data = snap.val()
@@ -771,20 +807,7 @@ function _playRemoteCombatExit() {
       if (!data || !data.active) {
         if (!isGM && (window.__combatOutcomeShowing || window.__pendingLocalDefeat)) return
         if (!isGM && (combatActive || gameState === "COMBAT" || window.__combatOutcomeShowing || window.__pendingLocalDefeat)) {
-          db.ref("game/combatOutcome").once("value", outcomeSnap => {
-            const outcome = outcomeSnap.val()
-            if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
-            if (outcome && outcome.type === "defeat") {
-              if (outcome.player && myToken && String(outcome.player).toLowerCase() !== String(myToken.id || "").toLowerCase()) {
-                _playRemoteCombatExit()
-                return
-              }
-              window.__pendingLocalDefeat = true
-              showDefeat()
-              return
-            }
-            _playRemoteCombatExit()
-          })
+          _resolveRemoteCombatEnd()
         }
         return
       }

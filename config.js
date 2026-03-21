@@ -127,6 +127,7 @@ const mobStats = {
   odin:              { tier:"boss",   baseHP:600 },
   thor:              { tier:"boss",   baseHP:550 },
   freya:             { tier:"boss",   baseHP:480 },
+  heimdall:          { tier:"boss",   baseHP:520 },
   "ELO PION":        { tier:"weak",   baseHP:28  },
   "ju pion":         { tier:"weak",   baseHP:28  },
   "greg pion":       { tier:"weak",   baseHP:32  }
@@ -221,6 +222,7 @@ const mapMusic = {
   "egout.jpg":           "egout.mp3",
   "tavernebrume.png":    "ambiancetaverne.mp3",
   "armurerie1.jpg":      "brumeinside.mp3",  // Armurerie de Brume
+  "balduregout.jpg":     "egout.mp3",
   "marche1.jpg":         "port.mp3",
   "palaisville.jpg":     "brumeinside.mp3",
   "mairemaison.jpg":     "mairemaison.mp3",
@@ -262,6 +264,7 @@ const mapNames = {
   "bateau1.jpg":         "L'Oregon III",
   "tavernebrume.png":    "Taverne de Brume",
   "armurerie1.jpg":      "Armurerie de Brume",
+  "balduregout.jpg":     "Salle secrète de Baldur",
   "marche1.jpg":         "Place du Marché de Brume",
   "mairemaison.jpg":     "🏛 Mairie de Rivebois",
   "epouventail.jpg":     "",

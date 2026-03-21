@@ -26,6 +26,197 @@ window.worldMapFogTopLeftHidden = false
 window.__worldMapFogTopLeftReady = false
 window.playerThuumData = {}
 window.playerThuumAccessData = {}
+window.playerAllyAccessData = null
+window.activeRuneChallengeData = null
+window.mapLoreBookData = null
+window.readLoreBooksData = {}
+window.__openedMapLoreBookId = null
+
+const MAP_LORE_BOOK_MAPS = [
+  "taverne.jpg",
+  "tavernebrume.png",
+  "palaisville.jpg",
+  "mairemaison.jpg",
+  "marche.jpg",
+  "marche1.jpg",
+  "interieurmine.jpg"
+]
+
+const MAP_LORE_BOOK_IMAGES = ["livre.png", "livre1.png", "livre2.png"]
+
+const MAP_LORE_BOOK_ENTRIES = {
+  revenus: {
+    id: "revenus",
+    text: "Ils sont revenus.\nIls sont revenus.\nIls sont revenus.",
+    reward: null
+  },
+  logique: {
+    id: "logique",
+    text: "Jour 12 : je suis persuadé que ce lieu a une logique.\nJour 19 : je suis persuadé que cette logique m'échappe.\nJour 23 : je ne suis plus sûr de vouloir comprendre.",
+    reward: { stat: "perspi", amount: 1, label: "Intelligence" }
+  },
+  subtile: {
+    id: "subtile",
+    text: "Certains apprennent à éviter les coups.\nD'autres apprennent à ne jamais être là quand ils arrivent.\nLa différence est subtile, mais elle sauve des vies.",
+    reward: { stat: "defense", amount: 1, label: "Dextérité" }
+  },
+  danger: {
+    id: "danger",
+    text: "Si vous lisez ceci, c'est que vous êtes probablement en danger.\nSi vous n'êtes pas en danger, reposez ce livre immédiatement, vous allez l'être.",
+    reward: { stat: "curse", amount: 1, label: "Malédiction" }
+  }
+}
+
+function isMapLoreBookMap(mapName) {
+  return MAP_LORE_BOOK_MAPS.includes(mapName)
+}
+
+function getMapLoreBookPosition(mapName) {
+  const positions = {
+    "taverne.jpg":       { left: "20%", bottom: "18%" },
+    "tavernebrume.png":  { left: "18%", bottom: "18%" },
+    "palaisville.jpg":   { left: "76%", bottom: "16%" },
+    "mairemaison.jpg":   { left: "24%", bottom: "20%" },
+    "marche.jpg":        { left: "30%", bottom: "16%" },
+    "marche1.jpg":       { left: "26%", bottom: "18%" },
+    "interieurmine.jpg": { left: "74%", bottom: "15%" }
+  }
+  return positions[mapName] || { left: "22%", bottom: "18%" }
+}
+
+function closeMapLoreBookOverlay() {
+  const overlay = document.getElementById("mapLoreBookOverlay")
+  if (overlay) overlay.remove()
+  window.__openedMapLoreBookId = null
+}
+
+function updateMapLoreBookVisibility() {
+  const existing = document.getElementById("mapLoreBookToken")
+  const data = window.mapLoreBookData
+  const shouldShow = !!(
+    data &&
+    data.active &&
+    data.map === currentMap &&
+    gameState === "GAME" &&
+    !combatActive
+  )
+
+  if (!shouldShow) {
+    if (existing) existing.remove()
+    return
+  }
+
+  const mapEl = document.getElementById("map")
+  if (!mapEl) return
+  const pos = getMapLoreBookPosition(currentMap)
+  const token = existing || document.createElement("img")
+
+  if (!existing) {
+    token.id = "mapLoreBookToken"
+    token.style.position = "absolute"
+    token.style.width = "88px"
+    token.style.height = "88px"
+    token.style.objectFit = "contain"
+    token.style.cursor = "pointer"
+    token.style.zIndex = "58"
+    token.style.filter = "drop-shadow(0 10px 16px rgba(0,0,0,0.82))"
+    token.style.animation = "bookFloatIdle 2.8s ease-in-out infinite"
+    token.onclick = tryOpenMapLoreBook
+    mapEl.appendChild(token)
+  }
+
+  token.src = "images/" + (data.image || "livre.png")
+  token.style.left = pos.left
+  token.style.bottom = pos.bottom
+}
+
+function applyMapLoreBookReward(entry, playerId) {
+  if (!entry || !entry.reward || !playerId) return
+  const reward = entry.reward
+  const path = "characters/" + playerId + "/" + reward.stat
+  db.ref(path).once("value", snap => {
+    const current = parseInt(snap.val(), 10) || 0
+    db.ref(path).set(current + reward.amount)
+  })
+  showNotification("📖 " + playerId.toUpperCase() + " gagne +" + reward.amount + " " + reward.label)
+}
+
+function showMapLoreBookOverlay(bookData) {
+  const entry = MAP_LORE_BOOK_ENTRIES[bookData?.id]
+  if (!entry) return
+  closeMapLoreBookOverlay()
+  playSound("parcheminSound", 0.85)
+
+  const overlay = document.createElement("div")
+  overlay.id = "mapLoreBookOverlay"
+  overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.58);z-index:9999996;opacity:0;transition:opacity 0.4s ease;"
+
+  const box = document.createElement("div")
+  box.style.cssText = "position:relative;width:min(760px,86vw);height:min(640px,84vh);display:flex;align-items:center;justify-content:center;"
+
+  const img = document.createElement("img")
+  img.src = "images/livreouvert.png"
+  img.style.cssText = "width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 42px rgba(0,0,0,0.9));pointer-events:none;"
+  box.appendChild(img)
+
+  const text = document.createElement("div")
+  text.style.cssText = "position:absolute;left:18%;top:24%;width:64%;height:46%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-line;font-family:'IM Fell English',serif;font-size:clamp(22px,2vw,34px);line-height:1.45;color:#3c2713;text-shadow:0 1px 0 rgba(255,235,190,0.2);"
+  text.innerText = entry.text
+  box.appendChild(text)
+
+  if (entry.reward) {
+    const reward = document.createElement("div")
+    reward.style.cssText = "position:absolute;left:20%;bottom:18%;width:60%;text-align:center;font-family:'Cinzel',serif;font-size:clamp(14px,1.2vw,18px);letter-spacing:2px;color:#68451f;"
+    reward.innerText = "+1 " + entry.reward.label
+    box.appendChild(reward)
+  }
+
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+  window.__openedMapLoreBookId = bookData.id
+  setTimeout(() => { overlay.style.opacity = "1" }, 30)
+}
+
+function tryOpenMapLoreBook() {
+  if (isGM || !myToken || !window.mapLoreBookData || !window.mapLoreBookData.active) return
+  const localBook = window.mapLoreBookData
+  db.ref("game/mapLoreBook").transaction(current => {
+    if (!current || !current.active || current.id !== localBook.id || current.map !== currentMap) return current
+    current.active = false
+    current.claimedBy = myToken.id
+    current.claimedAt = Date.now()
+    return current
+  }, (error, committed, snapshot) => {
+    const bookData = snapshot && snapshot.val ? snapshot.val() : null
+    if (error || !committed || !bookData || String(bookData.claimedBy).toLowerCase() !== String(myToken.id).toLowerCase()) return
+    const entry = MAP_LORE_BOOK_ENTRIES[bookData.id]
+    showMapLoreBookOverlay(bookData)
+    applyMapLoreBookReward(entry, myToken.id)
+    db.ref("game/readLoreBooks/" + bookData.id).set(true)
+    db.ref("game/mapLoreBook").remove()
+  }, false)
+}
+
+function maybeSpawnMapLoreBook(mapName) {
+  if (!isGM) return
+  db.ref("game/mapLoreBook").remove()
+  if (!isMapLoreBookMap(mapName)) return
+  if (Math.random() >= 0.2) return
+  db.ref("game/readLoreBooks").once("value", snap => {
+    const read = snap.val() || {}
+    const pool = Object.values(MAP_LORE_BOOK_ENTRIES).filter(entry => !read[entry.id])
+    if (!pool.length) return
+    const entry = pool[Math.floor(Math.random() * pool.length)]
+    const image = MAP_LORE_BOOK_IMAGES[Math.floor(Math.random() * MAP_LORE_BOOK_IMAGES.length)]
+    db.ref("game/mapLoreBook").set({
+      id: entry.id,
+      image,
+      map: mapName,
+      active: true,
+      time: Date.now()
+    })
+  })
+}
 window.usedThuumData = {}
 window.__lastThuumUnlockTime = 0
 window.__lastThuumCastTime = 0
@@ -357,6 +548,39 @@ function hasThuumUseAccess(word) {
   return !!(key && window.playerThuumAccessData[key] && window.playerThuumAccessData[key][word] && window.playerThuumAccessData[key][word].allowed)
 }
 
+function hasPlayerAllyAccess() {
+  return !!window.playerAllyAccessData
+}
+
+function hasActiveRuneChallenge() {
+  const data = window.activeRuneChallengeData
+  return !!(data && data.active)
+}
+
+function getAvailablePlayerPowerTabs() {
+  const tabs = []
+  if (hasPlayerAllyAccess()) tabs.push("ally")
+  if (getUnlockedThuumWords().length) tabs.push("thuum")
+  if (hasActiveRuneChallenge()) tabs.push("runes")
+  return tabs
+}
+
+function getDefaultPlayerPowerTab() {
+  const tabs = getAvailablePlayerPowerTabs()
+  if (!tabs.length) return ""
+  if (tabs.includes("thuum")) return "thuum"
+  if (tabs.includes("ally")) return "ally"
+  return tabs[0]
+}
+
+function closePlayerPowersPanel() {
+  const panel = document.getElementById("playerThuumPanel")
+  if (!panel) return
+  panel.style.display = "none"
+  panel.innerHTML = ""
+  delete panel.dataset.activeTab
+}
+
 function updateThuumButton() {
   const btn = document.getElementById("playerThuumBtn")
   if (!btn) return
@@ -364,28 +588,33 @@ function updateThuumButton() {
   const activeWord = getPrimaryThuumWord()
   const activeDef = activeWord ? getThuumDef(activeWord) : null
   const img = btn.querySelector("img")
-  
-  if (isGM || !myToken || !unlockedWords.length || !activeWord || !activeDef) {
+
+  const hasAnyPower = !isGM && !!myToken && getAvailablePlayerPowerTabs().length > 0
+  if (!hasAnyPower) {
     btn.style.display = "none"
     btn.disabled = false
     btn.dataset.word = ""
     if (img) img.removeAttribute("src")
-    closePlayerThuumPanel()
+    closePlayerPowersPanel()
     return
   }
 
-  btn.dataset.word = activeWord
-  if (img && activeDef.buttonImage) img.src = activeDef.buttonImage
+  btn.dataset.word = activeWord || ""
+  if (img) img.src = (activeDef && activeDef.buttonImage) ? activeDef.buttonImage : "images/runeskraa.png"
   btn.style.display = "block"
   btn.disabled = false
-  if (!combatActive) {
+  if (activeWord && !combatActive) {
     const allowedOutside = hasThuumUseAccess(activeWord)
     btn.title = allowedOutside ? activeWord + " autorise par le MJ hors combat" : activeWord + " disponible en combat ou avec autorisation MJ"
-  } else {
+  } else if (activeWord) {
     const used = isThuumUsedThisCombat(activeWord)
     btn.title = used ? activeWord + " deja utilise pour ce combat" : activeWord + " pret a etre lance"
+  } else if (hasPlayerAllyAccess()) {
+    btn.title = "Pouvoirs : invocation autorisee"
+  } else {
+    btn.title = "Pouvoirs : runes"
   }
-  renderPlayerThuumPanel()
+  renderPlayerPowersPanel()
 }
 
 function getThuumEntryState(word) {
@@ -401,28 +630,16 @@ function canUseThuumNow(word) {
   return hasThuumUseAccess(word)
 }
 
-function closePlayerThuumPanel() {
-  const panel = document.getElementById("playerThuumPanel")
-  if (!panel) return
-  panel.style.display = "none"
-  panel.innerHTML = ""
-}
-
-function renderPlayerThuumPanel() {
-  const panel = document.getElementById("playerThuumPanel")
-  if (!panel || panel.style.display === "none") return
-
+function renderPlayerThuumEntries(panel) {
   const unlocked = getUnlockedThuumWords()
-  panel.innerHTML = ""
   if (!unlocked.length) {
-    panel.style.display = "none"
+    const empty = document.createElement("div")
+    empty.className = "playerThuumEntryState"
+    empty.style.padding = "10px 0"
+    empty.innerText = "Aucun Thu'um appris."
+    panel.appendChild(empty)
     return
   }
-
-  const title = document.createElement("div")
-  title.id = "playerThuumPanelTitle"
-  title.innerText = "Cris"
-  panel.appendChild(title)
 
   unlocked.forEach(word => {
     const def = getThuumDef(word)
@@ -469,15 +686,163 @@ function renderPlayerThuumPanel() {
   })
 }
 
+function renderPlayerAllyEntry(panel) {
+  const access = window.playerAllyAccessData
+  if (!access) return
+
+  let granted = null
+  if (typeof ALLY_PNJS !== "undefined") {
+    ALLY_PNJS.forEach(pnj => {
+      pnj.actions.forEach(action => {
+        if (action.id === access.actionId) granted = { pnj, action }
+      })
+    })
+  }
+
+  if (!granted) {
+    const empty = document.createElement("div")
+    empty.className = "playerThuumEntryState"
+    empty.style.padding = "10px 0"
+    empty.innerText = "Invocation introuvable."
+    panel.appendChild(empty)
+    return
+  }
+
+  const entry = document.createElement("button")
+  entry.className = "playerThuumEntry"
+  entry.onclick = () => {
+    if (typeof triggerAllyAction === "function") triggerAllyAction(granted.pnj, granted.action)
+  }
+
+  const img = document.createElement("img")
+  img.src = "images/" + granted.pnj.image
+  img.alt = granted.pnj.name
+  entry.appendChild(img)
+
+  const text = document.createElement("div")
+  text.className = "playerThuumEntryText"
+
+  const name = document.createElement("div")
+  name.className = "playerThuumEntryName"
+  name.innerText = granted.action.label
+  text.appendChild(name)
+
+  const words = document.createElement("div")
+  words.className = "playerThuumEntryWords"
+  words.innerText = granted.pnj.name
+  text.appendChild(words)
+
+  const desc = document.createElement("div")
+  desc.className = "playerThuumEntryState"
+  desc.style.color = "#d8c28a"
+  desc.innerText = granted.action.desc
+  text.appendChild(desc)
+
+  const state = document.createElement("div")
+  state.className = "playerThuumEntryState"
+  state.innerText = "Autorisée par le MJ"
+  text.appendChild(state)
+
+  entry.appendChild(text)
+  panel.appendChild(entry)
+}
+
+function renderPlayerRuneEntry(panel) {
+  const data = window.activeRuneChallengeData
+  if (!data || !data.active) return
+
+  const entry = document.createElement("button")
+  entry.className = "playerThuumEntry"
+  entry.onclick = () => toggleRuneOverlay(data)
+
+  const icon = document.createElement("div")
+  icon.style.cssText = "width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel Decorative','Cinzel',serif;font-size:28px;color:#c8a050;"
+  icon.innerText = "ᚱ"
+  entry.appendChild(icon)
+
+  const text = document.createElement("div")
+  text.className = "playerThuumEntryText"
+
+  const name = document.createElement("div")
+  name.className = "playerThuumEntryName"
+  name.innerText = "Runes"
+  text.appendChild(name)
+
+  const words = document.createElement("div")
+  words.className = "playerThuumEntryWords"
+  words.innerText = "Défi runique actif"
+  text.appendChild(words)
+
+  const state = document.createElement("div")
+  state.className = "playerThuumEntryState"
+  state.innerText = "Ouvrir le jeu de runes"
+  text.appendChild(state)
+
+  entry.appendChild(text)
+  panel.appendChild(entry)
+}
+
+function renderPlayerPowersPanel() {
+  const panel = document.getElementById("playerThuumPanel")
+  if (!panel || panel.style.display === "none") return
+  panel.innerHTML = ""
+  const tabs = getAvailablePlayerPowerTabs()
+  if (!tabs.length) {
+    panel.style.display = "none"
+    return
+  }
+
+  const title = document.createElement("div")
+  title.id = "playerThuumPanelTitle"
+  title.innerText = "Pouvoirs"
+  panel.appendChild(title)
+
+  const tabRow = document.createElement("div")
+  tabRow.style.cssText = "display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;"
+  panel.appendChild(tabRow)
+
+  const content = document.createElement("div")
+  content.id = "playerPowerPanelContent"
+  panel.appendChild(content)
+
+  const activeTab = tabs.includes(panel.dataset.activeTab) ? panel.dataset.activeTab : getDefaultPlayerPowerTab()
+  panel.dataset.activeTab = activeTab
+
+  function paintTab(tab) {
+    content.innerHTML = ""
+    panel.dataset.activeTab = tab
+    Array.from(tabRow.children).forEach(btn => {
+      btn.style.background = btn.dataset.tab === tab ? "rgba(190,150,72,0.22)" : "rgba(18,14,10,0.65)"
+      btn.style.borderColor = btn.dataset.tab === tab ? "rgba(205,170,92,0.8)" : "rgba(120,92,44,0.38)"
+      btn.style.color = btn.dataset.tab === tab ? "#f6e2a8" : "#d5c39a"
+    })
+
+    if (tab === "ally") renderPlayerAllyEntry(content)
+    else if (tab === "thuum") renderPlayerThuumEntries(content)
+    else if (tab === "runes") renderPlayerRuneEntry(content)
+  }
+
+  tabs.forEach(tab => {
+    const btn = document.createElement("button")
+    btn.dataset.tab = tab
+    btn.style.cssText = "padding:6px 12px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;border:1px solid rgba(120,92,44,0.38);border-radius:999px;background:rgba(18,14,10,0.65);color:#d5c39a;cursor:pointer;"
+    btn.innerText = tab === "ally" ? "Invoc" : tab === "thuum" ? "Thu'um" : "Runes"
+    btn.onclick = () => paintTab(tab)
+    tabRow.appendChild(btn)
+  })
+
+  paintTab(activeTab)
+}
+
 function togglePlayerThuumPanel() {
   const panel = document.getElementById("playerThuumPanel")
   if (!panel) return
   if (panel.style.display === "block") {
-    closePlayerThuumPanel()
+    closePlayerPowersPanel()
     return
   }
   panel.style.display = "block"
-  renderPlayerThuumPanel()
+  renderPlayerPowersPanel()
 }
 
 function showThuumUnlockCinematic(data) {
@@ -609,7 +974,7 @@ function usePlayerThuum(forcedWord) {
     })
     setTimeout(() => db.ref("game/thuumCast").remove(), 1500)
     showNotification(def.outsideCombatMessage || (activeWord + " retentit hors combat"))
-    closePlayerThuumPanel()
+    closePlayerPowersPanel()
     updateThuumButton()
     return
   }
@@ -640,7 +1005,7 @@ function usePlayerThuum(forcedWord) {
     })
   })
 
-  closePlayerThuumPanel()
+  closePlayerPowersPanel()
   updateThuumButton()
 }
 
@@ -792,12 +1157,15 @@ db.ref("game/map").on("value", snap => {
   const fade = document.getElementById("fadeScreen")
   if (parseFloat(fade.style.opacity) >= 1) return
 
+  const previousMap = currentMap
   const isFirst = firstMapLoad
   if (isFirst) firstMapLoad = false
   currentMap = mapName
+  if (previousMap && previousMap !== mapName) closeMapLoreBookOverlay()
   if (typeof stopBifrostFlashSound === "function") stopBifrostFlashSound()
   updateMadnessUI(window.groupMadness || 0)
   updateWorldMapFogTopLeft()
+  updateMapLoreBookVisibility()
   setTimeout(() => updateBifrostBtn(), 100)
 
   fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = 1; fade.style.pointerEvents = "none"
@@ -807,6 +1175,7 @@ db.ref("game/map").on("value", snap => {
     if (mapName === "MAPMONDE.jpg") { map.style.backgroundSize = "contain"; map.style.backgroundColor = "#0a0a1a" }
     else                            { map.style.backgroundSize = "cover";   map.style.backgroundColor = "" }
     updateWorldMapFogTopLeft()
+    updateMapLoreBookVisibility()
     if (isFirst) { calculateMinZoom(); cameraZoom = minZoom; updateCamera() }
     document.querySelectorAll(".token").forEach(t => spawnPortal(t.id))
     if (mapMusic[mapName] && !_state._pendingMapAudio) {
@@ -852,6 +1221,15 @@ db.ref("game/worldMapFogTopLeftHidden").on("value", snap => {
   }
   window.__worldMapFogTopLeftReady = true
   updateWorldMapFogTopLeft()
+})
+
+db.ref("game/readLoreBooks").on("value", snap => {
+  window.readLoreBooksData = snap.val() || {}
+})
+
+db.ref("game/mapLoreBook").on("value", snap => {
+  window.mapLoreBookData = snap.val()
+  updateMapLoreBookVisibility()
 })
 
 // ─── shop ───
@@ -943,15 +1321,18 @@ function cleanupRuneChallengeUI() {
   if (overlay) overlay.remove()
   const playerBtn = document.getElementById("playerCodeBtn")
   if (playerBtn) playerBtn.remove()
+  window.activeRuneChallengeData = null
   _state.runeJustOpened = false
 }
 
 // ─── runeChallenge ───
 db.ref("game/runeChallenge").on("value", snap => {
   const data = snap.val()
+  window.activeRuneChallengeData = data || null
   if (!data || !data.active) {
     cleanupRuneChallengeUI()
     updateRuneMenuBtn(false)
+    updateThuumButton()
     return
   }
   if (gameState !== "GAME" && gameState !== "COMBAT") return
@@ -960,6 +1341,7 @@ db.ref("game/runeChallenge").on("value", snap => {
   if (overlay) overlay.remove()
   renderRuneChallenge(data)
   if (isGM && !_state.runeJustOpened) _state.runeJustOpened = true
+  updateThuumButton()
 })
 
 function ensureCemeteryGlyphIntro() {
@@ -1140,11 +1522,13 @@ db.ref("game/document").on("value", snap => {
 db.ref("game/playerAllyAccess").on("value", snap => {
   if (isGM) return
   const data = snap.val()
+  window.playerAllyAccessData = data || null
   const btn = document.getElementById("playerAllyBtn")
   const existing = document.getElementById("allyViewerPanel")
 
-  if (btn) btn.style.display = (data && combatActive) ? "flex" : "none"
+  if (btn) btn.style.display = "none"
   if (!data && existing) existing.remove()
+  updateThuumButton()
 })
 
 // ─── playerThuum — cris débloqués ───
@@ -1452,6 +1836,7 @@ function changeMap(mapName, customAudio) {
   if (!isGM) return
   _musicTransitioning = false; _pendingMusic = null
   if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
+  maybeSpawnMapLoreBook(mapName)
   // Un seul set — pas de set(null) puis set(valeur)
   db.ref("game/map").set(mapName)
   // Audio spécifique à la map si fourni
@@ -1510,6 +1895,8 @@ function saveGame() {
     "game/map",
     "game/wantedPosters",
     "game/runeChallenge",
+    "game/mapLoreBook",
+    "game/readLoreBooks",
     "game/storyImage",
     "game/storyImage2",
     "game/storyImage3"
@@ -1561,6 +1948,10 @@ function _applyLoadData(data, callback) {
   else                          ops.push(db.ref("game/wantedPosters").remove())
   if (data.game?.runeChallenge) ops.push(db.ref("game/runeChallenge").set(data.game.runeChallenge))
   else                          ops.push(db.ref("game/runeChallenge").remove())
+  if (data.game?.mapLoreBook)   ops.push(db.ref("game/mapLoreBook").set(data.game.mapLoreBook))
+  else                          ops.push(db.ref("game/mapLoreBook").remove())
+  if (data.game?.readLoreBooks) ops.push(db.ref("game/readLoreBooks").set(data.game.readLoreBooks))
+  else                          ops.push(db.ref("game/readLoreBooks").remove())
   if (data.game?.storyImage)    ops.push(db.ref("game/storyImage").set(data.game.storyImage))
   else                          ops.push(db.ref("game/storyImage").remove())
   if (data.game?.storyImage2)   ops.push(db.ref("game/storyImage2").set(data.game.storyImage2))
@@ -1747,8 +2138,8 @@ function rollStat(stat) {
 /* GAME STATE                */
 /* ========================= */
 
-function setGameState(state) {
-  gameState = state
+  function setGameState(state) {
+    gameState = state
   console.log("Game State →", state)
   if (state !== "GAME" && state !== "COMBAT" && typeof cleanupRuneChallengeUI === "function") cleanupRuneChallengeUI()
   switch (state) {
@@ -1771,24 +2162,15 @@ function setGameState(state) {
     case "GAME":
       document.getElementById("camera").style.display      = "block"
       document.getElementById("playerSelect").style.display = "block"
-      setTimeout(() => {
-        db.ref("game/runeChallenge").once("value", snap => {
-          const d = snap.val()
-          if (d && d.active && !document.getElementById("playerCodeBtn")) {
-            const btn = document.createElement("button"); btn.id = "playerCodeBtn"
-            btn.innerText = "ᚱ Runes"
-            btn.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 30px;font-family:'Cinzel',serif;font-size:16px;letter-spacing:3px;background:linear-gradient(#5a3800,#2a1800)!important;color:#c8a050!important;border:2px solid #c8a050!important;border-radius:8px;cursor:pointer;z-index:99999990;white-space:nowrap;animation:powerBtnPulse 2s ease-in-out infinite alternate;"
-            btn.onclick = () => { db.ref("game/runeChallenge").once("value", s => { const fd = s.val(); if (fd) toggleRuneOverlay(fd) }) }
-            document.body.appendChild(btn)
-          }
-        })
-      }, 500)
+      setTimeout(updateThuumButton, 500)
       break
       case "COMBAT":
         break
     }
+    if (state !== "GAME") closeMapLoreBookOverlay()
     setTimeout(updateMadnessVisibility, 30)
     setTimeout(updateThuumButton, 30)
+    setTimeout(updateMapLoreBookVisibility, 30)
   }
 
 function hideIntroLayers() {
@@ -1826,6 +2208,7 @@ function startGame() {
         db.ref("combat/usedThuum").remove()
         db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/playerThuum").remove(); db.ref("game/playerThuumAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
       db.ref("game/worldMapFogTopLeftHidden").set(false)
+      db.ref("game/mapLoreBook").remove(); db.ref("game/readLoreBooks").remove()
       db.ref("events/aurora").remove()
       db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
@@ -1838,6 +2221,9 @@ function startGame() {
     window.playerThuumData = {}
     window.playerThuumAccessData = {}
     window.usedThuumData = {}
+    window.mapLoreBookData = null
+    window.readLoreBooksData = {}
+    closeMapLoreBookOverlay()
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     updateMadnessVisibility()
@@ -1880,6 +2266,7 @@ function showTavern() {
   document.getElementById("playerSelect").style.display = "block"
   document.getElementById("diceBar").style.display      = "flex"
   document.getElementById("diceLog").style.display      = "block"
+  if (isGM) maybeSpawnMapLoreBook("taverne.jpg")
   map.style.backgroundImage = "url('images/taverne.jpg')"; currentMap = "taverne.jpg"
   calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   setTimeout(() => { fade.style.opacity = 0 }, 500)
@@ -2192,9 +2579,11 @@ document.addEventListener("keydown", e => {
 
   if (key === "escape") {
     const docOverlay = document.getElementById("documentOverlay"); if (docOverlay && isGM) { hideDocument(); return }
-    const runeOverlay = document.getElementById("runeChallengeOverlay"); if (runeOverlay && isGM) { runeOverlay.remove(); return }
+    const loreOverlay = document.getElementById("mapLoreBookOverlay"); if (loreOverlay) { closeMapLoreBookOverlay(); return }
+    const runeOverlay = document.getElementById("runeChallengeOverlay"); if (runeOverlay) { runeOverlay.remove(); _state.runeJustOpened = false; return }
     const sheet = document.getElementById("characterSheet"); if (sheet && sheet.style.display !== "none" && sheet.style.display !== "") { closeCharacterSheet(); return }
     const shopOverlay = document.getElementById("shopOverlay"); if (shopOverlay && isGM) { closeShop(); return }
+    const powersPanel = document.getElementById("playerThuumPanel"); if (powersPanel && powersPanel.style.display === "block") { closePlayerPowersPanel(); return }
     const combatHUD = document.getElementById("combatHUD"); if (combatHUD && combatHUD.style.display === "flex") { combatHUD.style.display = "none"; return }
     let anyGMOpen = false
     document.querySelectorAll(".gmSection").forEach(sec => { if (sec.style.display !== "none" && sec.style.display !== "") anyGMOpen = true })
