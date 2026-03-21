@@ -964,7 +964,7 @@ db.ref("game/combatOutcome").on("value", snap => {
     return
   }
 
-  if (data.type === "defeat" && myToken && data.player === myToken.id && combatActive) {
+  if (data.type === "defeat" && combatActive) {
     showDefeat()
   }
 })

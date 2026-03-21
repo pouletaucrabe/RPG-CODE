@@ -992,6 +992,10 @@ function openAllyPNJPanel() {
 }
 
 function triggerAllyAction(pnj, action, panel) {
+  if (!isGM && myToken && (action.type === "heal" || action.type === "buff")) {
+    _executeAllyAction(pnj, action, myToken.id, panel)
+    return
+  }
   if (action.type === "heal" || action.type === "buff") { _allyChooseTarget(pnj, action, panel); return }
   _executeAllyAction(pnj, action, null, panel)
 }
@@ -1000,7 +1004,7 @@ function _allyChooseTarget(pnj, action, panel) {
   const picker = document.createElement("div"); picker.id = "allyTargetPicker"
   picker.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,20,24,0.98);border:1px solid "+pnj.color+";border-radius:3px;padding:16px;z-index:999999999;font-family:Cinzel,serif;min-width:220px;"
   picker.innerHTML = `<div style="font-size:11px;color:${pnj.color};letter-spacing:2px;margin-bottom:12px;">CHOISIR LA CIBLE</div>`
-  ;["greg","ju","elo"].forEach(pid => {
+  ;["greg","ju","elo","bibi"].forEach(pid => {
     const btn = document.createElement("button"); btn.style.cssText = "display:block;width:100%;padding:8px;margin-bottom:6px;font-family:Cinzel,serif;font-size:12px;background:rgba(10,30,38,0.8);color:#e0f0f4;border:1px solid rgba(30,90,102,0.5);border-radius:2px;cursor:pointer;text-align:left;"
     btn.innerHTML = `<img src="images/${pid}.png" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:8px;">${pid.toUpperCase()}`
     btn.onclick=()=>{ picker.remove(); _executeAllyAction(pnj, action, pid, panel) }
