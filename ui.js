@@ -678,6 +678,22 @@ function usePower(playerID) {
 
 function triggerAurora() { if(auroraActive) return; auroraActive=true; db.ref("events/aurora").set({ active:true, time:Date.now() }) }
 
+function resetAuroraPresentation() {
+  auroraActive = false
+  const overlay = document.getElementById("auroraOverlay")
+  if (overlay && overlay.parentNode) overlay.remove()
+  const msg = document.getElementById("auroraMessage")
+  if (msg && msg.parentNode) msg.remove()
+  const bifrostBtn = document.getElementById("bifrostBtn")
+  if (bifrostBtn && bifrostBtn.parentNode) bifrostBtn.remove()
+  const aurora = document.getElementById("auroraMusic")
+  if (aurora) {
+    aurora.pause()
+    aurora.currentTime = 0
+    aurora.volume = 0
+  }
+}
+
 function showAuroraEvent() {
   if(document.getElementById("auroraOverlay")) return; auroraActive=true; updateBifrostBtn(); if(isGM) setTimeout(()=>checkOdinVision(),5000)
   const ov=document.createElement("div"); ov.id="auroraOverlay"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999990;opacity:0;transition:opacity 3s ease;"; document.body.appendChild(ov)

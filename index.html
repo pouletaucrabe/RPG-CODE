@@ -348,6 +348,7 @@
       <button onclick="showHighPNJ('odin.png', 'Odin')">Odin</button>
       <button onclick="showHighPNJ('thor.png', 'Thor')">Thor</button>
       <button onclick="showHighPNJ('freya.png', 'Freya')">Freya</button>
+      <button onclick="showHighPNJ('heimdall.png', 'Heimdall')">Heimdall</button>
     </div>
   </div>
 </div>
@@ -452,6 +453,7 @@
       <button onclick="startCombat('odin','boss')">Odin</button>
       <button onclick="startCombat('thor','boss')">Thor</button>
       <button onclick="startCombat('freya','boss')">Freya</button>
+      <button onclick="openMobDiff('heimdall', event)" style="width:100%;text-align:left;">Heimdall</button>
     </div>
     <button class="mapCategoryButton" onclick="toggleCategory('pnjCombatMine', this)"><span class="arrow">▶</span> ⛏ Mine</button>
     <div id="pnjCombatMine" class="mapCategory">
@@ -809,11 +811,14 @@ function safeStartIntro(event) {
     event.preventDefault()
     event.stopPropagation()
   }
+  window.__introClickLockUntil = Date.now() + 800
   const start = document.getElementById("startScreen")
+  const intro = document.getElementById("intro")
   if (start) {
     start.style.pointerEvents = "none"
     start.style.zIndex = "999999999"
   }
+  if (intro) intro.style.pointerEvents = "none"
   if (typeof startIntro === "function") {
     startIntro()
   } else {
@@ -827,6 +832,15 @@ document.addEventListener("DOMContentLoaded", () => {
   start.style.zIndex = "999999999"
   start.style.pointerEvents = "auto"
   start.addEventListener("pointerdown", safeStartIntro, { passive: false })
+  document.addEventListener("click", function(event) {
+    if (Date.now() < (window.__introClickLockUntil || 0)) {
+      const intro = document.getElementById("intro")
+      if (intro && intro.contains(event.target)) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+    }
+  }, true)
 })
 </script>
 

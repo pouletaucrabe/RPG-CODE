@@ -579,7 +579,8 @@ function usePlayerThuum(forcedWord) {
 /* ========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-
+window.__introClickLockUntil = 0
+  
 // Masquer les PNJ immédiatement au chargement
 ;["storyImage","storyImage2","storyImage3"].forEach(id => {
   const el = document.getElementById(id)
@@ -589,6 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
 const madnessGauge = document.getElementById("madnessGauge")
 if (madnessGauge) madnessGauge.style.display = "none"
 resetMadnessPresentation()
+if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
 
 // ─── combat/mob — listener unique fusionné ───
 db.ref("combat/mob").on("value", snap => {
@@ -788,6 +790,7 @@ db.ref("game/highPNJName").on("value", snap => {
 db.ref("events/aurora").on("value", snap => {
   const data = snap.val()
   if (!data || !data.active) return
+  if (!gameStarted || gameState === GAME_STATE.MENU) return
   showAuroraEvent()
 })
 
@@ -1391,8 +1394,7 @@ function saveGame() {
     "game/runeChallenge",
     "game/storyImage",
     "game/storyImage2",
-    "game/storyImage3",
-    "events/aurora"
+    "game/storyImage3"
   ]
 
   const data = { _saveName: saveName, _saveDate: new Date().toLocaleString("fr-FR") }
@@ -1447,8 +1449,7 @@ function _applyLoadData(data, callback) {
   else                          ops.push(db.ref("game/storyImage2").remove())
   if (data.game?.storyImage3)   ops.push(db.ref("game/storyImage3").set(data.game.storyImage3))
   else                          ops.push(db.ref("game/storyImage3").remove())
-  if (data.events?.aurora)      ops.push(db.ref("events/aurora").set(data.events.aurora))
-  else                          ops.push(db.ref("events/aurora").remove())
+  ops.push(db.ref("events/aurora").remove())
 
   // Nettoyage
   ops.push(db.ref("combat").remove())
@@ -1472,6 +1473,8 @@ function loadGame() {
   if (!data.characters && !data.tokens) { showNotification("Sauvegarde vide"); return }
   _applyLoadData(data, () => {
     resetMadnessPresentation()
+    if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
+    db.ref("events/aurora").remove()
     updateMadnessVisibility()
     updateThuumButton()
     showNotification("✅ Partie chargée")
@@ -1484,6 +1487,7 @@ function loadSave(saveName) {
   if (!data) { showNotification("Sauvegarde introuvable"); return }
   _applyLoadData(data, () => {
     resetMadnessPresentation()
+    if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     updateMadnessVisibility()
     updateThuumButton()
     const panel = document.getElementById("savePanel"); if (panel) panel.remove()
@@ -1515,6 +1519,8 @@ function newGame() {
     db.ref("game/map").set("taverne.jpg")
     db.ref("game/groupMadness").set(0)
     resetMadnessPresentation()
+    if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
+    db.ref("events/aurora").remove()
     db.ref("diceRoll").remove()
   db.ref("game/storyImage").set(null)
   showNotification("🆕 Nouvelle partie créée")
@@ -1696,10 +1702,11 @@ function showIntroLayer() {
 }
 
 function startGame() {
-      db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
-      db.ref("combat/usedThuum").remove()
-      db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/playerThuumAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
-    db.ref("elements").remove(); db.ref("game/shop").remove()
+        db.ref("combat/mob").remove(); db.ref("combat/mob2").remove(); db.ref("combat/mob3").remove(); db.ref("combat/usedAllies").remove()
+        db.ref("combat/usedThuum").remove()
+        db.ref("game/combatState").remove(); db.ref("game/combatOutcome").remove(); db.ref("game/playerAllyAccess").remove(); db.ref("game/playerThuumAccess").remove(); db.ref("game/thuumCast").remove(); db.ref("game/thuumUnlockEvent").remove()
+      db.ref("events/aurora").remove()
+      db.ref("elements").remove(); db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
   cemeteryEventDone = false
@@ -1707,6 +1714,7 @@ function startGame() {
     combatStarting = false
     window.__combatOutcomeShowing = false
     resetMadnessPresentation()
+    if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     updateMadnessVisibility()
     const playerAllyBtn = document.getElementById("playerAllyBtn")
     if (playerAllyBtn) playerAllyBtn.style.display = "none"
