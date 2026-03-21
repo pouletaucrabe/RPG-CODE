@@ -744,7 +744,7 @@ db.ref("game/storyImage2").on("value", snap => {
   if (!box2 || !img2) return
   if (gameState !== "GAME" && gameState !== "COMBAT") { box2.style.display="none"; box2.style.opacity="0"; return }
   if (image) {
-    img2.src = "" + image
+    img2.src = (typeof resolvePNJImageSrc === "function") ? resolvePNJImageSrc(image) : (/^(https?:|data:|blob:|\/|images\/)/i.test(String(image || "")) ? String(image || "") : "images/" + image)
     box2.style.opacity = "0"; box2.style.left = "0"; box2.style.right = "auto"; box2.style.transform = ""; box2.style.display = "flex"
     if (!pnjSlotOrder.includes(2)) pnjSlotOrder.push(2)
     updatePNJPositions()
@@ -762,7 +762,7 @@ db.ref("game/storyImage3").on("value", snap => {
   if (!box3 || !img3) return
   if (gameState !== "GAME" && gameState !== "COMBAT") { box3.style.display="none"; box3.style.opacity="0"; return }
   if (image) {
-    img3.src = "" + image
+    img3.src = (typeof resolvePNJImageSrc === "function") ? resolvePNJImageSrc(image) : (/^(https?:|data:|blob:|\/|images\/)/i.test(String(image || "")) ? String(image || "") : "images/" + image)
     box3.style.opacity = "0"; box3.style.right = "0"; box3.style.left = "auto"; box3.style.transform = ""; box3.style.display = "flex"
     if (!pnjSlotOrder.includes(3)) pnjSlotOrder.push(3)
     updatePNJPositions()
@@ -794,6 +794,7 @@ db.ref("game/map").on("value", snap => {
   const isFirst = firstMapLoad
   if (isFirst) firstMapLoad = false
   currentMap = mapName
+  if (typeof stopBifrostFlashSound === "function") stopBifrostFlashSound()
   updateMadnessUI(window.groupMadness || 0)
   updateWorldMapFogTopLeft()
   setTimeout(() => updateBifrostBtn(), 100)
@@ -948,30 +949,48 @@ db.ref("game/runeChallenge").on("value", snap => {
   if (gameState !== "GAME" && gameState !== "COMBAT") return
   updateRuneMenuBtn(true)
   const overlay = document.getElementById("runeChallengeOverlay")
-  if (overlay) { overlay.remove(); renderRuneChallenge(data) }
-  if (isGM && !_state.runeJustOpened) { _state.runeJustOpened = true; renderRuneChallenge(data) }
+  if (overlay) overlay.remove()
+  renderRuneChallenge(data)
+  if (isGM && !_state.runeJustOpened) _state.runeJustOpened = true
 })
+
+function ensureCemeteryGlyphIntro() {
+  let g = document.getElementById("glipheOverlay")
+  if (!g) {
+    g = document.createElement("div")
+    g.id = "glipheOverlay"
+    g.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:99999990;opacity:0;transition:opacity 1s ease;"
+    const im = document.createElement("img")
+    im.src = "images/gliphe.png"
+    im.style.cssText = "max-height:70vh;max-width:70vw;object-fit:contain;filter:drop-shadow(0 0 30px purple);"
+    g.appendChild(im)
+    document.body.appendChild(g)
+    const s2 = new Audio("audio/spell.mp3")
+    s2.volume = 0.9
+    s2.play().catch(() => {})
+  }
+  setTimeout(() => { g.style.opacity = "1" }, 50)
+  setTimeout(() => {
+    if (typeof startSpellAura === "function") startSpellAura()
+  }, 1000)
+}
 
 // ─── cemeterySpell ───
 db.ref("game/cemeterySpell").on("value", snap => {
   const data = snap.val()
-  if (!data || gameState !== "GAME") return
-  if (data.active && !data.glipheShown && !isGM) {
-    if (!document.getElementById("glipheOverlay")) {
-      const g = document.createElement("div"); g.id = "glipheOverlay"
-      g.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:99999990;opacity:0;transition:opacity 1s ease;"
-      const im = document.createElement("img"); im.src = "gliphe.png"; im.style.cssText = "max-height:70vh;max-width:70vw;object-fit:contain;filter:drop-shadow(0 0 30px purple);"
-      g.appendChild(im); document.body.appendChild(g)
-      const s2 = new Audio("spell.mp3"); s2.volume = 0.9; s2.play().catch(() => {})
-      setTimeout(() => { g.style.opacity = "1" }, 50)
-      setTimeout(() => startSpellAura(), 1000)
-    }
+  if (!data) return
+  if (gameState !== "GAME") return
+
+  if (data.active && !data.glipheShown) {
+    ensureCemeteryGlyphIntro()
     return
   }
+
   if (data.glipheShown) {
     const g = document.getElementById("glipheOverlay")
     if (g) { g.style.opacity = "0"; setTimeout(() => { if (g.parentNode) g.remove() }, 800) }
   }
+
   if (data.freed) {
     const mg = document.getElementById("spellMiniGame")
     if (mg) { mg.style.opacity = "0"; setTimeout(() => { if (mg.parentNode) mg.remove() }, 800) }
@@ -979,6 +998,7 @@ db.ref("game/cemeterySpell").on("value", snap => {
     db.ref("game/cemeterySpell").remove()
     return
   }
+
   if (data.glipheShown && !data.freed) renderSpellDiceGame(data)
 })
 

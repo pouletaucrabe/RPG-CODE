@@ -479,16 +479,43 @@ const PNJ_NAMES = {
   "femmepnj2.png":         "Brynja",
   "femmepnj3.png":         "Runa",
   "oldmessager.png":       "Orm le Vieux Messager",
+  "capitaine.png":         "Capitaine Tobias",
+  "pirat.png":             "Capitaine Quince",
+  "mysterefemme.png":      "Femme mysterieuse",
+  "mysterefemme1.png":     "Glinda",
+  "heimdall.png":          "Heimdall",
+  "witch.png":             "Witch",
+  "ELO PION.png":          "ELO PION",
+  "ju pion.png":           "JU PION",
+  "greg pion.png":         "GREG PION",
+}
+
+function getPNJDisplayName(image) {
+  if (PNJ_NAMES[image]) return PNJ_NAMES[image]
+  const base = String(image || "").replace(/^.*[\\/]/, "").replace(/\.[^.]+$/, "")
+  if (!base) return ""
+  return base
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
+function resolvePNJImageSrc(image) {
+  const src = String(image || "")
+  if (!src) return ""
+  if (/^(https?:|data:|blob:|\/|images\/)/i.test(src)) return src
+  return "images/" + src
 }
 
 function showStoryImage(image) {
   const box=document.getElementById("storyImage"), img=document.getElementById("storyImageContent")
   if(!image){ box.style.display="none"; return }
-  img.src="images/"+image; box.style.opacity="0"; box.style.left="50%"; box.style.transform="translateX(-50%)"; box.style.right="auto"; box.style.display="flex"
+  img.src=resolvePNJImageSrc(image); box.style.opacity="0"; box.style.left="50%"; box.style.transform="translateX(-50%)"; box.style.right="auto"; box.style.display="flex"
   if(!pnjSlotOrder.includes(1)) pnjSlotOrder.push(1); setTimeout(updatePNJPositions,50); setTimeout(()=>box.style.opacity="1",60)
 
   // Afficher le nom si défini — délai pour laisser passer le set(null) initial
-  const pnjName = PNJ_NAMES[image]
+  const pnjName = getPNJDisplayName(image)
   if (pnjName) {
     document.querySelectorAll("[id^='pnjNameTag']").forEach(el => el.remove())
     const tag = document.createElement("div")
@@ -713,9 +740,17 @@ function updateBifrostBtn() {
 }
 
 function triggerBifrostFlash() { const btn=document.getElementById("bifrostBtn"); if(btn) btn.style.pointerEvents="none"; db.ref("game/bifrostFlash").set({ time:Date.now() }) }
+function stopBifrostFlashSound() {
+  const snd = window.__bifrostFlashSound
+  if (!snd) return
+  try { snd.pause() } catch (_) {}
+  try { snd.currentTime = 0 } catch (_) {}
+  window.__bifrostFlashSound = null
+}
 function doBifrostFlash() {
+  stopBifrostFlashSound()
   fadeMusicOut(()=>{}); const tremb=new Audio("audio/tremblement.mp3"); tremb.volume=0.8; tremb.play().catch(()=>{}); setTimeout(()=>{ let iv=setInterval(()=>{ if(tremb.volume>0.04) tremb.volume-=0.05; else{ tremb.pause(); clearInterval(iv) } },100) },4500)
-  const snd=new Audio("audio/bifrost.mp3"); snd.volume=1.0; snd.play().catch(()=>{})
+  const snd=new Audio("audio/bifrost.mp3"); snd.volume=1.0; window.__bifrostFlashSound = snd; snd.play().catch(()=>{})
   const fl=[{c:"rgba(200,230,255,0.4)",d:80},{c:"rgba(255,255,255,0.5)",d:120},{c:"rgba(100,180,255,0.9)",d:200},{c:"rgba(255,255,255,1.0)",d:400}]
   let delay=0; fl.forEach(f=>{ setTimeout(()=>{ const flash=document.createElement("div"); flash.style.cssText=`position:fixed;top:0;left:0;width:100%;height:100%;background:${f.c};pointer-events:none;z-index:99999998;`; document.body.appendChild(flash); setTimeout(()=>{ flash.style.transition=`opacity ${f.d*1.5}ms ease`; flash.style.opacity="0"; setTimeout(()=>flash.remove(),f.d*2) },f.d*0.3) },delay); delay+=f.d+60 })
   screenShake(); setTimeout(()=>screenShakeHard(),300); setTimeout(()=>screenShakeHard(),700); setTimeout(()=>flashGold(),delay-200); setTimeout(()=>{ if(isGM) changeMap("bifrost.jpg") },delay+400)
