@@ -404,7 +404,7 @@ function updateMadnessUI(value) {
   const fill = document.getElementById("madnessGaugeFill")
   const glow = document.getElementById("madnessGaugeGlow")
   const label = document.getElementById("madnessGaugeValue")
-  const mjValue = document.getElementById("madnessMJValue")
+  const mjValues = document.querySelectorAll("#madnessMJValue")
   const overlay = document.getElementById("madnessOverlay")
   const cameraEl = document.getElementById("camera")
   if (!gauge || !fill || !glow || !label || !overlay) return
@@ -418,7 +418,7 @@ function updateMadnessUI(value) {
       cameraEl.style.filter = ""
       cameraEl.classList.remove("madnessWarp")
     }
-    if (mjValue) mjValue.innerText = Math.max(0, Math.min(100, value)) + " / 100"
+    mjValues.forEach(el => { el.innerText = Math.max(0, Math.min(100, value)) + " / 100" })
     return
   }
 
@@ -431,7 +431,7 @@ function updateMadnessUI(value) {
   fill.style.width = pct + "%"
   glow.style.width = pct + "%"
   label.innerText = pct + " / 100"
-  if (mjValue) mjValue.innerText = pct + " / 100"
+  mjValues.forEach(el => { el.innerText = pct + " / 100" })
 
   overlay.classList.toggle("active", pct > 0)
   overlay.classList.toggle("pulse", tier >= 2)
