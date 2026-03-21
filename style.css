@@ -86,7 +86,7 @@ html, body {
 
 #introBox {
   position: relative;
-  background-image: url("paper.png");
+  background-image: url("images/menu intro.png");
   background-size: 100% 100%; background-repeat: no-repeat;
   padding: 80px 80px 70px 80px;
   width: 760px; max-width: 92vw;
@@ -552,7 +552,7 @@ html, body {
 #diceBar {
   position: fixed; bottom: 20px; right: 20px;
   background:
-    url("boutonnoir.png") center/100% 100% no-repeat,
+    url("images/boutonnoir.png") center/100% 100% no-repeat,
     linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
   border: none;
   box-shadow:
@@ -630,7 +630,7 @@ html, body {
 #diceResult {
   position: fixed; top: 50%; left: 50%;
   transform: translate(-50%,-50%);
-  background: url("paper1.png"); background-size: cover;
+  background: url("images/paper1.png"); background-size: cover;
   padding: 40px 70px; border-radius: 4px;
   font-family: var(--font-body); font-size: 36px; color: #2b1a10;
   text-align: center;
@@ -652,7 +652,7 @@ html, body {
   overflow-y: auto; max-height: 90vh;
   position: fixed; top: 50%; left: 50%;
   transform: translate(-50%,-50%);
-  background: url("paper1.png"); background-size: cover;
+  background: url("images/paper1.png"); background-size: cover;
   padding: 40px; display: none;
   z-index: 9999999;
   font-family: var(--font-text);
@@ -719,7 +719,7 @@ html, body {
   bottom: 20px; left: 50%; transform: translateX(-50%);
   gap: 10px;
   background:
-    url("boutonnoir.png") center/100% 100% no-repeat,
+    url("images/boutonnoir.png") center/100% 100% no-repeat,
     linear-gradient(180deg, rgba(10,26,30,0.97) 0%, rgba(5,14,18,0.99) 100%);
   border: none;
   box-shadow:
@@ -776,7 +776,7 @@ html, body {
 .gmSection {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
   background:
-    url("boutonnoirlarge.png") center/100% 100% no-repeat,
+    url("images/boutonnoirlarge.png") center/100% 100% no-repeat,
     var(--panel-bg);
   border: none;
   box-shadow: 0 0 30px rgba(0,0,0,0.9);
@@ -952,7 +952,7 @@ html, body {
 }
 
 #locationPaper {
-  background-image: url("cadre.png");
+  background-image: url("images/cadre.png");
   background-repeat: no-repeat; background-position: center; background-size: 100% 100%;
   position: relative; width: 540px; min-width: 540px;
   height: 360px; min-height: 360px;
