@@ -469,7 +469,7 @@
     <button class="pnjTab active" onclick="openPNJTab('elemIndices', this)">📜</button>
     <button class="pnjTab" onclick="openPNJTab('elemObjets', this)">⚔</button>
     <button class="pnjTab" onclick="openPNJTab('elemEffets', this)">✨</button>
-    <button class="pnjTab" onclick="openPNJTab('elemCartes', this)">🗺</button>
+    <button class="pnjTab" onclick="openPNJTab('elemCartes', this)">ᚦ</button>
     <button class="pnjTab" onclick="openPNJTab('elemJeu', this)">ᚱ</button>
     <button class="pnjTab" onclick="openPNJTab('elemWanted', this)">🎯</button>
   </div>
@@ -492,21 +492,22 @@
     <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:8px;display:flex;flex-direction:column;gap:4px;">
       <button onclick="triggerAurora()" style="width:100%;background:rgba(0,180,120,0.15);color:#a0ffcc;border:1px solid rgba(0,200,150,0.4);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">🌌 Déclencher Aurore</button>
       <button onclick="cemeteryEventDone=false;triggerCemeteryEvent()" style="width:100%;background:rgba(80,0,120,0.3);color:#cc88ff;border:1px solid rgba(120,0,180,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">⚡ Sort Cimetière</button>
-      <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(200,160,80,0.2);">
-        <div style="font-family:Cinzel,serif;font-size:10px;color:#d6b77a;text-align:center;letter-spacing:2px;margin-bottom:6px;">CRI DE MOUCHES - SKRAA</div>
-        <button onclick="grantThuumToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a GREG</button>
-        <button onclick="grantThuumToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a JU</button>
-        <button onclick="grantThuumToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a ELO</button>
-        <button onclick="grantThuumToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a BIBI</button>
-        <div style="height:8px;"></div>
-        <button onclick="grantThuumUseToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a GREG</button>
-        <button onclick="grantThuumUseToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a JU</button>
-        <button onclick="grantThuumUseToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a ELO</button>
-        <button onclick="grantThuumUseToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a BIBI</button>
-      </div>
     </div>
   </div>
-  <div id="elemCartes" class="pnjTabContent"></div>
+  <div id="elemCartes" class="pnjTabContent">
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(200,160,80,0.2);">
+      <div style="font-family:Cinzel,serif;font-size:10px;color:#d6b77a;text-align:center;letter-spacing:2px;margin-bottom:6px;">CRI DE MOUCHES - SKRAA</div>
+      <button onclick="grantThuumToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a GREG</button>
+      <button onclick="grantThuumToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a JU</button>
+      <button onclick="grantThuumToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a ELO</button>
+      <button onclick="grantThuumToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a BIBI</button>
+      <div style="height:8px;"></div>
+      <button onclick="grantThuumUseToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a GREG</button>
+      <button onclick="grantThuumUseToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a JU</button>
+      <button onclick="grantThuumUseToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a ELO</button>
+      <button onclick="grantThuumUseToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a BIBI</button>
+    </div>
+  </div>
   <div id="elemJeu" class="pnjTabContent">
     <div style="font-family:Cinzel;font-size:11px;color:#8a6830;text-align:center;margin-bottom:8px;letter-spacing:2px;">⚔ DÉFI RUNIQUE ⚔</div>
     <button id="runeLaunchBtn"   onclick="openRuneChallenge()" style="width:100%;background:rgba(200,160,50,0.2);color:#c8a050;border:1px solid rgba(200,160,50,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;margin-bottom:4px;">ᚱ Lancer le Défi</button>

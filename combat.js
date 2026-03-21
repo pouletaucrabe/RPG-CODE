@@ -765,11 +765,15 @@ function _playRemoteCombatExit() {
 
       if (!data || !data.active) {
         if (!isGM && window.__combatOutcomeShowing) return
-        if (!isGM && (combatActive || gameState === "COMBAT")) {
+        if (!isGM && (combatActive || gameState === "COMBAT" || window.__combatOutcomeShowing)) {
           db.ref("game/combatOutcome").once("value", outcomeSnap => {
             const outcome = outcomeSnap.val()
             if (window.__combatOutcomeShowing) return
             if (outcome && outcome.type === "defeat") {
+              if (outcome.player && myToken && String(outcome.player).toLowerCase() !== String(myToken.id || "").toLowerCase()) {
+                _playRemoteCombatExit()
+                return
+              }
               showDefeat()
               return
             }

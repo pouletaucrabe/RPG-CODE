@@ -319,7 +319,11 @@ function getThuumDef(word) {
 }
 
 function getUnlockedThuumWords() {
-  return Object.keys(getMyThuumWords()).filter(word => !!getThuumDef(word))
+  const words = getMyThuumWords()
+  return Object.keys(words).filter(word => {
+    const data = words[word]
+    return !!getThuumDef(word) && !!(data && data.unlocked)
+  })
 }
 
 function getPrimaryThuumWord() {
@@ -1019,7 +1023,8 @@ db.ref("game/combatOutcome").on("value", snap => {
     return
   }
 
-  if (data.type === "defeat" && (combatActive || gameState === "COMBAT")) {
+  if (data.type === "defeat") {
+    if (data.player && myToken && String(data.player).toLowerCase() !== String(myToken.id || "").toLowerCase()) return
     showDefeat()
   }
 })
