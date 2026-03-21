@@ -138,7 +138,9 @@ function revealWorldMapFogTopLeft() {
   fog.style.transition = "opacity 2s ease, filter 2s ease, transform 0.18s ease"
   fog.style.filter = "brightness(1.4) drop-shadow(0 0 26px rgba(255,220,160,0.55))"
   fog.style.transform = "scale(1.03)"
-  playSound("powerSound", 0.85)
+  const revealSnd = new Audio("audio/pow.mp3")
+  revealSnd.volume = 0.85
+  revealSnd.play().catch(() => {})
   screenShakeHard()
   setTimeout(() => screenShake(), 180)
   requestAnimationFrame(() => {
@@ -357,14 +359,16 @@ function hasThuumUseAccess(word) {
 function updateThuumButton() {
   const btn = document.getElementById("playerThuumBtn")
   if (!btn) return
+  const unlockedWords = getUnlockedThuumWords()
   const activeWord = getPrimaryThuumWord()
   const activeDef = activeWord ? getThuumDef(activeWord) : null
   const img = btn.querySelector("img")
   
-  if (isGM || !myToken || !activeWord || !activeDef) {
+  if (isGM || !myToken || !unlockedWords.length || !activeWord || !activeDef) {
     btn.style.display = "none"
     btn.disabled = false
     btn.dataset.word = ""
+    if (img) img.removeAttribute("src")
     closePlayerThuumPanel()
     return
   }
@@ -995,8 +999,10 @@ db.ref("game/playerDeath").on("value", snap => {
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
-  if (!isGM && myToken && myToken.id === pid && (combatActive || gameState === "COMBAT") && !window.__combatOutcomeShowing) {
-      showDefeat()
+  if (!isGM && myToken && String(myToken.id || "").toLowerCase() === String(pid || "").toLowerCase() && !window.__combatOutcomeShowing) {
+      combatActive = true
+      setGameState("COMBAT")
+      setTimeout(() => showDefeat(), 40)
     }
   if (isGM) {
       db.ref("game/combatOutcome").set({ type: "defeat", player: pid, time: Date.now() })

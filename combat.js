@@ -170,13 +170,14 @@ function playRoiIntro(mob, tierMob) {
 }
 
 function _startCombatSequence(mob, tierMob) {
-  // Balraug et Kraken — garder la musique de la map sans interruption
-  if (mob !== "kraken" && mob !== "balraug") {
-    fadeMusicOut(() => {
-      const track = tierMob === "boss" ? "audio/worldboss.mp3" : tierMob === "high" ? "audio/highcombat.mp3" : "audio/lowcombat.mp3"
-      setTimeout(() => crossfadeMusic(track), 100)
-    })
-  }
+  fadeMusicOut(() => {
+    const track = tierMob === "boss"
+      ? "audio/worldboss.mp3"
+      : tierMob === "high"
+      ? "audio/highcombat.mp3"
+      : "audio/lowcombat.mp3"
+    setTimeout(() => crossfadeMusic(track), 100)
+  })
 
   const intro = document.getElementById("combatIntro"); intro.style.display = "flex"
   const cf    = document.getElementById("combatFilter")
@@ -415,11 +416,13 @@ function showVictory() {
 
 function showDefeat() {
   window.__combatOutcomeShowing = true
+  combatActive = true
+  setGameState("COMBAT")
   playSound("defeatSound")
   fadeMusicOut(() => {})
 
   const screen = document.getElementById("defeatScreen")
-  screen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"
+  screen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;opacity:1;"
   document.body.appendChild(screen)
   flashRed(); screenShakeHard()
   setTimeout(() => {

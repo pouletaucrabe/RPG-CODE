@@ -112,7 +112,7 @@ html, body {
 
 #startButton {
   position: relative; margin-top: 20px; padding: 0;
-  width: 560px; max-width: 100%; height: 78px;
+  width: 610px; max-width: 100%; height: 78px;
   font-size: 20px; font-family: var(--font-body);
   letter-spacing: 2px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -139,7 +139,7 @@ html, body {
 .menuButton {
   position: relative; display: inline-block;
   margin: 8px; padding: 0;
-  width: 560px; max-width: 100%; height: 78px;
+  width: 610px; max-width: 100%; height: 78px;
   font-size: 17px; font-family: var(--font-body);
   letter-spacing: 1px; text-transform: uppercase;
   cursor: pointer; border: none; background: none; overflow: visible;
@@ -689,6 +689,7 @@ html, body {
   transform: translate(-50%,-50%);
   width: 360px; height: 220px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px;
   background: url("images/d%C3%A9.png") center/contain no-repeat;
   padding: 0; border-radius: 0;
   font-family: var(--font-body); font-size: 28px; color: #2b1a10;
@@ -698,9 +699,10 @@ html, body {
   z-index: 9999999; pointer-events: none;
   min-width: 0; max-width: none; white-space: nowrap;
   filter: drop-shadow(0 10px 24px rgba(0,0,0,0.55));
+  transform-origin: center center;
 }
 
-.diceNumber { font-size: 72px; margin-top: -4px; line-height: 1; }
+.diceNumber { font-size: 72px; margin-top: -22px; line-height: 1; }
 .crit { color: gold; text-shadow: 0 0 40px gold, 0 0 80px orange; }
 .fail { color: red; text-shadow: 0 0 40px red; }
 
@@ -2255,7 +2257,7 @@ body {
 #worldMapFogTopLeft {
   position: absolute;
   top: 0;
-  left: 42px;
+  left: 82px;
   width: 20vw;
   height: 20vh;
   min-width: 170px;
@@ -2544,6 +2546,7 @@ body {
   padding: 10px 18px !important;
   position: fixed !important;
   overflow: visible !important;
+  isolation: isolate !important;
 }
 
 #gmBar::before,
@@ -2553,13 +2556,18 @@ body {
   position: absolute !important;
   inset: -8px -14px !important;
   pointer-events: none !important;
-  z-index: -1 !important;
+  z-index: 0 !important;
   background: url("images/menu%20fin.png") center/100% 100% no-repeat !important;
 }
 
 #gmBar::after {
   content: none !important;
   display: none !important;
+}
+
+#gmBar > * {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .gmSection {
