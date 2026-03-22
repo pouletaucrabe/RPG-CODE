@@ -876,7 +876,8 @@ function showAuroraEvent() {
   for(let i=0;i<8;i++){ const b=document.createElement("div"); b.style.cssText=`position:absolute;top:${Math.random()*60}%;left:-20%;width:140%;height:${80+Math.random()*160}px;background:linear-gradient(90deg,transparent,${colors[i%colors.length]},transparent);border-radius:50%;transform:rotate(${-15+Math.random()*30}deg);animation:auroraDance ${4+Math.random()*6}s ease-in-out infinite;animation-delay:${Math.random()*3}s;filter:blur(8px);`; ov.appendChild(b) }
   const msg=document.createElement("div"); msg.id="auroraMessage"; msg.innerHTML=`<div style="font-size:42px;margin-bottom:16px;">✨</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:28px;letter-spacing:4px;margin-bottom:12px;color:#a0ffcc;text-shadow:0 0 20px #00ffaa;">AURORES BORÉALES</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#c0fff0;opacity:0.9;line-height:1.6;max-width:500px;text-align:center;">Les cieux s'embrasent de lumières mystiques...</div>`; msg.style.cssText="position:fixed;top:12%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:9999995;opacity:0;transition:opacity 2s ease;"; document.body.appendChild(msg)
   setTimeout(()=>{ ov.style.opacity="1"; msg.style.opacity="1" },100)
-  fadeMusicOut(()=>{ startAuroraMusic() })
+  startAuroraMusic()
+  fadeMusicOut(()=>{})
   window.__auroraMsgTimer = setTimeout(()=>{
     msg.style.opacity="0"
     window.__auroraRemoveMsgTimer = setTimeout(()=>msg.remove(),2000)
