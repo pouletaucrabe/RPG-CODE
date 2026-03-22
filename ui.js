@@ -111,6 +111,12 @@ function loadPlayerCombatStats() {
     const d = snap.val(); if (!d) return
     ;["force","charme","perspi","chance","defense","hp"].forEach(k => { const el = document.getElementById("combat_"+k); if (el) el.value = d[k] || 0 })
     updateCombatHPBar(d.hp || 0)
+    if (!isGM && (combatActive || gameState === "COMBAT") && (parseInt(d.hp, 10) || 0) <= 0 && !window.__combatOutcomeShowing) {
+      window.__pendingLocalDefeat = true
+      setTimeout(() => {
+        if (!window.__combatOutcomeShowing) showDefeat()
+      }, 50)
+    }
   })
 }
 

@@ -539,7 +539,6 @@ function showLocation(name) {
   const banner = document.getElementById("locationBanner")
   const paper  = document.getElementById("locationPaper")
   const text   = document.getElementById("locationText")
-  const sound  = document.getElementById("parcheminSound")
   if (!banner || !paper || !text) return
 
   banner.style.display = "flex"
@@ -554,7 +553,6 @@ function showLocation(name) {
   text.innerHTML = ""
 
   spawnParticles()
-  if (sound) { sound.currentTime = 0; sound.play().catch(() => {}) }
   setTimeout(() => paper.classList.add("open"), 200)
   setTimeout(() => { text.classList.add("show"); typeWriter(name, text, 70) }, 800)
   setTimeout(() => {

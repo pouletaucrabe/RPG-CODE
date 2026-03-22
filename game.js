@@ -31,6 +31,7 @@ window.activeRuneChallengeData = null
 window.mapLoreBookData = null
 window.readLoreBooksData = {}
 window.__openedMapLoreBookId = null
+window.__shopWasOpen = false
 
 const MAP_LORE_BOOK_MAPS = [
   "taverne.jpg",
@@ -1265,6 +1266,13 @@ db.ref("game/mapLoreBook").on("value", snap => {
 // ─── shop ───
 db.ref("game/shop").on("value", snap => {
   const data = snap.val()
+  const isOpen = !!(data && data.open)
+  if (window.__shopWasOpen !== isOpen) {
+    const snd = new Audio("audio/clic.mp3")
+    snd.volume = 0.8
+    snd.play().catch(() => {})
+    window.__shopWasOpen = isOpen
+  }
   const existing = document.getElementById("shopOverlay")
   if (existing) existing.remove()
   if (!data || !data.open) return
