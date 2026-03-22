@@ -1,7 +1,7 @@
-﻿"use strict"
+"use strict"
 
 /* ========================= */
-/* Ã‰TATS DU JEU              */
+/* ÉTATS DU JEU              */
 /* ========================= */
 
 const GAME_STATE = {
@@ -49,13 +49,13 @@ function getPlayerStatsAtLevel(playerId, level) {
     const g = _getLevelUpGains(lvl)
     stats[main] += g.main
     hp += g.hp
-    // Stats secondaires â€” rÃ©parties dÃ©terministement mais variÃ©es
+    // Stats secondaires — réparties déterministement mais variées
     const others = allStats.filter(s => s !== main)
     const chosen = []
     for (let i = 0; i < g.secCount; i++) {
       const seed = playerId.charCodeAt(0) + lvl * 7 + i * 31
       let idx = seed % others.length
-      // Ã‰viter de choisir deux fois la mÃªme stat au mÃªme niveau
+      // Éviter de choisir deux fois la même stat au même niveau
       while (chosen.includes(idx)) idx = (idx + 1) % others.length
       chosen.push(idx)
       stats[others[idx]] += g.secAmt
@@ -139,19 +139,19 @@ const mobStats = {
 
 const attacks = {
   greg: [
-    { name:"Chat Bite (CaC)",      type:"MÃªlÃ©e",    dice:12, stat:"Force",        effect:"Morsure brutale",                                             crit:"DÃ©gÃ¢ts x2" },
-    { name:"Le Bibi",              type:"SpÃ©cial",  dice:20, stat:"Chance",       effect:"Bibi attaque avec rage",                                      crit:"Bibi entre en rage, -2 HP mobs pendant 3 tours" },
-    { name:"I know Frank (si arc)",type:"Distance", dice:12, stat:"PerspicacitÃ©", effect:"Tir prÃ©cis arc",                                              crit:"DÃ©gÃ¢ts x2 et saignement, -1 HP pendant 2 tours" }
+    { name:"Chat Bite (CaC)",      type:"Mêlée",    dice:12, stat:"Force",        effect:"Morsure brutale",                                             crit:"Dégâts x2" },
+    { name:"Le Bibi",              type:"Spécial",  dice:20, stat:"Chance",       effect:"Bibi attaque avec rage",                                      crit:"Bibi entre en rage, -2 HP mobs pendant 3 tours" },
+    { name:"I know Frank (si arc)",type:"Distance", dice:12, stat:"Perspicacité", effect:"Tir précis arc",                                              crit:"Dégâts x2 et saignement, -1 HP pendant 2 tours" }
   ],
   ju: [
-    { name:"DÃ©pÃªche-toi !!!",  type:"Charme",  dice:12, stat:"PerspicacitÃ©", effect:"L'ennemi cible Ju. AlliÃ©s +1 dÃ©gats",                        crit:"Mobs n'attaquent pas au prochain tour" },
-    { name:"Spider Sense",     type:"Analyse", dice:10, stat:"PerspicacitÃ©", effect:"RÃ©vÃ¨le les faiblesses",                                      crit:"Augmente le loot de la victoire" },
-    { name:"Petite merde",     type:"Attaque", dice:12, stat:"Force",        effect:"Attaque humiliante. Si utilisÃ© aprÃ¨s Spider sense, dÃ©gÃ¢ts x2", crit:"l'ennemi est humiliÃ©, -1 attaque pendant 2 tours" }
+    { name:"Dépêche-toi !!!",  type:"Charme",  dice:12, stat:"Perspicacité", effect:"L'ennemi cible Ju. Alliés +1 dégats",                        crit:"Mobs n'attaquent pas au prochain tour" },
+    { name:"Spider Sense",     type:"Analyse", dice:10, stat:"Perspicacité", effect:"Révèle les faiblesses",                                      crit:"Augmente le loot de la victoire" },
+    { name:"Petite merde",     type:"Attaque", dice:12, stat:"Force",        effect:"Attaque humiliante. Si utilisé après Spider sense, dégâts x2", crit:"l'ennemi est humilié, -1 attaque pendant 2 tours" }
   ],
   elo: [
-    { name:"Mains magiques",                  type:"Soin",      dice:12, stat:"Defense", effect:"Restaure HP Ã  soi ou alliÃ©",                                                     crit:"Pv restaurÃ©s x2" },
-    { name:"Je vais te raconter une histoire",type:"Sort",      dice:12, stat:"Charme",  effect:"invoque les forces de la nature. DÃ©gats double en forÃªt ou mine",                crit:"L'ennemi est empoisonnÃ©, -2 hp pendant 2 tours" },
-    { name:"Je suis jet laguÃ©e",              type:"Invocation",dice:12, stat:"Chance",  effect:"Invoque un familier. D4 dÃ©gats cumulÃ©s, disparait aprÃ¨s 3 tours ou si mort",    crit:"Le familier devient fou, dÃ©gats x2 et attaque tous les mobs" }
+    { name:"Mains magiques",                  type:"Soin",      dice:12, stat:"Defense", effect:"Restaure HP à soi ou allié",                                                     crit:"Pv restaurés x2" },
+    { name:"Je vais te raconter une histoire",type:"Sort",      dice:12, stat:"Charme",  effect:"invoque les forces de la nature. Dégats double en forêt ou mine",                crit:"L'ennemi est empoisonné, -2 hp pendant 2 tours" },
+    { name:"Je suis jet laguée",              type:"Invocation",dice:12, stat:"Chance",  effect:"Invoque un familier. D4 dégats cumulés, disparait après 3 tours ou si mort",    crit:"Le familier devient fou, dégats x2 et attaque tous les mobs" }
   ]
 }
 
@@ -161,25 +161,21 @@ const attacks = {
 
 const mobAttacks = {
   weak: [
-    { name:"Attaque",             icon:"?",  dmgMin:5,  dmgMax:10, effect:null,    desc:"Frappe basique",                 hitDC:7 },
-    { name:"Embuscade sournoise", icon:"??", dmgMin:8,  dmgMax:15, effect:null,    desc:"Sp?ciale ? une fois par combat", hitDC:14, special:true }
+    { name:"Attaque",        icon:"⚔",  dmgMin:3,  dmgMax:8,  effect:null,    desc:"Frappe basique" }
   ],
   medium: [
-    { name:"Frappe",              icon:"?",  dmgMin:8,  dmgMax:16, effect:null,    desc:"Attaque normale",                hitDC:8 },
-    { name:"Assaut brutal",       icon:"??", dmgMin:12, dmgMax:22, effect:"stun",  desc:"?tourdit la cible",              hitDC:10 },
-    { name:"Perc?e meurtri?re",   icon:"??", dmgMin:16, dmgMax:28, effect:null,    desc:"Sp?ciale ? une fois par combat", hitDC:15, special:true }
+    { name:"Frappe",         icon:"⚔",  dmgMin:5,  dmgMax:12, effect:null,    desc:"Attaque normale" },
+    { name:"Assaut brutal",  icon:"💢", dmgMin:8,  dmgMax:18, effect:"stun",  desc:"Étourdit la cible" }
   ],
   high: [
-    { name:"Coup puissant",       icon:"?",  dmgMin:17, dmgMax:28, effect:null,    desc:"Frappe puissante",               hitDC:9 },
-    { name:"Attaque de zone",     icon:"??", dmgMin:10, dmgMax:18, effect:"all",   desc:"Touche tous les joueurs",        hitDC:11 },
-    { name:"Capacit? sp?ciale",   icon:"?", dmgMin:18, dmgMax:32, effect:"curse", desc:"+1 mal?diction",                 hitDC:12 },
-    { name:"Ex?cution funeste",   icon:"?", dmgMin:24, dmgMax:38, effect:null,    desc:"Sp?ciale ? une fois par combat", hitDC:16, special:true }
+    { name:"Coup puissant",    icon:"⚔",  dmgMin:10, dmgMax:20, effect:null,    desc:"Frappe puissante" },
+    { name:"Attaque de zone",  icon:"🌀", dmgMin:6,  dmgMax:12, effect:"all",   desc:"Touche tous les joueurs" },
+    { name:"Capacité spéciale",icon:"✨", dmgMin:12, dmgMax:25, effect:"curse", desc:"+1 malédiction" }
   ],
   boss: [
-    { name:"Frappe d?vastatrice", icon:"??", dmgMin:28, dmgMax:48, effect:null,     desc:"D?g?ts massifs",                  hitDC:10 },
-    { name:"Rugissement",         icon:"??", dmgMin:12, dmgMax:22, effect:"debuff", desc:"Force/D?fense -2 pendant 2 tours", hitDC:11 },
-    { name:"Pouvoir ultime",      icon:"?", dmgMin:34, dmgMax:58, effect:"all",    desc:"Frappe TOUS les joueurs",         hitDC:13 },
-    { name:"Cataclysme",          icon:"?", dmgMin:40, dmgMax:72, effect:null,     desc:"Sp?ciale ? une fois par combat", hitDC:17, special:true }
+    { name:"Frappe dévastatrice",icon:"💥", dmgMin:20, dmgMax:40, effect:null,    desc:"Dégâts massifs" },
+    { name:"Rugissement",        icon:"😤", dmgMin:8,  dmgMax:15, effect:"debuff",desc:"Force/Défense -2 pendant 2 tours" },
+    { name:"Pouvoir ultime",     icon:"⚡", dmgMin:25, dmgMax:50, effect:"all",   desc:"Frappe TOUS les joueurs" }
   ]
 }
 
@@ -243,17 +239,17 @@ const mapNames = {
   "village1.jpg":        "Village Rivebois",
   "armurerie.jpg":       "Forge de Rivebois",
   "voyante.jpg":         "Apothicaire",
-  "marche.jpg":          "Place du marchÃ©",
-  "foret.jpg":           "ForÃªt enchantÃ©e",
+  "marche.jpg":          "Place du marché",
+  "foret.jpg":           "Forêt enchantée",
   "arbre.jpg":           "Arbre Monde",
   "castleofevil.jpg":    "The Castle of Evil",
-  "cimetiere.jpg":       "CimetiÃ¨re ancien",
+  "cimetiere.jpg":       "Cimetière ancien",
   "mine.jpg":            "Mine du vent d'Est",
   "prebalraug.jpg":      "Salle principal",
-  "port.jpg":            "La CitÃ© du Nord Brume",
-  "portail.jpg":         "Portail de VÃ©ritÃ©",
+  "port.jpg":            "La Cité du Nord Brume",
+  "portail.jpg":         "Portail de Vérité",
   "trou.jpg":            "Passage de l'Antre monde",
-  "cristaux.jpg":        "Cristal de vÃ©ritÃ©",
+  "cristaux.jpg":        "Cristal de vérité",
   "tourbillon.jpg":      "Le Maelestrom",
   "interieurcastle.jpg": "Salle principale",
   "throne.jpg":          "Throne",
@@ -261,22 +257,22 @@ const mapNames = {
   "bifrost.jpg":         "Bifrost",
   "MAPMONDE.jpg":        "MAP MONDE",
   "chasseuraurore.jpg":  "Camp des Chasseurs d'Aurore",
-  "tenteaurore.jpg":     "Tente du GÃ©nÃ©ral MÃ©lenchon",
+  "tenteaurore.jpg":     "Tente du Général Mélenchon",
   "antre.jpg":           "L'Antre monde",
-  "egout.jpg":           "ðŸŒŠ Ã‰gout de Brume",
+  "egout.jpg":           "🌊 Égout de Brume",
   "bateau.jpg":           "Le for sure",
   "bateau1.jpg":         "L'Oregon III",
   "tavernebrume.png":    "Taverne de Brume",
   "armurerie1.jpg":      "Armurerie de Brume",
-  "balduregout.jpg":     "Salle secrÃ¨te de Baldur",
-  "marche1.jpg":         "Place du MarchÃ© de Brume",
-  "mairemaison.jpg":     "ðŸ› Mairie de Rivebois",
+  "balduregout.jpg":     "Salle secrète de Baldur",
+  "marche1.jpg":         "Place du Marché de Brume",
+  "mairemaison.jpg":     "🏛 Mairie de Rivebois",
   "epouventail.jpg":     "",
-  "asgard.jpg":          "âš¡ La citÃ© des dieux Asgard",
-  "rivebois.jpg":        "ðŸ˜ Rivebois",
-  "ruines.jpg":          "ðŸš Ruines du village du Jarl Baldur",
-  "niflheim.jpg":        "ðŸŒŠ CitÃ© engloutie Niflheim",
-  "hvergelmir.jpg":      "ðŸŒŠ Source sacrÃ©e Hvergelmir"
+  "asgard.jpg":          "⚡ La cité des dieux Asgard",
+  "rivebois.jpg":        "🏘 Rivebois",
+  "ruines.jpg":          "🏚 Ruines du village du Jarl Baldur",
+  "niflheim.jpg":        "🌊 Cité engloutie Niflheim",
+  "hvergelmir.jpg":      "🌊 Source sacrée Hvergelmir"
 }
 
 /* ========================= */
@@ -284,37 +280,37 @@ const mapNames = {
 /* ========================= */
 
 const shopItemsArmurerie = [
-  { id:"epee",         name:"Ã‰pÃ©e",             img:"epee.png",         category:"arme",   basePrix:60,  baseStats:"Force +2",        scaling:8  },
-  { id:"arc",          name:"Arc",              img:"arc.png",          category:"arme",   basePrix:70,  baseStats:"PrÃ©cision +2",    scaling:8  },
+  { id:"epee",         name:"Épée",             img:"epee.png",         category:"arme",   basePrix:60,  baseStats:"Force +2",        scaling:8  },
+  { id:"arc",          name:"Arc",              img:"arc.png",          category:"arme",   basePrix:70,  baseStats:"Précision +2",    scaling:8  },
   { id:"masse",        name:"Masse",            img:"masse.png",        category:"arme",   basePrix:65,  baseStats:"Force +3",        scaling:9  },
-  { id:"baton",        name:"BÃ¢ton",            img:"baton.png",        category:"arme",   basePrix:55,  baseStats:"Magie +2",        scaling:7  },
-  { id:"bouclier",     name:"Bouclier",         img:"bouclier.png",     category:"arme",   basePrix:70,  baseStats:"DÃ©fense +3",      scaling:8  },
-  { id:"fleches",      name:"FlÃ¨ches (x10)",    img:"fleche.png",       category:"arme",   basePrix:25,  baseStats:"Munitions",       scaling:3  },
-  { id:"armleg",       name:"Armure LÃ©gÃ¨re",    img:"armurelegere.png", category:"armure", basePrix:90,  baseStats:"DÃ©fense +2",      scaling:10 },
-  { id:"armlour",      name:"Armure Lourde",    img:"armurelourde.png", category:"armure", basePrix:150, baseStats:"DÃ©fense +5",      scaling:15 },
+  { id:"baton",        name:"Bâton",            img:"baton.png",        category:"arme",   basePrix:55,  baseStats:"Magie +2",        scaling:7  },
+  { id:"bouclier",     name:"Bouclier",         img:"bouclier.png",     category:"arme",   basePrix:70,  baseStats:"Défense +3",      scaling:8  },
+  { id:"fleches",      name:"Flèches (x10)",    img:"fleche.png",       category:"arme",   basePrix:25,  baseStats:"Munitions",       scaling:3  },
+  { id:"armleg",       name:"Armure Légère",    img:"armurelegere.png", category:"armure", basePrix:90,  baseStats:"Défense +2",      scaling:10 },
+  { id:"armlour",      name:"Armure Lourde",    img:"armurelourde.png", category:"armure", basePrix:150, baseStats:"Défense +5",      scaling:15 },
   { id:"anneauforce",  name:"Anneau de Force",  img:"anneau1.png",      category:"armure", basePrix:120, baseStats:"Force +2",        scaling:12 },
   { id:"anneaucharme", name:"Anneau de Charme", img:"anneau2.png",      category:"armure", basePrix:120, baseStats:"Charme +2",       scaling:12 },
-  { id:"anneauperspi", name:"Anneau de Perspic.",img:"anneau1.png",     category:"armure", basePrix:120, baseStats:"PerspicacitÃ© +2", scaling:12 },
+  { id:"anneauperspi", name:"Anneau de Perspic.",img:"anneau1.png",     category:"armure", basePrix:120, baseStats:"Perspicacité +2", scaling:12 },
   { id:"anneauchance", name:"Anneau de Chance", img:"anneau2.png",      category:"armure", basePrix:120, baseStats:"Chance +2",       scaling:12 },
-  { id:"anneaudef",    name:"Anneau de DÃ©fense",img:"anneau1.png",      category:"armure", basePrix:120, baseStats:"DÃ©fense +2",      scaling:12 }
+  { id:"anneaudef",    name:"Anneau de Défense",img:"anneau1.png",      category:"armure", basePrix:120, baseStats:"Défense +2",      scaling:12 }
 ]
 
 const shopItems = [
   { id:"sort",       name:"Parchemin Sort",  img:"sort.png",      category:"magie",   basePrix:100, baseStats:"Sort unique",  scaling:12 },
   { id:"anneaumagic",name:"Anneau Mystique", img:"anneau1.png",   category:"magie",   basePrix:130, baseStats:"Magie +3",     scaling:13 },
   { id:"potion",     name:"Potion de Vie",   img:"potionvie.png", category:"consomm", basePrix:50,  baseStats:"Vie +30",      scaling:5  },
-  { id:"potionres",  name:"Potion de RÃ©s.",  img:"potionres.png", category:"consomm", basePrix:300, baseStats:"RÃ©surrection", scaling:20 },
+  { id:"potionres",  name:"Potion de Rés.",  img:"potionres.png", category:"consomm", basePrix:300, baseStats:"Résurrection", scaling:20 },
   { id:"lanterne",   name:"Lanterne",        img:"lanterne.png",  category:"util",    basePrix:30,  baseStats:"Vision nuit",  scaling:2  },
-  { id:"torche",     name:"Torche",          img:"torche.png",    category:"util",    basePrix:15,  baseStats:"Ã‰clairage",    scaling:1  },
-  { id:"corde",      name:"Corde/Grappin",   img:"corde.png",     category:"util",    basePrix:25,  baseStats:"UtilitÃ©",      scaling:2  },
+  { id:"torche",     name:"Torche",          img:"torche.png",    category:"util",    basePrix:15,  baseStats:"Éclairage",    scaling:1  },
+  { id:"corde",      name:"Corde/Grappin",   img:"corde.png",     category:"util",    basePrix:25,  baseStats:"Utilité",      scaling:2  },
   { id:"selle",      name:"Selle de Bibi",   img:"bag.png",       category:"util",    basePrix:80,  baseStats:"Poids +",      scaling:5  },
   { id:"pioche",     name:"Pioche",          img:"pioche.png",    category:"util",    basePrix:40,  baseStats:"Minage",       scaling:3  },
-  { id:"amulette",   name:"Amulette SacrÃ©e", img:"anneau2.png",   category:"util",    basePrix:150, baseStats:"Curse -1",     scaling:10 },
+  { id:"amulette",   name:"Amulette Sacrée", img:"anneau2.png",   category:"util",    basePrix:150, baseStats:"Curse -1",     scaling:10 },
   { id:"pierresoin", name:"Pierre de Soin",  img:"sort.png",      category:"util",    basePrix:120, baseStats:"+5 HP/tour",   scaling:8  }
 ]
 
 const categoryLabels = {
-  arme:"âš” Armes", armure:"ðŸ›¡ Armures", magie:"âœ¨ Magie", consomm:"ðŸ§ª Consommables", util:"ðŸ”§ Utilitaires"
+  arme:"⚔ Armes", armure:"🛡 Armures", magie:"✨ Magie", consomm:"🧪 Consommables", util:"🔧 Utilitaires"
 }
 
 function getShopPrice(item, partyLvl) {
@@ -351,14 +347,14 @@ const WANTED_MOBS = [
 ]
 
 /* ========================= */
-/* MALÃ‰DICTION               */
+/* MALÉDICTION               */
 /* ========================= */
 
 const curseWheelChoices = [
-  { label:"-40% Vie",      icon:"ðŸ’€", color:"#8b0000", description:"Votre vie est rÃ©duite de 40%" },
-  { label:"Stat -4",       icon:"â¬‡",  color:"#4a0080", description:"Votre stat principale perd 4 points" },
-  { label:"Critiques Only",icon:"âš”",  color:"#800040", description:"Au prochain combat, seuls les critiques comptent" },
-  { label:"Perd un objet", icon:"ðŸŽ’", color:"#603000", description:"Vous perdez le dernier objet de votre inventaire" }
+  { label:"-40% Vie",      icon:"💀", color:"#8b0000", description:"Votre vie est réduite de 40%" },
+  { label:"Stat -4",       icon:"⬇",  color:"#4a0080", description:"Votre stat principale perd 4 points" },
+  { label:"Critiques Only",icon:"⚔",  color:"#800040", description:"Au prochain combat, seuls les critiques comptent" },
+  { label:"Perd un objet", icon:"🎒", color:"#603000", description:"Vous perdez le dernier objet de votre inventaire" }
 ]
 
 /* ========================= */
@@ -366,27 +362,27 @@ const curseWheelChoices = [
 /* ========================= */
 
 const runeAlphabet = {
-  "A":"áš¨","B":"á›’","C":"áš²","D":"á›ž","E":"á›–","F":"áš ","G":"áš·","H":"ášº",
-  "I":"á›","J":"á›ƒ","K":"áš²","L":"á›š","M":"á›—","N":"áš¾","O":"á›Ÿ","P":"á›ˆ",
-  "Q":"áš²","R":"áš±","S":"á›Š","T":"á›","U":"áš¢","V":"áš¢","W":"áš¹","X":"á›‰",
-  "Y":"á›ƒ","Z":"á›‰",
-  "a":"áš¨","b":"á›’","c":"áš²","d":"á›ž","e":"á›–","f":"áš ","g":"áš·","h":"ášº",
-  "i":"á›","j":"á›ƒ","k":"áš²","l":"á›š","m":"á›—","n":"áš¾","o":"á›Ÿ","p":"á›ˆ",
-  "q":"áš²","r":"áš±","s":"á›Š","t":"á›","u":"áš¢","v":"áš¢","w":"áš¹","x":"á›‰",
-  "y":"á›ƒ","z":"á›‰",
-  "Ã©":"á›–","Ã¨":"á›–","Ãª":"á›–","Ã ":"áš¨","Ã¢":"áš¨","Ã´":"á›Ÿ","Ã®":"á›","Ã»":"áš¢","Ã§":"áš²",
-  "Ã‰":"á›–","Ãˆ":"á›–","Ã€":"áš¨"
+  "A":"ᚨ","B":"ᛒ","C":"ᚲ","D":"ᛞ","E":"ᛖ","F":"ᚠ","G":"ᚷ","H":"ᚺ",
+  "I":"ᛁ","J":"ᛃ","K":"ᚲ","L":"ᛚ","M":"ᛗ","N":"ᚾ","O":"ᛟ","P":"ᛈ",
+  "Q":"ᚲ","R":"ᚱ","S":"ᛊ","T":"ᛏ","U":"ᚢ","V":"ᚢ","W":"ᚹ","X":"ᛉ",
+  "Y":"ᛃ","Z":"ᛉ",
+  "a":"ᚨ","b":"ᛒ","c":"ᚲ","d":"ᛞ","e":"ᛖ","f":"ᚠ","g":"ᚷ","h":"ᚺ",
+  "i":"ᛁ","j":"ᛃ","k":"ᚲ","l":"ᛚ","m":"ᛗ","n":"ᚾ","o":"ᛟ","p":"ᛈ",
+  "q":"ᚲ","r":"ᚱ","s":"ᛊ","t":"ᛏ","u":"ᚢ","v":"ᚢ","w":"ᚹ","x":"ᛉ",
+  "y":"ᛃ","z":"ᛉ",
+  "é":"ᛖ","è":"ᛖ","ê":"ᛖ","à":"ᚨ","â":"ᚨ","ô":"ᛟ","î":"ᛁ","û":"ᚢ","ç":"ᚲ",
+  "É":"ᛖ","È":"ᛖ","À":"ᚨ"
 }
 
 const runeHints = [
-  { id:"hint1", runes:"áš¨=A  á›š=L  á›–=E  áš¢=U", desc:"Fragment I"    },
-  { id:"hint2", runes:"á›=I  á›–=E  áš±=R  á›Š=S", desc:"Fragment II"   },
-  { id:"hint3", runes:"á›ž=D  á›–=E  áš¨=A  á›Ÿ=O", desc:"Fragment III"  },
-  { id:"hint4", runes:"á›’=B  áš±=R  áš¨=A  áš¢=V", desc:"Fragment IV"   },
-  { id:"hint5", runes:"á›=T  áš±=R  á›=I  áš¾=N", desc:"Fragment V"    },
-  { id:"hint6", runes:"á›Ÿ=O  á›ž=D  á›=I  áš¾=N", desc:"Fragment VI"   },
-  { id:"hint7", runes:"áš¹=W  á›Š=S  á›Ÿ=O  á›—=M", desc:"Fragment VII"  },
-  { id:"hint8", runes:"áš·=G  áš¨=A  á›ˆ=P",       desc:"Fragment VIII" }
+  { id:"hint1", runes:"ᚨ=A  ᛚ=L  ᛖ=E  ᚢ=U", desc:"Fragment I"    },
+  { id:"hint2", runes:"ᛁ=I  ᛖ=E  ᚱ=R  ᛊ=S", desc:"Fragment II"   },
+  { id:"hint3", runes:"ᛞ=D  ᛖ=E  ᚨ=A  ᛟ=O", desc:"Fragment III"  },
+  { id:"hint4", runes:"ᛒ=B  ᚱ=R  ᚨ=A  ᚢ=V", desc:"Fragment IV"   },
+  { id:"hint5", runes:"ᛏ=T  ᚱ=R  ᛁ=I  ᚾ=N", desc:"Fragment V"    },
+  { id:"hint6", runes:"ᛟ=O  ᛞ=D  ᛁ=I  ᚾ=N", desc:"Fragment VI"   },
+  { id:"hint7", runes:"ᚹ=W  ᛊ=S  ᛟ=O  ᛗ=M", desc:"Fragment VII"  },
+  { id:"hint8", runes:"ᚷ=G  ᚨ=A  ᛈ=P",       desc:"Fragment VIII" }
 ]
 
 const secretMessage = "A la lueur des aurores, les braves trinquent avec Odin au sommet de l'Arbre."
@@ -408,35 +404,35 @@ const playerPowerSounds = {
 /* ========================= */
 
 const ODIN_VISIONS = [
-  "Odin vous voit. Son Å“il unique suit votre route depuis Asgard.",
-  "Le PÃ¨re de Tous vous accorde son soutien. Portez-le dignement.",
-  "Vos noms sont gravÃ©s dans le bois d'Yggdrasil.",
-  "Les corbeaux ont rapportÃ© vos actes. Odin est satisfait.",
+  "Odin vous voit. Son œil unique suit votre route depuis Asgard.",
+  "Le Père de Tous vous accorde son soutien. Portez-le dignement.",
+  "Vos noms sont gravés dans le bois d'Yggdrasil.",
+  "Les corbeaux ont rapporté vos actes. Odin est satisfait.",
   "La sagesse d'Odin guide vos pas. Ne faiblissez pas.",
-  "Le Tout-Puissant a entendu vos priÃ¨res. Il rÃ©pond.",
-  "Odin lÃ¨ve son sceptre en votre honneur. Valhalla vous observe.",
+  "Le Tout-Puissant a entendu vos prières. Il répond.",
+  "Odin lève son sceptre en votre honneur. Valhalla vous observe.",
   "Le dieu borgne sourit. Votre chemin est juste.",
   "Munin se souvient de vous. Huginn vous accompagne.",
-  "Par la volontÃ© d'Odin, les runes vous livrent leurs secrets."
+  "Par la volonté d'Odin, les runes vous livrent leurs secrets."
 ]
 
 /* ========================= */
-/* Ã‰VÃ‰NEMENT RUNE PNJ        */
+/* ÉVÉNEMENT RUNE PNJ        */
 /* ========================= */
 
 const runeEventDialogues = [
-  "Ho, tant que j'y pense... j'ai trouvÃ© Ã§a, peut-Ãªtre que Ã§a peut vous Ãªtre utile.",
+  "Ho, tant que j'y pense... j'ai trouvé ça, peut-être que ça peut vous être utile.",
   "Curieux... j'ai entendu dire que les anciens utilisaient ce symbole.",
-  "Psst ! Gardez Ã§a pour vous, mais j'ai vu cette marque gravÃ©e sur un vieux mur.",
-  "Je ne sais pas si Ã§a vaut quelque chose, mais tenez... j'ai trouvÃ© Ã§a ce matin.",
-  "Les bardes chantent parfois ce signe... peut-Ãªtre que Ã§a vous dira quelque chose ?",
-  "Mon grand-pÃ¨re m'avait montrÃ© Ã§a. Je ne l'ai jamais compris, mais vous peut-Ãªtre ?",
-  "Ã‰trange coÃ¯ncidence que vous soyez lÃ ... j'ai quelque chose pour vous.",
-  "Je ne suis pas sÃ»r de ce que Ã§a signifie, mais Ã§a semblait important."
+  "Psst ! Gardez ça pour vous, mais j'ai vu cette marque gravée sur un vieux mur.",
+  "Je ne sais pas si ça vaut quelque chose, mais tenez... j'ai trouvé ça ce matin.",
+  "Les bardes chantent parfois ce signe... peut-être que ça vous dira quelque chose ?",
+  "Mon grand-père m'avait montré ça. Je ne l'ai jamais compris, mais vous peut-être ?",
+  "Étrange coïncidence que vous soyez là... j'ai quelque chose pour vous.",
+  "Je ne suis pas sûr de ce que ça signifie, mais ça semblait important."
 ]
 
 /* ========================= */
-/* SORT CIMETIÃˆRE            */
+/* SORT CIMETIÈRE            */
 /* ========================= */
 
 const SPELL_PLAYERS   = ["greg","ju","elo"]
@@ -453,13 +449,13 @@ const MOB_SLOTS = ["mob","mob2","mob3"]
 /* ========================= */
 
 const dialogue = [
-  { portrait:"tavernier.png", text:"RÃ©veillez-vous Ã©trangers !" },
-  { portrait:"tavernier.png", text:"Vous Ãªtes restÃ©s inconscients toute la nuit..." },
-  { portrait:"serveuse.png",  text:"Bienvenue Ã  Rivebois." }
+  { portrait:"tavernier.png", text:"Réveillez-vous étrangers !" },
+  { portrait:"tavernier.png", text:"Vous êtes restés inconscients toute la nuit..." },
+  { portrait:"serveuse.png",  text:"Bienvenue à Rivebois." }
 ]
 
 /* ========================= */
-/* PNJ ALLIÃ‰S EN COMBAT      */
+/* PNJ ALLIÉS EN COMBAT      */
 /* ========================= */
 
 const ALLY_PNJS = [
@@ -467,16 +463,16 @@ const ALLY_PNJS = [
     id:      "odin",
     name:    "Odin",
     image:   "odin.png",
-    role:    "PÃ¨re de tous les dieux",
+    role:    "Père de tous les dieux",
     color:   "#8866ff",
-    lore:    "Le Tout-PÃ¨re voit tout, sait tout. Sa lance Gungnir ne manque jamais sa cible.",
+    lore:    "Le Tout-Père voit tout, sait tout. Sa lance Gungnir ne manque jamais sa cible.",
     actions: [
       {
         id:       "odin_gungnir",
         label:    "Lancer de Gungnir",
         type:     "damage",
-        icon:     "âš¡",
-        desc:     "Odin jette sa lance sacrÃ©e. D20 Ã— 25 dÃ©gÃ¢ts. Critique 18-20 : dÃ©gÃ¢ts Ã— 4.",
+        icon:     "⚡",
+        desc:     "Odin jette sa lance sacrée. D20 × 25 dégâts. Critique 18-20 : dégâts × 4.",
         dice:     20,
         dmgBase:  200,
         dmgBonus: 25,
@@ -488,8 +484,8 @@ const ALLY_PNJS = [
         id:       "odin_ravens",
         label:    "Vision des corbeaux",
         type:     "malus",
-        icon:     "ðŸ¦…",
-        desc:     "Huginn et Muninn rÃ©vÃ¨lent les failles. D20 : sur 10+, le mob subit -15 Ã  toutes ses actions.",
+        icon:     "🦅",
+        desc:     "Huginn et Muninn révèlent les failles. D20 : sur 10+, le mob subit -15 à toutes ses actions.",
         dice:     20,
         threshold: 10,
         dialogue: "Mes corbeaux ont tout vu.",
@@ -508,8 +504,8 @@ const ALLY_PNJS = [
         id:       "thor_mjolnir",
         label:    "Mjolnir",
         type:     "damage",
-        icon:     "ðŸ”¨",
-        desc:     "Thor abat Mjolnir. D20 Ã— 30 dÃ©gÃ¢ts. Sur 15+ : frappe tous les mobs en mÃªme temps.",
+        icon:     "🔨",
+        desc:     "Thor abat Mjolnir. D20 × 30 dégâts. Sur 15+ : frappe tous les mobs en même temps.",
         dice:     20,
         dmgBase:  250,
         dmgBonus: 30,
@@ -522,26 +518,26 @@ const ALLY_PNJS = [
     id:      "freya",
     name:    "Freya",
     image:   "freya.png",
-    role:    "DÃ©esse de l'amour et de la guerre",
+    role:    "Déesse de l'amour et de la guerre",
     color:   "#ff88cc",
-    lore:    "MaÃ®tresse de la seiÃ°r, elle choisit la moitiÃ© des guerriers tombÃ©s.",
+    lore:    "Maîtresse de la seiðr, elle choisit la moitié des guerriers tombés.",
     actions: [
       {
         id:       "freya_valkyrie",
-        label:    "GrÃ¢ce des Valkyries",
+        label:    "Grâce des Valkyries",
         type:     "heal",
-        icon:     "âœ¦",
-        desc:     "Freya bÃ©nit un hÃ©ros. D20 Ã— 20 HP restaurÃ©s. Critique 20 : rÃ©surrection complÃ¨te.",
+        icon:     "✦",
+        desc:     "Freya bénit un héros. D20 × 20 HP restaurés. Critique 20 : résurrection complète.",
         dice:     20,
         healMult: 20,
         dialogue: "Les Valkyries veillent sur vous.",
       },
       {
         id:       "freya_seidr",
-        label:    "SeiÃ°r de guerre",
+        label:    "Seiðr de guerre",
         type:     "damage",
-        icon:     "ðŸŒ™",
-        desc:     "Freya tisse un sort dÃ©vastateur. D20 Ã— 20 dÃ©gÃ¢ts. Sur 1 : retour de flamme.",
+        icon:     "🌙",
+        desc:     "Freya tisse un sort dévastateur. D20 × 20 dégâts. Sur 1 : retour de flamme.",
         dice:     20,
         dmgBase:  180,
         dmgBonus: 20,
@@ -551,28 +547,28 @@ const ALLY_PNJS = [
   },
   {
     id:      "witch",
-    name:    "La SorciÃ¨re",
+    name:    "La Sorcière",
     image:   "witch.png",
-    role:    "Gardienne des secrets oubliÃ©s",
+    role:    "Gardienne des secrets oubliés",
     color:   "#44ffaa",
-    lore:    "Nul ne connaÃ®t son vrai nom. Elle existe depuis avant les dieux.",
+    lore:    "Nul ne connaît son vrai nom. Elle existe depuis avant les dieux.",
     actions: [
       {
         id:       "witch_hex",
-        label:    "MalÃ©diction ancienne",
+        label:    "Malédiction ancienne",
         type:     "malus",
-        icon:     "ðŸŒ‘",
-        desc:     "Elle maudit l'ennemi en son cÅ“ur. D20 : sur 10+, le mob perd tout avantage ce combat.",
+        icon:     "🌑",
+        desc:     "Elle maudit l'ennemi en son cœur. D20 : sur 10+, le mob perd tout avantage ce combat.",
         dice:     20,
         threshold: 10,
-        dialogue: "Tu portes dÃ©sormais mon sceau.",
+        dialogue: "Tu portes désormais mon sceau.",
       },
       {
         id:       "witch_elixir",
-        label:    "Ã‰lixir de puissance",
+        label:    "Élixir de puissance",
         type:     "buff",
-        icon:     "âš—",
-        desc:     "Elle tend un Ã©lixir Ã  un hÃ©ros. D20 Ã— 10 ajoutÃ©s Ã  sa stat principale.",
+        icon:     "⚗",
+        desc:     "Elle tend un élixir à un héros. D20 × 10 ajoutés à sa stat principale.",
         dice:     20,
         buffMult: 10,
         dialogue: "Buvez. Ne posez pas de questions.",
@@ -580,4 +576,3 @@ const ALLY_PNJS = [
     ]
   }
 ]
-

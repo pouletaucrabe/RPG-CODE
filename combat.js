@@ -1,10 +1,10 @@
-﻿"use strict"
+"use strict"
 
 window.__combatOutcomeShowing = false
 window.__pendingLocalDefeat = false
 
 /* ========================= */
-/* DÃ‰MARRAGE COMBAT          */
+/* DÉMARRAGE COMBAT          */
 /* ========================= */
 
 function _getCombatArenaMap(mob, tier) {
@@ -31,12 +31,12 @@ function startCombat(mob, forceTier) {
   if (combatStarting || !isGM) return
   // Balraug uniquement sur sa map
   if (mob === "balraug" && currentMap !== "balraug.jpg") {
-    showNotification("âš  Balraug ne peut Ãªtre invoquÃ© que dans sa map !")
+    showNotification("⚠ Balraug ne peut être invoqué que dans sa map !")
     return
   }
   // Kraken uniquement sur le Maelstrom
   if (mob === "kraken" && currentMap !== "tourbillon.jpg") {
-    showNotification("âš  Le Kraken ne peut Ãªtre invoquÃ© que sur le Maelstrom !")
+    showNotification("⚠ Le Kraken ne peut être invoqué que sur le Maelstrom !")
     return
   }
   combatActive = false
@@ -50,7 +50,7 @@ function showMobSelectionMenu(mainMob, forceTier) {
   if (!menu) return
   ;["mobSlot2Select","mobSlot3Select"].forEach(id => {
     const el = document.getElementById(id)
-    if (el) { el.innerText = "â€” Aucun â€”"; el.dataset.value = "" }
+    if (el) { el.innerText = "— Aucun —"; el.dataset.value = "" }
   })
   ;["mobDropdown_slot2","mobDropdown_slot3"].forEach(id => {
     const dd = document.getElementById(id)
@@ -82,7 +82,6 @@ function launchFromMobMenu() {
 function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
   if (combatActive || combatStarting) return
   combatStarting = true; combatActive = true
-  window.__mobSpecialUsed = {}
   setGameState("COMBAT"); currentMob = mainMob
   document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" })
   document.getElementById("mobD12").style.display = "inline-block"
@@ -97,7 +96,7 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
     const tierLvlOff = { weak:-1,   medium:1,   high:3,    boss:8    }
     const mult = tierMults[tier]  || 1.0
     const sc   = tierScales[tier] || 0.12
-    // AprÃ¨s lvl 10 : rÃ©duire l'Ã©cart pour les world boss
+    // Après lvl 10 : réduire l'écart pour les world boss
     const effLevel = (tier === "boss" && level > 10) ? 10 + (level - 10) * 0.65 : level
     const hp   = Math.round(base * mult * Math.pow(1 + effLevel * sc, 1.6))
     const lvl  = Math.max(1, level + (tierLvlOff[tier] || 0))
@@ -128,7 +127,7 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
 }
 
 /* ========================= */
-/* SÃ‰QUENCE COMBAT           */
+/* SÉQUENCE COMBAT           */
 /* ========================= */
 
 function combatSequence(mob, forceTier) {
@@ -314,7 +313,7 @@ function showMobIntro(mob) {
 }
 
 /* ========================= */
-/* ARÃˆNE                     */
+/* ARÈNE                     */
 /* ========================= */
 
 function fadeToCombat() {
@@ -378,7 +377,7 @@ function spawnMobToken(mob) {
 }
 
 /* ========================= */
-/* VICTOIRE / DÃ‰FAITE        */
+/* VICTOIRE / DÉFAITE        */
 /* ========================= */
 
 function showVictory() {
@@ -490,7 +489,6 @@ function endCombat() {
     db.ref("game/playerAllyAccess").remove()
     _syncCombatEnd()
   }
-  window.__mobSpecialUsed = {}
   setTimeout(() => { if (typeof updateThuumButton === "function") updateThuumButton() }, 80)
 }
 
@@ -523,7 +521,7 @@ function returnToMap() {
 
     setTimeout(() => {
       fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = "0"; fade.style.pointerEvents = "none"
-      // Balraug â€” musique dÃ©jÃ  en cours, ne pas relancer
+      // Balraug — musique déjà en cours, ne pas relancer
       if (currentMap && mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap])
       if (typeof updateThuumButton === "function") updateThuumButton()
     }, 300)
@@ -570,7 +568,7 @@ function stopBossFireEffect() {
 }
 
 /* ========================= */
-/* CINÃ‰MATIQUE INTRO         */
+/* CINÉMATIQUE INTRO         */
 /* ========================= */
 
 function playOpeningCinematic(callback) {
@@ -626,14 +624,14 @@ function playOpeningCinematic(callback) {
     }, 100)
   }, 6000)
 
-  setTimeout(() => showCinText("â€¦ alors, dans le lointain,\non entendra la frÃ©quence sacrÃ©e.", 4000), 11000)
-  setTimeout(() => showCinText("â€¦ et les hÃ©ros viendraient offrir\nune nouvelle Ã¨re de paix.", 4000), 16000)
+  setTimeout(() => showCinText("… alors, dans le lointain,\non entendra la fréquence sacrée.", 4000), 11000)
+  setTimeout(() => showCinText("… et les héros viendraient offrir\nune nouvelle ère de paix.", 4000), 16000)
   setTimeout(() => {
     const old = screen.querySelector(".cinText"); if (old) { old.style.opacity = "0"; setTimeout(() => { if (old.parentNode) old.remove() }, 1000) }
     const wrapper = document.createElement("div"); wrapper.className = "cinText"
     wrapper.style.cssText = "display:flex;flex-direction:column;align-items:center;max-width:680px;padding:0 50px;opacity:0;transition:opacity 1.5s ease;"
-    const t = document.createElement("div"); t.style.cssText = "font-family:'Cinzel Decorative','Cinzel',serif;font-size:18px;letter-spacing:5px;color:#c8a050;text-shadow:0 0 15px gold;text-align:center;margin-bottom:14px;"; t.innerText = "ProphÃ©tie des Enfants de Mouches"; wrapper.appendChild(t)
-    const v = document.createElement("div"); v.style.cssText = "font-family:'IM Fell English',serif;font-size:15px;color:rgba(200,160,50,0.8);line-height:2;text-align:center;font-style:italic;"; v.innerText = "â€” Livre I, Verset 1 â€”"; wrapper.appendChild(v)
+    const t = document.createElement("div"); t.style.cssText = "font-family:'Cinzel Decorative','Cinzel',serif;font-size:18px;letter-spacing:5px;color:#c8a050;text-shadow:0 0 15px gold;text-align:center;margin-bottom:14px;"; t.innerText = "Prophétie des Enfants de Mouches"; wrapper.appendChild(t)
+    const v = document.createElement("div"); v.style.cssText = "font-family:'IM Fell English',serif;font-size:15px;color:rgba(200,160,50,0.8);line-height:2;text-align:center;font-style:italic;"; v.innerText = "— Livre I, Verset 1 —"; wrapper.appendChild(v)
     screen.appendChild(wrapper); setTimeout(() => { wrapper.style.opacity = "1" }, 50)
     const prop = new Audio("audio/prophetie.mp3"); prop.volume = 0; prop.play().catch(() => {})
     let pIv = setInterval(() => { if (prop.volume<0.8) prop.volume=Math.min(0.8,prop.volume+0.04); else clearInterval(pIv) }, 100)
@@ -646,7 +644,7 @@ function playOpeningCinematic(callback) {
 }
 
 /* ========================= */
-/* DROP MOB DIFFICULTÃ‰       */
+/* DROP MOB DIFFICULTÉ       */
 /* ========================= */
 
 function openMobDiff(mobId, event) {
@@ -698,7 +696,7 @@ function toggleMobDropdown(slot, triggerEl) {
   if (dd.style.display !== "none") { dd.style.display = "none"; return }
   if (!dd.dataset.built) {
     dd.dataset.built = "1"
-    const none = document.createElement("div"); none.style.cssText = "padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,100,100);cursor:pointer;"; none.innerText = "â€” Aucun â€”"; none.onmousedown = e => { e.stopPropagation(); selectMobOption(slot, "", "â€” Aucun â€”") }; dd.appendChild(none)
+    const none = document.createElement("div"); none.style.cssText = "padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,100,100);cursor:pointer;"; none.innerText = "— Aucun —"; none.onmousedown = e => { e.stopPropagation(); selectMobOption(slot, "", "— Aucun —") }; dd.appendChild(none)
     MOB_SELECT_LIST.forEach(m => {
       const item = document.createElement("div"); item.style.cssText = "padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,180,180);cursor:pointer;"; item.innerText = m.charAt(0).toUpperCase() + m.slice(1)
       item.onmousedown = e => { e.stopPropagation(); selectMobOption(slot, m, item.innerText) }; item.onmouseenter = () => item.style.background = "rgb(60,10,10)"; item.onmouseleave = () => item.style.background = ""; dd.appendChild(item)
@@ -851,6 +849,3 @@ function _resolveRemoteCombatEnd(attempt = 0) {
       if (!isGM) _startRemoteCombat(data)
   })
 })
-
-
-
