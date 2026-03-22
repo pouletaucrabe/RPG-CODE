@@ -24,9 +24,9 @@
 
   <div id="intro">
     <div id="gameTitle"></div>
-    <div id="introBox" style="background:url('images/menu%20intro.png') center/contain no-repeat;">
+    <div id="introBox">
       <button id="startButton" onclick="startGame()"><span class="btn-inner">CONTINUER</span></button>
-      <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div class="intro-actions">
         <button class="menuButton" onclick="newGame()"><span class="btn-inner">NOUVELLE PARTIE</span></button>
         <button class="menuButton" onclick="loadGame()"><span class="btn-inner">CHARGER PARTIE</span></button>
       </div>
@@ -471,47 +471,47 @@
     <button class="pnjTab" onclick="openPNJTab('elemWanted', this)">🎯</button>
   </div>
   <div id="elemIndices" class="pnjTabContent active">
-    <div style="font-family:Cinzel;font-size:10px;color:#8a6830;text-align:center;margin-bottom:8px;letter-spacing:2px;">🍃 DOCUMENTS</div>
-    <button onclick="showDocument('note baldur.png','Note de Baldur')"   style="width:100%;text-align:left;background:rgba(60,40,10,0.4);color:#f0d890;border:1px solid rgba(160,120,40,0.4);padding:7px 10px;border-radius:3px;font-family:Cinzel;font-size:11px;cursor:pointer;margin-bottom:4px;">📜 Note de Baldur</button>
-    <button onclick="showDocument('note foret.png','Note de la Forêt')"  style="width:100%;text-align:left;background:rgba(60,40,10,0.4);color:#f0d890;border:1px solid rgba(160,120,40,0.4);padding:7px 10px;border-radius:3px;font-family:Cinzel;font-size:11px;cursor:pointer;margin-bottom:4px;">📜 Note de la Forêt</button>
-    <button onclick="showDocument('fresque.jpg','Fresque Maelstrom')"    style="width:100%;text-align:left;background:rgba(60,40,10,0.4);color:#f0d890;border:1px solid rgba(160,120,40,0.4);padding:7px 10px;border-radius:3px;font-family:Cinzel;font-size:11px;cursor:pointer;margin-bottom:4px;">🖼 Fresque Maelstrom</button>
-    <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:6px;">
-      <button onclick="clearAllElements()" style="width:100%;background:rgba(180,40,40,0.4);color:#ffaaaa;border:1px solid rgba(200,60,60,0.5);padding:6px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">🗑 Tout effacer</button>
+    <div class="elem-title">🍃 DOCUMENTS</div>
+    <button onclick="showDocument('note baldur.png','Note de Baldur')" class="elem-doc-btn">📜 Note de Baldur</button>
+    <button onclick="showDocument('note foret.png','Note de la Forêt')" class="elem-doc-btn">📜 Note de la Forêt</button>
+    <button onclick="showDocument('fresque.jpg','Fresque Maelstrom')" class="elem-doc-btn">🖼 Fresque Maelstrom</button>
+    <div class="panel-divider-tight">
+      <button onclick="clearAllElements()" class="elem-clear-btn">🗑 Tout effacer</button>
     </div>
   </div>
   <div id="elemObjets" class="pnjTabContent">
-    <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:8px;">
-      <button onclick="openShop('armurerie')" style="width:100%;background:rgba(100,60,20,0.5);color:#ffddaa;border:1px solid rgba(160,100,40,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;margin-bottom:4px;">⚔ Armurerie</button>
-      <button onclick="openShop('marche')"   style="width:100%;background:rgba(40,100,40,0.5);color:#aaffaa;border:1px solid rgba(60,160,60,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">🛒 Marché</button>
+    <div class="panel-divider">
+      <button onclick="openShop('armurerie')" class="elem-full-btn elem-shop-armurerie">⚔ Armurerie</button>
+      <button onclick="openShop('marche')" class="elem-full-btn elem-shop-marche">🛒 Marché</button>
     </div>
   </div>
   <div id="elemEffets" class="pnjTabContent">
-    <div style="margin-top:8px;border-top:1px solid rgba(200,160,80,0.2);padding-top:8px;display:flex;flex-direction:column;gap:4px;">
-      <button onclick="triggerAurora()" style="width:100%;background:rgba(0,180,120,0.15);color:#a0ffcc;border:1px solid rgba(0,200,150,0.4);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">🌌 Déclencher Aurore</button>
-      <button onclick="cemeteryEventDone=false;triggerCemeteryEvent()" style="width:100%;background:rgba(80,0,120,0.3);color:#cc88ff;border:1px solid rgba(120,0,180,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;">⚡ Sort Cimetière</button>
+    <div class="panel-divider elem-stack">
+      <button onclick="triggerAurora()" class="elem-full-btn elem-effect-aurora">🌌 Déclencher Aurore</button>
+      <button onclick="cemeteryEventDone=false;triggerCemeteryEvent()" class="elem-full-btn elem-effect-cemetery">⚡ Sort Cimetière</button>
     </div>
   </div>
   <div id="elemCartes" class="pnjTabContent">
-    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(200,160,80,0.2);">
-      <div style="font-family:Cinzel,serif;font-size:10px;color:#d6b77a;text-align:center;letter-spacing:2px;margin-bottom:6px;">CRI DE MOUCHES - SKRAA</div>
-      <button onclick="grantThuumToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a GREG</button>
-      <button onclick="grantThuumToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a JU</button>
-      <button onclick="grantThuumToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a ELO</button>
-      <button onclick="grantThuumToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(80,50,10,0.45);color:#f5d69a;border:1px solid rgba(180,130,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Donner SKRAA a BIBI</button>
-      <div style="height:8px;"></div>
-      <button onclick="grantThuumUseToPlayer('greg','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a GREG</button>
-      <button onclick="grantThuumUseToPlayer('ju','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a JU</button>
-      <button onclick="grantThuumUseToPlayer('elo','SKRAA')" style="width:100%;margin-bottom:4px;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a ELO</button>
-      <button onclick="grantThuumUseToPlayer('bibi','SKRAA')" style="width:100%;background:rgba(40,70,20,0.45);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);padding:7px;border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Autoriser SKRAA hors combat a BIBI</button>
+    <div class="panel-divider">
+      <div class="elem-title-gold">CRI DE MOUCHES - SKRAA</div>
+      <button onclick="grantThuumToPlayer('greg','SKRAA')" class="thuum-grant-btn">Donner SKRAA a GREG</button>
+      <button onclick="grantThuumToPlayer('ju','SKRAA')" class="thuum-grant-btn">Donner SKRAA a JU</button>
+      <button onclick="grantThuumToPlayer('elo','SKRAA')" class="thuum-grant-btn">Donner SKRAA a ELO</button>
+      <button onclick="grantThuumToPlayer('bibi','SKRAA')" class="thuum-grant-btn last">Donner SKRAA a BIBI</button>
+      <div class="spacer-8"></div>
+      <button onclick="grantThuumUseToPlayer('greg','SKRAA')" class="thuum-use-btn">Autoriser SKRAA hors combat a GREG</button>
+      <button onclick="grantThuumUseToPlayer('ju','SKRAA')" class="thuum-use-btn">Autoriser SKRAA hors combat a JU</button>
+      <button onclick="grantThuumUseToPlayer('elo','SKRAA')" class="thuum-use-btn">Autoriser SKRAA hors combat a ELO</button>
+      <button onclick="grantThuumUseToPlayer('bibi','SKRAA')" class="thuum-use-btn last">Autoriser SKRAA hors combat a BIBI</button>
     </div>
   </div>
   <div id="elemJeu" class="pnjTabContent">
-    <div style="font-family:Cinzel;font-size:11px;color:#8a6830;text-align:center;margin-bottom:8px;letter-spacing:2px;">⚔ DÉFI RUNIQUE ⚔</div>
-    <button id="runeLaunchBtn"   onclick="openRuneChallenge()" style="width:100%;background:rgba(200,160,50,0.2);color:#c8a050;border:1px solid rgba(200,160,50,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;letter-spacing:1px;margin-bottom:4px;">ᚱ Lancer le Défi</button>
-    <button id="runeContinueBtn" onclick="db.ref('game/runeChallenge').once('value',s=>renderRuneChallenge(s.val()))" style="display:none;width:100%;background:rgba(50,150,50,0.2);color:#aaffaa;border:1px solid rgba(50,150,50,0.5);padding:8px;border-radius:4px;font-family:Cinzel;font-size:12px;cursor:pointer;margin-bottom:4px;">▶ Continuer le Défi</button>
-    <div style="font-family:Cinzel;font-size:10px;color:#8a6830;text-align:center;margin:4px 0;letter-spacing:2px;">— RÉVÉLER UNE LETTRE —</div>
-    <div id="runeLetterPanel" style="background:rgba(0,0,0,0.2);border-radius:4px;padding:6px;">
-      <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">
+    <div class="rune-title">⚔ DÉFI RUNIQUE ⚔</div>
+    <button id="runeLaunchBtn" onclick="openRuneChallenge()" class="rune-launch-btn">ᚱ Lancer le Défi</button>
+    <button id="runeContinueBtn" onclick="db.ref('game/runeChallenge').once('value',s=>renderRuneChallenge(s.val()))" class="rune-continue-btn">▶ Continuer le Défi</button>
+    <div class="rune-subtitle">— RÉVÉLER UNE LETTRE —</div>
+    <div id="runeLetterPanel" class="rune-panel">
+      <div class="rune-letter-grid">
         <button onclick="revealRuneLetter('A')" class="runeLetBtn">A</button><button onclick="revealRuneLetter('B')" class="runeLetBtn">B</button>
         <button onclick="revealRuneLetter('C')" class="runeLetBtn">C</button><button onclick="revealRuneLetter('D')" class="runeLetBtn">D</button>
         <button onclick="revealRuneLetter('E')" class="runeLetBtn">E</button><button onclick="revealRuneLetter('F')" class="runeLetBtn">F</button>
@@ -528,21 +528,21 @@
     </div>
   </div>
   <div id="elemFolie" class="pnjTabContent">
-    <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(200,160,80,0.18);">
-      <div style="font-family:Cinzel;font-size:11px;color:#8a6830;text-align:center;margin-bottom:8px;letter-spacing:2px;">FOLIE DU GROUPE</div>
-      <div id="madnessMJValue" style="text-align:center;font-family:Cinzel,serif;font-size:13px;color:#d8c28a;margin-bottom:8px;">0 / 100</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
-        <button onclick="changeGroupMadness(5)" style="padding:7px;background:rgba(80,50,10,0.42);color:#f2d49a;border:1px solid rgba(180,130,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">+5</button>
-        <button onclick="changeGroupMadness(10)" style="padding:7px;background:rgba(80,50,10,0.42);color:#f2d49a;border:1px solid rgba(180,130,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">+10</button>
-        <button onclick="changeGroupMadness(-5)" style="padding:7px;background:rgba(40,70,20,0.42);color:#d9f0a8;border:1px solid rgba(120,180,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">-5</button>
-        <button onclick="resetGroupMadness()" style="padding:7px;background:rgba(90,20,20,0.42);color:#ffb0b0;border:1px solid rgba(180,60,60,0.45);border-radius:4px;font-family:Cinzel;font-size:11px;cursor:pointer;">Reset</button>
+    <div class="madness-panel">
+      <div class="rune-title">FOLIE DU GROUPE</div>
+      <div id="madnessMJValue" class="madness-value">0 / 100</div>
+      <div class="madness-grid">
+        <button onclick="changeGroupMadness(5)" class="madness-btn madness-btn-up">+5</button>
+        <button onclick="changeGroupMadness(10)" class="madness-btn madness-btn-up">+10</button>
+        <button onclick="changeGroupMadness(-5)" class="madness-btn madness-btn-down">-5</button>
+        <button onclick="resetGroupMadness()" class="madness-btn madness-btn-reset">Reset</button>
       </div>
     </div>
   </div>
   <div id="elemWanted" class="pnjTabContent">
-    <div style="font-family:Cinzel,serif;font-size:11px;color:#aa8844;letter-spacing:2px;margin-bottom:8px;text-align:center;">⚔ AFFICHES WANTED</div>
-    <div id="wantedList" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;"></div>
-    <button onclick="openWantedEditor()" style="width:100%;margin-top:8px;padding:6px;font-family:Cinzel,serif;font-size:11px;background:rgba(80,50,10,0.5);color:#ffddaa;border:1px solid rgba(150,100,30,0.5);border-radius:4px;cursor:pointer;">+ Créer une affiche</button>
+    <div class="wanted-title">⚔ AFFICHES WANTED</div>
+    <div id="wantedList" class="wanted-list"></div>
+    <button onclick="openWantedEditor()" class="wanted-create-btn">+ Créer une affiche</button>
   </div>
 </div>
 
@@ -607,8 +607,8 @@
 
   <!-- LANDSCAPE -->
   <div id="mapLandscape" class="pnjTabContent">
-    <button onclick="changeMap('prairie.jpg')" style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">Prairie</button>
-    <button onclick="changeMap('neige.jpg')"   style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">Neige</button>
+    <button onclick="changeMap('prairie.jpg')" class="map-simple-btn">Prairie</button>
+    <button onclick="changeMap('neige.jpg')" class="map-simple-btn">Neige</button>
   </div>
 
   <!-- LIEUX -->
@@ -648,16 +648,16 @@
 
   <!-- MAPMONDE -->
   <div id="mapMondeTab" class="pnjTabContent">
-    <button onclick="changeMap('MAPMONDE.jpg')" style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">MAP MONDE</button>
-    <button onclick="toggleWorldMapFogTopLeft()" style="width:100%;text-align:left;background:transparent;color:var(--cream-dim);border:none;border-bottom:1px solid rgba(30,90,102,0.2);padding:7px 8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;">Fog haut-gauche</button>
+    <button onclick="changeMap('MAPMONDE.jpg')" class="map-simple-btn">MAP MONDE</button>
+    <button onclick="toggleWorldMapFogTopLeft()" class="map-simple-btn">Fog haut-gauche</button>
   </div>
 </div>
 
 <!-- JOURNAL MJ -->
 <div id="mjLog">
-  <div class="mjTitle" style="display:flex;justify-content:space-between;align-items:center;">
+  <div class="mjTitle mj-log-head">
     <span>📜 Journal du MJ</span>
-    <span id="mjLogToggle" onclick="toggleMJLog()" style="cursor:pointer;font-size:14px;color:#5a9aaa;padding:0 4px;" title="Réduire">▼</span>
+    <span id="mjLogToggle" onclick="toggleMJLog()" class="mj-log-toggle" title="Réduire">▼</span>
   </div>
   <div id="mjLogContent"></div>
 </div>
