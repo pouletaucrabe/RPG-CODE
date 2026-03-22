@@ -107,7 +107,11 @@ function updateWeightBar() {
 
 function loadPlayerCombatStats() {
   if (!myToken) return
-  db.ref("characters/" + myToken.id).on("value", snap => {
+  if (window.__combatStatsRef && window.__combatStatsCb) {
+    window.__combatStatsRef.off("value", window.__combatStatsCb)
+  }
+  const ref = db.ref("characters/" + myToken.id)
+  const cb = snap => {
     const d = snap.val(); if (!d) return
     ;["force","charme","perspi","chance","defense","hp"].forEach(k => { const el = document.getElementById("combat_"+k); if (el) el.value = d[k] || 0 })
     updateCombatHPBar(d.hp || 0)
@@ -117,7 +121,10 @@ function loadPlayerCombatStats() {
         if (!window.__combatOutcomeShowing) showDefeat()
       }, 50)
     }
-  })
+  }
+  window.__combatStatsRef = ref
+  window.__combatStatsCb = cb
+  ref.on("value", cb)
 }
 
 function saveCombatStats() {

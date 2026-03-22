@@ -1480,7 +1480,9 @@ db.ref("game/combatOutcome").on("value", snap => {
   }
 
   if (data.type === "defeat") {
-    if (data.player && getLocalPlayerId() && String(data.player).toLowerCase() !== getLocalPlayerId()) return
+    const localId = getLocalPlayerId()
+    if (!localId) return
+    if (data.player && String(data.player).toLowerCase() !== localId) return
     if (window.__pendingLocalDefeat) return
     window.__pendingLocalDefeat = true
     showDefeat()
