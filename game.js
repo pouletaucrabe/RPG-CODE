@@ -118,10 +118,13 @@ function updateMapLoreBookVisibility() {
     token.style.height = "88px"
     token.style.objectFit = "contain"
     token.style.cursor = "pointer"
+    token.style.pointerEvents = "auto"
+    token.draggable = false
     token.style.zIndex = "58"
     token.style.filter = "drop-shadow(0 10px 16px rgba(0,0,0,0.82))"
     token.style.animation = "bookFloatIdle 2.8s ease-in-out infinite"
-    token.onclick = tryOpenMapLoreBook
+    token.onmousedown = e => { e.stopPropagation() }
+    token.onclick = e => { e.stopPropagation(); tryOpenMapLoreBook() }
     mapEl.appendChild(token)
   }
 
