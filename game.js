@@ -32,6 +32,7 @@ window.mapLoreBookData = null
 window.readLoreBooksData = {}
 window.__openedMapLoreBookId = null
 window.__shopWasOpen = false
+window.__shopInitDone = false
 
 const MAP_LORE_BOOK_MAPS = [
   "taverne.jpg",
@@ -146,6 +147,7 @@ function applyMapLoreBookReward(entry, playerId) {
 }
 
 function getLocalPlayerId() {
+  if (window.__localPlayerId) return String(window.__localPlayerId).toLowerCase()
   if (myToken && myToken.id) return String(myToken.id).toLowerCase()
   const selectedToken = document.querySelector(".token.selectedPlayer")
   if (selectedToken && selectedToken.id) return String(selectedToken.id).toLowerCase()
@@ -153,7 +155,48 @@ function getLocalPlayerId() {
   if (menuMini && menuMini.dataset && menuMini.dataset.playerId) return String(menuMini.dataset.playerId).toLowerCase()
   const sheet = document.getElementById("characterSheet")
   if (sheet && sheet.dataset && sheet.dataset.playerId) return String(sheet.dataset.playerId).toLowerCase()
+  try {
+    const stored = localStorage.getItem("rpg_local_player")
+    if (stored) return String(stored).toLowerCase()
+  } catch (e) {}
   return ""
+}
+
+function triggerLocalDefeat(reason) {
+  const localId = getLocalPlayerId()
+  if (isGM || !localId || window.__combatOutcomeShowing || window.__pendingLocalDefeat) return false
+  if (!(combatActive || gameState === "COMBAT" || reason === "playerDeath" || reason === "combatOutcome" || reason === "hp-watch")) return false
+  window.__pendingLocalDefeat = true
+  combatActive = true
+  setGameState("COMBAT")
+  setTimeout(() => {
+    if (!window.__combatOutcomeShowing) showDefeat()
+  }, reason === "hp" ? 50 : 80)
+  return true
+}
+
+function watchLocalPlayerDefeat(playerId) {
+  const pid = String(playerId || "").toLowerCase()
+  if (!pid) return
+
+  window.__localPlayerId = pid
+  try { localStorage.setItem("rpg_local_player", pid) } catch (e) {}
+
+  if (window.__localDefeatRef && window.__localDefeatCb) {
+    window.__localDefeatRef.off("value", window.__localDefeatCb)
+  }
+
+  const ref = db.ref("characters/" + pid + "/hp")
+  const cb = snap => {
+    const hp = parseInt(snap.val(), 10) || 0
+    if (!isGM && hp <= 0 && (combatActive || gameState === "COMBAT") && !window.__combatOutcomeShowing) {
+      triggerLocalDefeat("hp-watch")
+    }
+  }
+
+  window.__localDefeatRef = ref
+  window.__localDefeatCb = cb
+  ref.on("value", cb)
 }
 
 function showMapLoreBookOverlay(bookData) {
@@ -193,20 +236,21 @@ function showMapLoreBookOverlay(bookData) {
 }
 
 function tryOpenMapLoreBook() {
-  if (isGM || !myToken || !window.mapLoreBookData || !window.mapLoreBookData.active) return
+  const localPlayerId = getLocalPlayerId()
+  if (isGM || !localPlayerId || !window.mapLoreBookData || !window.mapLoreBookData.active) return
   const localBook = window.mapLoreBookData
   db.ref("game/mapLoreBook").transaction(current => {
     if (!current || !current.active || current.id !== localBook.id || current.map !== currentMap) return current
     current.active = false
-    current.claimedBy = myToken.id
+    current.claimedBy = localPlayerId
     current.claimedAt = Date.now()
     return current
   }, (error, committed, snapshot) => {
     const bookData = snapshot && snapshot.val ? snapshot.val() : null
-    if (error || !committed || !bookData || String(bookData.claimedBy).toLowerCase() !== String(myToken.id).toLowerCase()) return
+    if (error || !committed || !bookData || String(bookData.claimedBy).toLowerCase() !== localPlayerId) return
     const entry = MAP_LORE_BOOK_ENTRIES[bookData.id]
     showMapLoreBookOverlay(bookData)
-    applyMapLoreBookReward(entry, myToken.id)
+    applyMapLoreBookReward(entry, localPlayerId)
     db.ref("game/readLoreBooks/" + bookData.id).set(true)
     db.ref("game/mapLoreBook").remove()
   }, false)
@@ -1267,7 +1311,10 @@ db.ref("game/mapLoreBook").on("value", snap => {
 db.ref("game/shop").on("value", snap => {
   const data = snap.val()
   const isOpen = !!(data && data.open)
-  if (window.__shopWasOpen !== isOpen) {
+  if (!window.__shopInitDone) {
+    window.__shopWasOpen = isOpen
+    window.__shopInitDone = true
+  } else if (window.__shopWasOpen !== isOpen) {
     const snd = new Audio("audio/clic.mp3")
     snd.volume = 0.8
     snd.play().catch(() => {})
@@ -1448,12 +1495,7 @@ db.ref("game/playerDeath").on("value", snap => {
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
-  if (!isGM && getLocalPlayerId() === String(pid || "").toLowerCase() && !window.__combatOutcomeShowing) {
-      window.__pendingLocalDefeat = true
-      combatActive = true
-      setGameState("COMBAT")
-      setTimeout(() => showDefeat(), 80)
-    }
+  if (!isGM && getLocalPlayerId() === String(pid || "").toLowerCase()) triggerLocalDefeat("playerDeath")
   if (isGM) {
       db.ref("game/combatOutcome").set({ type: "defeat", player: pid, time: Date.now() })
       setTimeout(() => db.ref("game/combatOutcome").remove(), 6500)
@@ -1483,9 +1525,7 @@ db.ref("game/combatOutcome").on("value", snap => {
     const localId = getLocalPlayerId()
     if (!localId) return
     if (data.player && String(data.player).toLowerCase() !== localId) return
-    if (window.__pendingLocalDefeat) return
-    window.__pendingLocalDefeat = true
-    showDefeat()
+    triggerLocalDefeat("combatOutcome")
   }
 })
 
@@ -2217,6 +2257,7 @@ function rollStat(stat) {
 function hideIntroLayers() {
   const start = document.getElementById("startScreen")
   const intro = document.getElementById("intro")
+  const introBox = document.getElementById("introBox")
 
   if (start) {
     start.style.display = "none"
@@ -2232,16 +2273,29 @@ function hideIntroLayers() {
     intro.style.visibility = "hidden"
     intro.style.zIndex = "-1"
   }
+  if (introBox) {
+    introBox.style.display = ""
+    introBox.style.opacity = ""
+    introBox.style.visibility = ""
+    introBox.style.pointerEvents = ""
+  }
 }
 
 function showIntroLayer() {
   const intro = document.getElementById("intro")
+  const introBox = document.getElementById("introBox")
   if (!intro) return
   intro.style.display = "flex"
   intro.style.opacity = "1"
   intro.style.pointerEvents = "auto"
   intro.style.visibility = "visible"
   intro.style.zIndex = "15"
+  if (introBox) {
+    introBox.style.display = "flex"
+    introBox.style.opacity = "1"
+    introBox.style.visibility = "visible"
+    introBox.style.pointerEvents = "auto"
+  }
 }
 
 function startGame() {
@@ -2255,8 +2309,15 @@ function startGame() {
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
   cemeteryEventDone = false
-  combatActive = false
+    combatActive = false
     combatStarting = false
+    window.__localPlayerId = ""
+    try { localStorage.removeItem("rpg_local_player") } catch (e) {}
+    if (window.__localDefeatRef && window.__localDefeatCb) {
+      window.__localDefeatRef.off("value", window.__localDefeatCb)
+      window.__localDefeatRef = null
+      window.__localDefeatCb = null
+    }
     window.__combatOutcomeShowing = false
     window.__pendingLocalDefeat = false
     window.playerThuumData = {}
@@ -2265,6 +2326,13 @@ function startGame() {
     window.mapLoreBookData = null
     window.readLoreBooksData = {}
     closeMapLoreBookOverlay()
+    window.__shopWasOpen = false
+    window.__shopInitDone = false
+    if (window.__combatStatsRef && window.__combatStatsCb) {
+      window.__combatStatsRef.off("value", window.__combatStatsCb)
+      window.__combatStatsRef = null
+      window.__combatStatsCb = null
+    }
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     updateMadnessVisibility()
@@ -2445,6 +2513,7 @@ function choosePlayer(id) {
     document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer", "gmSelected"))
     if (myToken) myToken.classList.add("selectedPlayer")
     showNotification("🎭 MJ joue : " + id.toUpperCase())
+    watchLocalPlayerDefeat(id)
     updateThuumButton()
     _collapsePlayerMenu(id)
     setTimeout(() => openCharacterSheet(id), 50)
@@ -2455,6 +2524,7 @@ function choosePlayer(id) {
   myToken = document.getElementById(id); window.myToken = myToken
   myToken.classList.add("selectedPlayer")
   showNotification("✨ Votre héros est : " + id.toUpperCase())
+  watchLocalPlayerDefeat(id)
   updateThuumButton()
   watchFreePoints(id)
   // Réduire le menu en mini badge

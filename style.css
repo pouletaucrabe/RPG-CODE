@@ -617,20 +617,6 @@ html, body {
   padding: 0 4px;
 }
 
-#introBox {
-  position: relative;
-  background-image: none;
-  padding: 172px 30px 64px 30px;
-  width: 610px; max-width: 88vw;
-  aspect-ratio: 665 / 878;
-  min-height: 0;
-  text-align: center;
-  font-family: var(--font-text);
-  color: #2b1a10;
-  background-color: transparent; overflow: visible;
-  box-sizing: border-box;
-}
-
 #introBox h1 {
   font-family: var(--font-body);
   font-size: 30px; color: #000;
@@ -1393,65 +1379,6 @@ html, body {
 @keyframes powerPulse {
   0%   { box-shadow: 0 0 6px gold, 0 0 12px goldenrod; transform: scale(1); }
   100% { box-shadow: 0 0 10px gold, 0 0 22px gold; transform: scale(1.15); }
-}
-
-/* ========================= */
-/* BARRE MJ — TALES STYLE    */
-/* ========================= */
-
-#gmBar {
-  display: none; position: fixed;
-  bottom: 20px; left: 50%; transform: translateX(-50%);
-  gap: 10px;
-  background:
-    url("images/boutonnoir.png") center/100% 100% no-repeat,
-    linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(0,0,0,0.98) 100%);
-  border: none;
-  box-shadow:
-    0 -2px 30px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(30,90,102,0.3);
-  padding: 16px 22px; border-radius: 4px;
-  z-index: 99999999; pointer-events: auto;
-}
-
-.gmIcon {
-  width: 52px; height: 52px; border-radius: 50%; font-size: 22px;
-  background: radial-gradient(circle at 35% 30%,
-    #1e6a7a 0%, #0f3a44 45%, #060e12 100%);
-  color: var(--cream);
-  border: none; outline: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-  box-shadow:
-    0 0 0 2px #040c10,
-    0 0 0 3.5px var(--teal-border),
-    0 0 0 5px #040c10,
-    0 4px 12px rgba(0,0,0,0.7),
-    inset 0 2px 3px rgba(80,220,240,0.15),
-    inset 0 -2px 3px rgba(0,0,0,0.4);
-  position: relative;
-}
-
-.gmIcon::before {
-  content: "";
-  position: absolute; top: 4px; left: 8px;
-  width: 60%; height: 35%; border-radius: 50%;
-  background: linear-gradient(135deg, rgba(80,220,240,0.2) 0%, transparent 100%);
-  pointer-events: none;
-}
-
-.gmIcon:hover {
-  transform: scale(1.15) translateY(-2px);
-  background: radial-gradient(circle at 35% 30%,
-    #28909e 0%, #185a68 45%, #0a1e26 100%);
-  box-shadow:
-    0 0 0 2px #040c10,
-    0 0 0 3.5px rgba(30,200,220,0.8),
-    0 0 0 5px #040c10,
-    0 6px 20px rgba(0,0,0,0.8),
-    0 0 20px rgba(30,180,200,0.4),
-    inset 0 2px 3px rgba(80,220,240,0.25);
-  color: #e8f8ff;
 }
 
 /* ========================= */

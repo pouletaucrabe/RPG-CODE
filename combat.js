@@ -778,8 +778,11 @@ function _resolveRemoteCombatEnd(attempt = 0) {
         : (myToken ? String(myToken.id || "").toLowerCase() : "")
       const targetId = String(outcome.player || "").toLowerCase()
       if (targetId && localId && targetId === localId) {
-        window.__pendingLocalDefeat = true
-        showDefeat()
+        if (typeof triggerLocalDefeat === "function") triggerLocalDefeat("combatStateClose")
+        else {
+          window.__pendingLocalDefeat = true
+          showDefeat()
+        }
         return
       }
       _playRemoteCombatExit()

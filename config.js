@@ -395,7 +395,8 @@ const secretAnswer  = "a la lueur des aurores les braves trinquent avec odin au 
 const playerPowerSounds = {
   greg: { file:"gregpower.mp3", fadeAt:3000 },
   ju:   { file:"jupower.mp3",   fadeAt:null  },
-  elo:  { file:"elopower.mp3",  fadeAt:5000  }
+  elo:  { file:"elopower.mp3",  fadeAt:5000  },
+  bibi: { file:"power.mp3",     fadeAt:null  }
 }
 
 /* ========================= */

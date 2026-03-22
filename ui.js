@@ -116,10 +116,7 @@ function loadPlayerCombatStats() {
     ;["force","charme","perspi","chance","defense","hp"].forEach(k => { const el = document.getElementById("combat_"+k); if (el) el.value = d[k] || 0 })
     updateCombatHPBar(d.hp || 0)
     if (!isGM && (combatActive || gameState === "COMBAT") && (parseInt(d.hp, 10) || 0) <= 0 && !window.__combatOutcomeShowing) {
-      window.__pendingLocalDefeat = true
-      setTimeout(() => {
-        if (!window.__combatOutcomeShowing) showDefeat()
-      }, 50)
+      if (typeof triggerLocalDefeat === "function") triggerLocalDefeat("hp")
     }
   }
   window.__combatStatsRef = ref
@@ -543,8 +540,27 @@ function showStoryImage(image) {
     setTimeout(() => { tag.style.opacity = "1" }, 100)
   }
 
+  const soundKey = String(image || "").replace(/^.*[\\/]/, "")
   const pnjSounds = { "generalmelenchon.png": "generalmelenchon.mp3", "intendantbrume.png": "macron.mp3" }
-  if(pnjSounds[image]){ const sid="pnjSound_"+image.replace(/[^a-z]/g,""); let snd=document.getElementById(sid); if(!snd){ snd=document.createElement("audio"); snd.id=sid; snd.src="audio/"+pnjSounds[image]; snd.volume=1.0; document.body.appendChild(snd) }; snd.currentTime=0; snd.play().catch(()=>{}); setTimeout(()=>{ let iv=setInterval(()=>{ if(snd.volume>0.05) snd.volume-=0.05; else{ snd.pause(); snd.volume=1.0; clearInterval(iv) } },100) },2000) }
+  if (pnjSounds[soundKey]) {
+    const sid = "pnjSound_" + soundKey.replace(/[^a-z]/gi, "")
+    let snd = document.getElementById(sid)
+    if (!snd) {
+      snd = document.createElement("audio")
+      snd.id = sid
+      snd.src = "audio/" + pnjSounds[soundKey]
+      snd.volume = 1.0
+      document.body.appendChild(snd)
+    }
+    snd.currentTime = 0
+    snd.play().catch(() => {})
+    setTimeout(() => {
+      let iv = setInterval(() => {
+        if (snd.volume > 0.05) snd.volume -= 0.05
+        else { snd.pause(); snd.volume = 1.0; clearInterval(iv) }
+      }, 100)
+    }, 2000)
+  }
 }
 
 function hideStoryImage() {
@@ -562,8 +578,7 @@ function hideStoryImage() {
 }
 
 function showHighPNJ(image, name) {
-  const resolved = resolvePNJImageSrc(image)
-  db.ref("game/storyImage").set(resolved)
+  db.ref("game/storyImage").set(image)
   db.ref("game/highPNJName").set({ name, time:Date.now() })
 }
 function showHighPNJScroll(name) {

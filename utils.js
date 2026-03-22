@@ -265,7 +265,13 @@ function updateCamera() {
 /* ========================= */
 
 function crossfadeMusic(newMusic) {
-  if (auroraActive && newMusic !== "aurore.mp3" && newMusic !== "audio/aurore.mp3") return
+  if (
+    auroraActive &&
+    newMusic !== "aurore.mp3" &&
+    newMusic !== "audio/aurore.mp3" &&
+    newMusic !== "bifrost.mp3" &&
+    newMusic !== "audio/bifrost.mp3"
+  ) return
 
   const musicA = document.getElementById("musicA")
   const musicB = document.getElementById("musicB")
