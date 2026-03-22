@@ -755,17 +755,38 @@ function _startRemoteCombat(data) {
 function _playRemoteCombatExit() {
   if (isGM) return
   if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
-  const fade = document.getElementById("fadeScreen")
-  if (fade) {
-    fade.style.transition = "opacity 0.6s ease"
-    fade.style.opacity = "1"
-    fade.style.pointerEvents = "none"
+  const localId = typeof getLocalPlayerId === "function"
+    ? getLocalPlayerId()
+    : (myToken ? String(myToken.id || "").toLowerCase() : "")
+
+  const proceedExit = () => {
+    const fade = document.getElementById("fadeScreen")
+    if (fade) {
+      fade.style.transition = "opacity 0.6s ease"
+      fade.style.opacity = "1"
+      fade.style.pointerEvents = "none"
+    }
+
+    setTimeout(() => {
+      endCombat()
+      returnToMap()
+    }, 450)
   }
 
-  setTimeout(() => {
-    endCombat()
-    returnToMap()
-  }, 450)
+  if (!localId) {
+    proceedExit()
+    return
+  }
+
+  db.ref("characters/" + localId + "/hp").once("value", snap => {
+    const hp = parseInt(snap.val(), 10) || 0
+    if (hp <= 0) {
+      if (typeof triggerLocalDefeat === "function") triggerLocalDefeat("remote-exit-hp")
+      else showDefeat()
+      return
+    }
+    proceedExit()
+  })
 }
 
 function _resolveRemoteCombatEnd(attempt = 0) {

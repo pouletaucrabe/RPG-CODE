@@ -33,6 +33,8 @@ window.readLoreBooksData = {}
 window.__openedMapLoreBookId = null
 window.__shopWasOpen = false
 window.__shopInitDone = false
+window.__lastShopSoundState = null
+window.__lastShopSoundAt = 0
 
 const MAP_LORE_BOOK_MAPS = [
   "taverne.jpg",
@@ -165,7 +167,7 @@ function getLocalPlayerId() {
 function triggerLocalDefeat(reason) {
   const localId = getLocalPlayerId()
   if (isGM || !localId || window.__combatOutcomeShowing || window.__pendingLocalDefeat) return false
-  if (!(combatActive || gameState === "COMBAT" || reason === "playerDeath" || reason === "combatOutcome" || reason === "hp-watch")) return false
+  if (!(combatActive || gameState === "COMBAT" || reason === "playerDeath" || reason === "combatOutcome" || reason === "hp-watch" || reason === "remote-exit-hp")) return false
   window.__pendingLocalDefeat = true
   combatActive = true
   setGameState("COMBAT")
@@ -218,7 +220,7 @@ function showMapLoreBookOverlay(bookData) {
   box.appendChild(img)
 
   const text = document.createElement("div")
-  text.style.cssText = "position:absolute;left:18%;top:24%;width:64%;height:46%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-line;font-family:'IM Fell English',serif;font-size:clamp(22px,2vw,34px);line-height:1.45;color:#3c2713;text-shadow:0 1px 0 rgba(255,235,190,0.2);"
+  text.style.cssText = "position:absolute;left:18%;top:24%;width:64%;height:46%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-line;font-family:'IM Fell English',serif;font-size:clamp(22px,2vw,34px);line-height:1.45;color:#3c2713;text-shadow:0 1px 0 rgba(255,235,190,0.2);padding:34px 40px;box-sizing:border-box;background:url('images/paper1.png') center/100% 100% no-repeat;"
   text.innerText = entry.text
   box.appendChild(text)
 
@@ -323,6 +325,29 @@ function stopMadnessLoops() {
   window.currentMadnessLoopId = null
 }
 
+function clearMadnessResidualEffects() {
+  const overlay = document.getElementById("madnessOverlay")
+  const cameraEl = document.getElementById("camera")
+
+  if (window.madnessShakeInterval) {
+    clearInterval(window.madnessShakeInterval)
+    window.madnessShakeInterval = null
+  }
+
+  if (overlay) {
+    overlay.style.display = "none"
+    overlay.style.opacity = "0"
+    overlay.style.background = ""
+    overlay.classList.remove("active", "pulse")
+  }
+
+  if (cameraEl) {
+    cameraEl.style.filter = ""
+    cameraEl.classList.remove("madnessWarp")
+    cameraEl.style.transform = ""
+  }
+}
+
 function playMadnessLoopForTier(tier, value) {
   if (tier <= 0 || !isMadnessActiveMap() || combatActive || gameState !== "GAME") {
     stopMadnessLoops()
@@ -424,7 +449,6 @@ function startMadnessShake(tier) {
 function updateMadnessVisibility() {
   const gauge = document.getElementById("madnessGauge")
   const overlay = document.getElementById("madnessOverlay")
-  const cameraEl = document.getElementById("camera")
   if (!gauge || !overlay) return
 
   const visible = gameState === "GAME" && !combatActive && isMadnessActiveMap()
@@ -433,29 +457,16 @@ function updateMadnessVisibility() {
 
   if (!visible) {
     stopMadnessLoops()
-    if (cameraEl) {
-      cameraEl.style.filter = ""
-      cameraEl.classList.remove("madnessWarp")
-    }
+    clearMadnessResidualEffects()
   }
   else playMadnessLoopForTier(window.groupMadnessTier, window.groupMadness)
 }
 
 function resetMadnessPresentation() {
   const gauge = document.getElementById("madnessGauge")
-  const overlay = document.getElementById("madnessOverlay")
-  const cameraEl = document.getElementById("camera")
   stopMadnessLoops()
   if (gauge) gauge.style.display = "none"
-  if (overlay) {
-    overlay.style.display = "none"
-    overlay.style.opacity = "0"
-    overlay.classList.remove("active", "pulse")
-  }
-  if (cameraEl) {
-    cameraEl.style.filter = ""
-    cameraEl.classList.remove("madnessWarp")
-  }
+  clearMadnessResidualEffects()
 }
 
 function updateMadnessUI(value) {
@@ -470,13 +481,8 @@ function updateMadnessUI(value) {
 
   if (!isMadnessActiveMap()) {
     gauge.style.display = "none"
-    overlay.style.display = "none"
-    overlay.style.opacity = "0"
     stopMadnessLoops()
-    if (cameraEl) {
-      cameraEl.style.filter = ""
-      cameraEl.classList.remove("madnessWarp")
-    }
+    clearMadnessResidualEffects()
     mjValues.forEach(el => { el.innerText = Math.max(0, Math.min(100, value)) + " / 100" })
     return
   }
@@ -1127,9 +1133,9 @@ db.ref("combat/mob").on("value", snap => {
   }
 
   const nameEl = document.getElementById("mobName")
-  if (nameEl) nameEl.innerText = data.name.toUpperCase()
+  if (nameEl) nameEl.innerText = data.name.toUpperCase() + "  •  NIV " + (data.lvl || "?")
   const hpText = document.getElementById("mobHPText")
-  if (hpText) hpText.innerText = data.hp + " / " + data.maxHP
+  if (hpText) hpText.innerText = "HP " + data.hp + " / " + data.maxHP
 
     if (isGM) {
       hud.style.display = "block"
@@ -1315,9 +1321,14 @@ db.ref("game/shop").on("value", snap => {
     window.__shopWasOpen = isOpen
     window.__shopInitDone = true
   } else if (window.__shopWasOpen !== isOpen) {
-    const snd = new Audio("audio/clic.mp3")
-    snd.volume = 0.8
-    snd.play().catch(() => {})
+    const now = Date.now()
+    if (window.__lastShopSoundState !== isOpen || (now - window.__lastShopSoundAt) > 700) {
+      const snd = new Audio("audio/clic.mp3")
+      snd.volume = 0.8
+      snd.play().catch(() => {})
+      window.__lastShopSoundState = isOpen
+      window.__lastShopSoundAt = now
+    }
     window.__shopWasOpen = isOpen
   }
   const existing = document.getElementById("shopOverlay")
@@ -1590,6 +1601,16 @@ db.ref("game/wantedPosters").on("value", snap => {
   list.innerHTML = ""
   const data = snap.val(); if (!data) return
   Object.values(data).forEach(p => renderWantedPoster(p))
+})
+
+// ─── wantedOpen ───
+db.ref("game/wantedOpen").on("value", snap => {
+  const data = snap.val()
+  if (!data || !data.poster) return
+  showWantedOverlay(data.poster)
+  if (isGM) {
+    setTimeout(() => db.ref("game/wantedOpen").remove(), 1200)
+  }
 })
 
 // ─── simonState ───
@@ -2356,6 +2377,8 @@ function startGame() {
     closeMapLoreBookOverlay()
     window.__shopWasOpen = false
     window.__shopInitDone = false
+    window.__lastShopSoundState = null
+    window.__lastShopSoundAt = 0
     if (window.__combatStatsRef && window.__combatStatsCb) {
       window.__combatStatsRef.off("value", window.__combatStatsCb)
       window.__combatStatsRef = null

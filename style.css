@@ -3445,6 +3445,90 @@ body {
   100% { transform: translateY(0px) rotate(-2deg); }
 }
 
+/* ========================= */
+/* INTRO FINAL OVERRIDE      */
+/* ========================= */
+
+#intro {
+  display: none;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  padding-top: 36px !important;
+  box-sizing: border-box !important;
+}
+
+#gameTitle {
+  position: relative !important;
+  top: auto !important;
+  margin: 28px 0 22px !important;
+  font-size: clamp(48px, 4.5vw, 74px) !important;
+  letter-spacing: 4px !important;
+  text-align: center !important;
+  z-index: 2 !important;
+}
+
+#introBox {
+  position: relative !important;
+  width: min(760px, 82vw) !important;
+  max-width: min(760px, 82vw) !important;
+  min-height: 878px !important;
+  aspect-ratio: auto !important;
+  padding: 220px 32px 110px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 22px !important;
+  background-image: url("images/menu%20intro.png") !important;
+  background-position: center top !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 2 !important;
+}
+
+#introBox > #startButton,
+#introBox .menuButton {
+  width: min(620px, calc(100% - 150px)) !important;
+  max-width: min(620px, calc(100% - 150px)) !important;
+  align-self: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+#introBox > #startButton {
+  margin-top: 34px !important;
+}
+
+#introBox > div,
+.intro-actions {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin-top: 22px !important;
+}
+
+#startButton {
+  height: 126px !important;
+}
+
+.menuButton {
+  height: 118px !important;
+}
+
+#startButton .btn-inner {
+  font-size: 19px !important;
+  letter-spacing: 2px !important;
+}
+
+.menuButton .btn-inner {
+  font-size: 15px !important;
+  letter-spacing: 1px !important;
+}
+
 #playerMenu::before {
   content: "⚜" !important;
   display: block !important;

@@ -28,7 +28,10 @@ function openCharacterSheet(id = null) {
     if (!window._playerMaxPoids) window._playerMaxPoids = {}
     window._playerMaxPoids[playerID] = data.poids || 100
     const mw = document.getElementById("maxWeight"); if (mw) mw.value = data.poids || 100
-    if (data.inventaire) document.getElementById("inventaire").value = data.inventaire
+    const invField = document.getElementById("inventaire")
+    const notesField = document.getElementById("notes")
+    if (invField) invField.value = data.inventaire || ""
+    if (notesField) notesField.value = data.notes || ""
     curseLevel = data.curse || 0
     document.querySelectorAll(".curseGem").forEach((g, i) => g.classList.toggle("active", i < curseLevel))
     corruptionLevel = data.corruption || 0
@@ -446,12 +449,49 @@ function setPNJSlot(slot) {
   ;["slot1Btn","slot2Btn","slot3Btn"].forEach((id,i)=>{ const btn=document.getElementById(id); if(!btn) return; const a=(i+1)===slot; btn.style.background=a?"rgba(200,160,50,0.3)":"rgba(80,80,80,0.2)"; btn.style.color=a?"#c8a050":"#aaa"; btn.style.borderColor=a?"gold":"#555" })
 }
 
+function getPNJSlotRef(slot) {
+  return slot === 2 ? "game/storyImage2" : slot === 3 ? "game/storyImage3" : "game/storyImage"
+}
+
+function resolvePNJTargetSlot(slots, preferredSlot, forceSlot) {
+  if (forceSlot) return preferredSlot || 1
+  let targetSlot = preferredSlot || 1
+  if (!slots[targetSlot]) return targetSlot
+  const freeSlot = [1, 2, 3].find(slot => !slots[slot])
+  return freeSlot || targetSlot
+}
+
+function openPNJ(image, options) {
+  const opts = options || {}
+  const preferredSlot = opts.slot || currentPNJSlot || 1
+  const forceSlot = !!opts.forceSlot
+  const displayName = opts.name || getPNJDisplayName(image)
+
+  Promise.all([
+    db.ref("game/storyImage").once("value"),
+    db.ref("game/storyImage2").once("value"),
+    db.ref("game/storyImage3").once("value")
+  ]).then(([s1, s2, s3]) => {
+    const slots = {
+      1: s1.val(),
+      2: s2.val(),
+      3: s3.val()
+    }
+
+    const targetSlot = resolvePNJTargetSlot(slots, preferredSlot, forceSlot)
+
+    storyType = "pnj"
+    db.ref(getPNJSlotRef(targetSlot)).set(img)
+    if (!pnjSlotOrder.includes(targetSlot)) pnjSlotOrder.push(targetSlot)
+
+    if (opts.scrollName && displayName) {
+      db.ref("game/highPNJName").set({ name: displayName, time: Date.now() })
+    }
+  })
+}
+
 function setPNJImage(img) {
-  db.ref("game/storyImage").once("value",s1=>{ db.ref("game/storyImage2").once("value",s2=>{ db.ref("game/storyImage3").once("value",s3=>{
-    if(!s1.val()){ storyType="pnj"; db.ref("game/storyImage").set(img); if(!pnjSlotOrder.includes(1)) pnjSlotOrder.push(1) }
-    else if(!s2.val()){ db.ref("game/storyImage2").set(img); if(!pnjSlotOrder.includes(2)) pnjSlotOrder.push(2) }
-    else{ db.ref("game/storyImage3").set(img); if(!pnjSlotOrder.includes(3)) pnjSlotOrder.push(3) }
-  }) }) })
+  openPNJ(img, { slot: currentPNJSlot || 1 })
 }
 
 function updatePNJPositions() {
@@ -578,8 +618,7 @@ function hideStoryImage() {
 }
 
 function showHighPNJ(image, name) {
-  db.ref("game/storyImage").set(image)
-  db.ref("game/highPNJName").set({ name, time:Date.now() })
+  openPNJ(image, { slot: 1, forceSlot: true, name, scrollName: true })
 }
 function showHighPNJScroll(name) {
   const old=document.getElementById("highPNJScroll"); if(old) old.remove()
@@ -723,12 +762,12 @@ function applyCurseEffect(playerID, ri) {
 /* POUVOIR                   */
 /* ========================= */
 
-function activatePowerMode(playerID) { if(powerModeActive) return; powerModeActive=true; const tok=document.getElementById(playerID); if(tok) tok.classList.add("powerReady","powerFull"); if(myToken&&myToken.id===playerID) showUsePowerBtn(playerID) }
+function activatePowerMode(playerID) { if(powerModeActive) return; powerModeActive=true; playSound("powerSound",0.75); const tok=document.getElementById(playerID); if(tok) tok.classList.add("powerReady","powerFull"); if(myToken&&myToken.id===playerID) showUsePowerBtn(playerID) }
 function showUsePowerBtn(playerID) { const ex=document.getElementById("usePowerBtn"); if(ex) ex.remove(); const btn=document.createElement("button"); btn.id="usePowerBtn"; btn.innerHTML="✨ USE POWER ✨"; btn.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:14px 40px;font-family:Cinzel;font-size:20px;letter-spacing:2px;background:linear-gradient(180deg,#8a6000,#4a3000);color:gold;border:2px solid gold;border-radius:10px;cursor:pointer;z-index:999999999;box-shadow:0 0 20px gold,0 0 40px orange;animation:powerBtnPulse 1s ease-in-out infinite alternate;text-shadow:0 0 10px gold;"; btn.onclick=()=>usePower(playerID); document.body.appendChild(btn) }
 
 function usePower(playerID) {
   const btn=document.getElementById("usePowerBtn"); if(btn) btn.remove()
-  db.ref("game/powerSound").set({ player:playerID, time:Date.now() }); powerExplosion(); powerExplosion(); flashGold(); flashGold(); screenShakeHard()
+  db.ref("game/powerSound").set({ player:playerID, time:Date.now() }); playSound("powerSound",0.9); powerExplosion(); powerExplosion(); flashGold(); flashGold(); screenShakeHard()
   for(let i=0;i<30;i++) setTimeout(()=>{ const p=document.createElement("div"); p.style.cssText=`position:fixed;width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;border-radius:50%;background:gold;left:${Math.random()*100}%;top:${Math.random()*100}%;pointer-events:none;z-index:9999998;box-shadow:0 0 8px gold;animation:goldRise 1.5s ease-out forwards;`; document.body.appendChild(p); setTimeout(()=>p.remove(),1500) },i*60)
   showNotification("✨ "+playerID.toUpperCase()+" LIBÈRE SON POUVOIR !"); addMJLog("✨ "+playerID.toUpperCase()+" utilise son pouvoir !"); db.ref("characters/"+playerID+"/corruption").set(0); powerModeActive=false
   const tok=document.getElementById(playerID); if(tok) setTimeout(()=>tok.classList.remove("powerReady","powerFull"),2000)
@@ -848,7 +887,6 @@ function showAuroraEvent() {
 }
 
 function showAuroraEndSequence() {
-  if (!auroraActive && !document.getElementById("auroraOverlay")) return
   clearAuroraTimers()
   auroraActive = false
   updateBifrostBtn()
@@ -862,7 +900,7 @@ function showAuroraEndSequence() {
     end = document.createElement("div")
     end.id = "auroraEndMessage"
     end.innerHTML = `<div style="font-size:34px;margin-bottom:12px;">✦</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:24px;letter-spacing:4px;margin-bottom:10px;color:#d9fff1;text-shadow:0 0 20px rgba(120,255,220,0.8);">LES AURORES S'ÉTEIGNENT</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#d8fff8;opacity:0.92;line-height:1.6;max-width:520px;text-align:center;">Le ciel reprend lentement son souffle.</div>`
-    end.style.cssText = "position:fixed;top:14%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:9999996;opacity:0;transition:opacity 2s ease;"
+    end.style.cssText = "position:fixed;top:14%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:99999999;opacity:0;transition:opacity 2s ease;"
     document.body.appendChild(end)
   }
 
@@ -877,7 +915,7 @@ function showAuroraEndSequence() {
     if (ov && ov.parentNode) ov.remove()
     if (end && end.parentNode) {
       end.style.opacity = "0"
-      setTimeout(() => { if (end.parentNode) end.remove() }, 1800)
+      setTimeout(() => { if (end.parentNode) end.remove() }, 2200)
     }
     if (currentMap && mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap])
   })
@@ -935,8 +973,8 @@ function renderMapElement(data) {
 /* ========================= */
 
 function openWantedEditor() { const wb=document.getElementById("wantedMobBtn"); if(wb){ wb.innerText="— Choisir un mob —"; wb.dataset.value="" }; document.getElementById("wantedEditor").style.display="flex" }
-function createWantedPoster() { const mob=document.getElementById("wantedMobBtn")?.dataset.value||"", tier=document.getElementById("wantedTierBtn")?.dataset.value||"weak", reward=document.getElementById("wantedReward").value; if(!mob){ showNotification("Choisissez un mob !"); return }; document.getElementById("wantedEditor").style.display="none"; const id="wanted_"+Date.now(), pd={ mob, tier, reward, id }; db.ref("game/wantedPosters/"+id).set(pd); db.ref("elements/"+id).set({ type:"image", image:"wanted.png", x:Math.floor(Math.random()*600+200), y:Math.floor(Math.random()*400+200), id, clickable:true, wantedData:pd }) }
-function renderWantedPoster(data) { const list=document.getElementById("wantedList"); if(!list) return; const card=document.createElement("div"); card.id="wantedCard_"+data.id; card.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(60,40,10,0.4);border:1px solid rgba(150,100,30,0.4);border-radius:4px;"; const img=document.createElement("img"); img.src="images/"+data.mob+".png"; img.style.cssText="width:36px;height:36px;object-fit:contain;border-radius:3px;"; img.onerror=()=>img.style.opacity="0.3"; card.appendChild(img); const info=document.createElement("div"); info.style.cssText="flex:1;"; info.innerHTML=`<div style="font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,80);">${data.mob.toUpperCase()}</div><div style="font-size:10px;color:rgb(200,160,60);">💰 ${data.reward} po — ${data.tier}</div>`; card.appendChild(info); const del=document.createElement("button"); del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"; del.innerText="✕"; del.onclick=()=>{ db.ref("game/wantedPosters/"+data.id).remove(); db.ref("elements/"+data.id).remove(); card.remove() }; card.appendChild(del); list.appendChild(card) }
+function createWantedPoster() { const mob=document.getElementById("wantedMobBtn")?.dataset.value||"", tier=document.getElementById("wantedTierBtn")?.dataset.value||"weak", reward=document.getElementById("wantedReward").value; if(!mob){ showNotification("Choisissez un mob !"); return }; document.getElementById("wantedEditor").style.display="none"; const id="wanted_"+Date.now(), pd={ mob, tier, reward, id }; db.ref("game/wantedPosters/"+id).set(pd); db.ref("elements/"+id).set({ type:"image", image:"wanted.png", x:Math.floor(Math.random()*600+200), y:Math.floor(Math.random()*400+200), id, clickable:true, wantedData:pd }); db.ref("game/wantedOpen").set({ poster:pd, time:Date.now() }) }
+function renderWantedPoster(data) { const list=document.getElementById("wantedList"); if(!list) return; const card=document.createElement("div"); card.id="wantedCard_"+data.id; card.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(60,40,10,0.4);border:1px solid rgba(150,100,30,0.4);border-radius:4px;"; const img=document.createElement("img"); img.src="images/"+data.mob+".png"; img.style.cssText="width:36px;height:36px;object-fit:contain;border-radius:3px;"; img.onerror=()=>img.style.opacity="0.3"; card.appendChild(img); const info=document.createElement("div"); info.style.cssText="flex:1;"; info.innerHTML=`<div style="font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,80);">${data.mob.toUpperCase()}</div><div style="font-size:10px;color:rgb(200,160,60);">💰 ${data.reward} po — ${data.tier}</div>`; card.appendChild(info); const open=document.createElement("button"); open.style.cssText="padding:2px 8px;font-size:10px;background:rgba(90,70,20,0.5);color:#ffd68a;border:1px solid rgba(170,130,40,0.45);border-radius:3px;cursor:pointer;"; open.innerText="Ouvrir"; open.onclick=()=>showWantedOverlay(data); card.appendChild(open); const del=document.createElement("button"); del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"; del.innerText="✕"; del.onclick=()=>{ db.ref("game/wantedPosters/"+data.id).remove(); db.ref("elements/"+data.id).remove(); card.remove() }; card.appendChild(del); list.appendChild(card) }
 function showWantedOverlay(data) { const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999999;cursor:pointer;"; ov.onclick=()=>ov.remove(); const p=document.createElement("div"); p.style.cssText="position:relative;width:300px;padding:30px 20px;text-align:center;"; const bg=document.createElement("img"); bg.src="images/wanted.png"; bg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;opacity:0.9;"; p.appendChild(bg); const inner=document.createElement("div"); inner.style.cssText="position:relative;z-index:1;padding:20px;"; const mi=document.createElement("img"); mi.src="images/"+data.mob+".png"; mi.style.cssText="width:100px;height:100px;object-fit:contain;border:3px solid rgb(100,60,10);border-radius:4px;margin:10px auto;display:block;"; inner.appendChild(mi); const n=document.createElement("div"); n.style.cssText="font-family:'Cinzel Decorative',serif;font-size:18px;color:rgb(80,40,0);letter-spacing:3px;margin-bottom:8px;"; n.innerText=data.mob.toUpperCase(); inner.appendChild(n); const r=document.createElement("div"); r.style.cssText="font-family:Cinzel,serif;font-size:22px;color:rgb(120,70,0);font-weight:bold;"; r.innerText="💰 "+data.reward+" po"; inner.appendChild(r); p.appendChild(inner); ov.appendChild(p); document.body.appendChild(ov) }
 function toggleWantedDropdown(el) { const dd=document.getElementById("wantedMobDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; if(!dd.dataset.built){ dd.dataset.built="1"; const em=document.createElement("div"); em.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,120,60);cursor:pointer;"; em.innerText="— Choisir un mob —"; em.onmousedown=e=>{ e.stopPropagation(); selectWantedMob("","— Choisir un mob —") }; dd.appendChild(em); WANTED_MOBS.forEach(m=>{ const it=document.createElement("div"); it.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,120);cursor:pointer;"; it.innerText=m.charAt(0).toUpperCase()+m.slice(1); it.onmousedown=e=>{ e.stopPropagation(); selectWantedMob(m,it.innerText) }; it.onmouseenter=()=>it.style.background="rgb(60,35,5)"; it.onmouseleave=()=>it.style.background=""; dd.appendChild(it) }) }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
 function selectWantedMob(val, lbl) { const btn=document.getElementById("wantedMobBtn"); if(btn){ btn.innerText=lbl; btn.dataset.value=val }; const dd=document.getElementById("wantedMobDropdown"); if(dd) dd.style.display="none" }
@@ -1021,7 +1059,7 @@ function rollSpellDice(playerId, currentTries) {
   showSpellRollResult(roll,isCrit,isFail,playerId,()=>{
     const newTries=currentTries+1
     if(isCrit){ db.ref("game/cemeterySpell/freed_players").once("value",s=>{ const fp=s.val()||[]; if(!fp.includes(playerId)) fp.push(playerId); db.ref("game/cemeterySpell/freed_players").set(fp); const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(SPELL_PLAYERS.every(p=>(d.freed_players||[]).includes(p))) setTimeout(()=>db.ref("game/cemeterySpell").update({ freed:true }),1000) }) }) }
-    else{ db.ref("game/cemeterySpell/tries").once("value",s=>{ const t=s.val()||{}; t[playerId]=newTries; db.ref("game/cemeterySpell/tries").set(t); if(isFail){ db.ref("characters/"+playerId).once("value",cs=>{ const cd=cs.val(); if(cd){ db.ref("characters/"+playerId+"/hp").set(Math.max(0,(cd.hp||0)-10)); showNotification("💀 "+playerId.toUpperCase()+" perd 10 HP !") } }) }; const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); if(newTries>=SPELL_MAX_TRIES){ setTimeout(()=>{ db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); const t2=d.tries||{}; const fp=d.freed_players||[]; const allOut=SPELL_PLAYERS.every(p=>fp.includes(p)||(t2[p]||0)>=SPELL_MAX_TRIES); if(allOut){ const anyF=SPELL_PLAYERS.some(p=>fp.includes(p)); if(!anyF&&isGM){ db.ref("game/cemeterySpell").update({ freed:true }); setTimeout(()=>startCombat(Math.random()>0.5?"zombie":"zombie2","high"),2000) } else db.ref("game/cemeterySpell").update({ freed:true }) } }) },500) } }) }
+    else{ db.ref("game/cemeterySpell/tries").once("value",s=>{ const t=s.val()||{}; t[playerId]=newTries; db.ref("game/cemeterySpell/tries").set(t); if(isFail){ db.ref("characters/"+playerId).once("value",cs=>{ const cd=cs.val(); if(cd){ db.ref("characters/"+playerId+"/hp").set(Math.max(0,(cd.hp||0)-10)); showNotification("💀 "+playerId.toUpperCase()+" perd 10 HP !") } }) }; const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); if(newTries>=SPELL_MAX_TRIES){ setTimeout(()=>{ db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(!d) return; const t2=d.tries||{}; const fp=d.freed_players||[]; const allOut=SPELL_PLAYERS.every(p=>fp.includes(p)||(t2[p]||0)>=SPELL_MAX_TRIES); if(allOut){ const anyF=SPELL_PLAYERS.some(p=>fp.includes(p)); if(!anyF&&isGM){ db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:true }); setTimeout(()=>startCombat(Math.random()>0.5?"zombie":"zombie2","high"),2000) } else db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:false }) } }) },500) } }) }
   })
 }
 
@@ -1644,7 +1682,7 @@ function _renderDocument(data) {
   const overlay = document.createElement("div"); overlay.id = "documentOverlay"
   overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:9999995;opacity:0;transition:opacity 0.8s ease;"
 
-  const img = document.createElement("img"); img.src = "images/" + data.image
+  const img = document.createElement("img"); img.src = (typeof resolveImagePath === "function") ? resolveImagePath(data.image) : (/^(https?:|data:|blob:|\/|images\/)/i.test(String(data.image || "")) ? String(data.image || "") : "images/" + data.image)
   img.style.cssText = "max-height:80vh;max-width:80vw;object-fit:contain;filter:drop-shadow(0 20px 50px rgba(0,0,0,0.9));animation:pnjIdle 3s ease-in-out infinite;"
   img.onerror = () => img.style.opacity = "0.3"
   overlay.appendChild(img)
