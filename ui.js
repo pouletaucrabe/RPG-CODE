@@ -481,7 +481,7 @@ function openPNJ(image, options) {
     const targetSlot = resolvePNJTargetSlot(slots, preferredSlot, forceSlot)
 
     storyType = "pnj"
-    db.ref(getPNJSlotRef(targetSlot)).set(img)
+    db.ref(getPNJSlotRef(targetSlot)).set(image)
     if (!pnjSlotOrder.includes(targetSlot)) pnjSlotOrder.push(targetSlot)
 
     if (opts.scrollName && displayName) {
