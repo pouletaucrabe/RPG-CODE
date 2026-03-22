@@ -723,12 +723,12 @@ function applyCurseEffect(playerID, ri) {
 /* POUVOIR                   */
 /* ========================= */
 
-function activatePowerMode(playerID) { if(powerModeActive) return; powerModeActive=true; playSound("powerSound",0.75); const tok=document.getElementById(playerID); if(tok) tok.classList.add("powerReady","powerFull"); if(myToken&&myToken.id===playerID) showUsePowerBtn(playerID) }
+function activatePowerMode(playerID) { if(powerModeActive) return; powerModeActive=true; const tok=document.getElementById(playerID); if(tok) tok.classList.add("powerReady","powerFull"); if(myToken&&myToken.id===playerID) showUsePowerBtn(playerID) }
 function showUsePowerBtn(playerID) { const ex=document.getElementById("usePowerBtn"); if(ex) ex.remove(); const btn=document.createElement("button"); btn.id="usePowerBtn"; btn.innerHTML="✨ USE POWER ✨"; btn.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:14px 40px;font-family:Cinzel;font-size:20px;letter-spacing:2px;background:linear-gradient(180deg,#8a6000,#4a3000);color:gold;border:2px solid gold;border-radius:10px;cursor:pointer;z-index:999999999;box-shadow:0 0 20px gold,0 0 40px orange;animation:powerBtnPulse 1s ease-in-out infinite alternate;text-shadow:0 0 10px gold;"; btn.onclick=()=>usePower(playerID); document.body.appendChild(btn) }
 
 function usePower(playerID) {
   const btn=document.getElementById("usePowerBtn"); if(btn) btn.remove()
-  db.ref("game/powerSound").set({ player:playerID, time:Date.now() }); playSound("powerSound",0.9); powerExplosion(); powerExplosion(); flashGold(); flashGold(); screenShakeHard()
+  db.ref("game/powerSound").set({ player:playerID, time:Date.now() }); powerExplosion(); powerExplosion(); flashGold(); flashGold(); screenShakeHard()
   for(let i=0;i<30;i++) setTimeout(()=>{ const p=document.createElement("div"); p.style.cssText=`position:fixed;width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;border-radius:50%;background:gold;left:${Math.random()*100}%;top:${Math.random()*100}%;pointer-events:none;z-index:9999998;box-shadow:0 0 8px gold;animation:goldRise 1.5s ease-out forwards;`; document.body.appendChild(p); setTimeout(()=>p.remove(),1500) },i*60)
   showNotification("✨ "+playerID.toUpperCase()+" LIBÈRE SON POUVOIR !"); addMJLog("✨ "+playerID.toUpperCase()+" utilise son pouvoir !"); db.ref("characters/"+playerID+"/corruption").set(0); powerModeActive=false
   const tok=document.getElementById(playerID); if(tok) setTimeout(()=>tok.classList.remove("powerReady","powerFull"),2000)
@@ -741,7 +741,75 @@ function usePower(playerID) {
 
 function triggerAurora() { if(auroraActive) return; auroraActive=true; db.ref("events/aurora").set({ active:true, time:Date.now() }) }
 
+function clearAuroraTimers() {
+  ;["__auroraMsgTimer", "__auroraRemoveMsgTimer", "__auroraAutoEndTimer", "__auroraFinalCleanupTimer"].forEach(key => {
+    if (window[key]) {
+      clearTimeout(window[key])
+      window[key] = null
+    }
+  })
+  if (window.__auroraFadeInInterval) {
+    clearInterval(window.__auroraFadeInInterval)
+    window.__auroraFadeInInterval = null
+  }
+  if (window.__auroraFadeOutInterval) {
+    clearInterval(window.__auroraFadeOutInterval)
+    window.__auroraFadeOutInterval = null
+  }
+}
+
+function startAuroraMusic() {
+  const aurora = document.getElementById("auroraMusic")
+  if (!aurora) return
+  if (window.__auroraFadeOutInterval) {
+    clearInterval(window.__auroraFadeOutInterval)
+    window.__auroraFadeOutInterval = null
+  }
+  try { aurora.pause() } catch (_) {}
+  aurora.currentTime = 0
+  aurora.volume = 0
+  aurora.play().catch(()=>{})
+  window.__auroraFadeInInterval = setInterval(() => {
+    if (aurora.volume < 0.35) aurora.volume = Math.min(0.35, aurora.volume + 0.03)
+    else {
+      clearInterval(window.__auroraFadeInInterval)
+      window.__auroraFadeInInterval = null
+    }
+  }, 100)
+}
+
+function stopAuroraMusic(fade, onDone) {
+  const aurora = document.getElementById("auroraMusic")
+  if (!aurora) {
+    if (onDone) onDone()
+    return
+  }
+  if (window.__auroraFadeInInterval) {
+    clearInterval(window.__auroraFadeInInterval)
+    window.__auroraFadeInInterval = null
+  }
+  if (!fade) {
+    try { aurora.pause() } catch (_) {}
+    aurora.currentTime = 0
+    aurora.volume = 0
+    if (onDone) onDone()
+    return
+  }
+  window.__auroraFadeOutInterval = setInterval(() => {
+    if (aurora.volume > 0.04) aurora.volume = Math.max(0, aurora.volume - 0.04)
+    else {
+      clearInterval(window.__auroraFadeOutInterval)
+      window.__auroraFadeOutInterval = null
+      try { aurora.pause() } catch (_) {}
+      aurora.currentTime = 0
+      aurora.volume = 0
+      if (onDone) onDone()
+    }
+  }, 100)
+}
+
 function resetAuroraPresentation() {
+  clearAuroraTimers()
   auroraActive = false
   const overlay = document.getElementById("auroraOverlay")
   if (overlay && overlay.parentNode) overlay.remove()
@@ -749,24 +817,70 @@ function resetAuroraPresentation() {
   if (msg && msg.parentNode) msg.remove()
   const bifrostBtn = document.getElementById("bifrostBtn")
   if (bifrostBtn && bifrostBtn.parentNode) bifrostBtn.remove()
-  const aurora = document.getElementById("auroraMusic")
-  if (aurora) {
-    aurora.pause()
-    aurora.currentTime = 0
-    aurora.volume = 0
-  }
+  const end = document.getElementById("auroraEndMessage")
+  if (end && end.parentNode) end.remove()
+  stopAuroraMusic(false)
 }
 
 function showAuroraEvent() {
-  if(document.getElementById("auroraOverlay")) return; auroraActive=true; updateBifrostBtn(); if(isGM) setTimeout(()=>checkOdinVision(),5000)
+  clearAuroraTimers()
+  if(document.getElementById("auroraOverlay")) {
+    auroraActive = true
+    updateBifrostBtn()
+    const aurora = document.getElementById("auroraMusic")
+    if (aurora && aurora.paused && currentMap !== "bifrost.jpg") startAuroraMusic()
+    return
+  }
+  auroraActive=true; updateBifrostBtn(); if(isGM) setTimeout(()=>checkOdinVision(),5000)
   const ov=document.createElement("div"); ov.id="auroraOverlay"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999990;opacity:0;transition:opacity 3s ease;"; document.body.appendChild(ov)
   const colors=["rgba(0,255,150,0.22)","rgba(0,220,255,0.18)","rgba(120,60,255,0.16)","rgba(0,255,180,0.20)","rgba(40,180,255,0.17)"]
   for(let i=0;i<8;i++){ const b=document.createElement("div"); b.style.cssText=`position:absolute;top:${Math.random()*60}%;left:-20%;width:140%;height:${80+Math.random()*160}px;background:linear-gradient(90deg,transparent,${colors[i%colors.length]},transparent);border-radius:50%;transform:rotate(${-15+Math.random()*30}deg);animation:auroraDance ${4+Math.random()*6}s ease-in-out infinite;animation-delay:${Math.random()*3}s;filter:blur(8px);`; ov.appendChild(b) }
   const msg=document.createElement("div"); msg.id="auroraMessage"; msg.innerHTML=`<div style="font-size:42px;margin-bottom:16px;">✨</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:28px;letter-spacing:4px;margin-bottom:12px;color:#a0ffcc;text-shadow:0 0 20px #00ffaa;">AURORES BORÉALES</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#c0fff0;opacity:0.9;line-height:1.6;max-width:500px;text-align:center;">Les cieux s'embrasent de lumières mystiques...</div>`; msg.style.cssText="position:fixed;top:12%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:9999995;opacity:0;transition:opacity 2s ease;"; document.body.appendChild(msg)
   setTimeout(()=>{ ov.style.opacity="1"; msg.style.opacity="1" },100)
-  fadeMusicOut(()=>{ const aurora=document.getElementById("auroraMusic"); if(aurora){ aurora.pause(); aurora.currentTime=0; aurora.volume=0; aurora.play().catch(()=>{}); let iv=setInterval(()=>{ if(aurora.volume<0.35) aurora.volume=Math.min(0.35,aurora.volume+0.03); else clearInterval(iv) },100) } })
-  setTimeout(()=>{ msg.style.opacity="0"; setTimeout(()=>msg.remove(),2000) },5000)
-  setTimeout(()=>{ ov.style.transition="opacity 4s ease"; ov.style.opacity="0"; setTimeout(()=>{ const aurora=document.getElementById("auroraMusic"); if(aurora){ let outIv=setInterval(()=>{ if(aurora.volume>0.04) aurora.volume=Math.max(0,aurora.volume-0.04); else{ clearInterval(outIv); aurora.pause(); aurora.currentTime=0 } },100) } ov.remove(); auroraActive=false; db.ref("events/aurora").remove(); if(currentMap&&mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap]) },4000) },55000)
+  fadeMusicOut(()=>{ startAuroraMusic() })
+  window.__auroraMsgTimer = setTimeout(()=>{
+    msg.style.opacity="0"
+    window.__auroraRemoveMsgTimer = setTimeout(()=>msg.remove(),2000)
+  },5000)
+  if (isGM) {
+    window.__auroraAutoEndTimer = setTimeout(() => db.ref("events/aurora").remove(), 55000)
+  }
+}
+
+function showAuroraEndSequence() {
+  if (!auroraActive && !document.getElementById("auroraOverlay")) return
+  clearAuroraTimers()
+  auroraActive = false
+  updateBifrostBtn()
+
+  const ov = document.getElementById("auroraOverlay")
+  const msg = document.getElementById("auroraMessage")
+  if (msg && msg.parentNode) msg.remove()
+
+  let end = document.getElementById("auroraEndMessage")
+  if (!end) {
+    end = document.createElement("div")
+    end.id = "auroraEndMessage"
+    end.innerHTML = `<div style="font-size:34px;margin-bottom:12px;">✦</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:24px;letter-spacing:4px;margin-bottom:10px;color:#d9fff1;text-shadow:0 0 20px rgba(120,255,220,0.8);">LES AURORES S'ÉTEIGNENT</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#d8fff8;opacity:0.92;line-height:1.6;max-width:520px;text-align:center;">Le ciel reprend lentement son souffle.</div>`
+    end.style.cssText = "position:fixed;top:14%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:9999996;opacity:0;transition:opacity 2s ease;"
+    document.body.appendChild(end)
+  }
+
+  setTimeout(() => { end.style.opacity = "1" }, 50)
+  if (ov) {
+    ov.style.transition = "opacity 5s ease"
+    ov.style.opacity = "0"
+  }
+  screenShake()
+
+  stopAuroraMusic(true, () => {
+    if (ov && ov.parentNode) ov.remove()
+    if (end && end.parentNode) {
+      end.style.opacity = "0"
+      setTimeout(() => { if (end.parentNode) end.remove() }, 1800)
+    }
+    if (currentMap && mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap])
+  })
 }
 
 function updateBifrostBtn() {

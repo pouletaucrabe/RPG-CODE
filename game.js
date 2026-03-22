@@ -1338,7 +1338,12 @@ db.ref("game/highPNJName").on("value", snap => {
 // ─── aurora ───
 db.ref("events/aurora").on("value", snap => {
   const data = snap.val()
-  if (!data || !data.active) return
+  if (!data || !data.active) {
+    if (auroraActive || document.getElementById("auroraOverlay")) {
+      showAuroraEndSequence()
+    }
+    return
+  }
   if (!gameStarted || gameState === GAME_STATE.MENU) return
   showAuroraEvent()
 })
@@ -1395,7 +1400,10 @@ db.ref("game/mobAttackEvent").on("value", snap => {
 // ─── curse/wheel ───
 db.ref("curse/wheel").on("value", snap => {
   const data = snap.val()
-  if (!data) return
+  if (!data) {
+    window.__curseWheelTriggeredFor = null
+    return
+  }
   if (data.state === "intro")  showCurseIntro(data.player)
   if (data.state === "wheel")  showCurseWheelScreen(data.player)
   if (data.state === "result") showCurseResult(data.player, data.result)
@@ -1820,6 +1828,26 @@ function watchCharacter(snapshot) {
     const curseVal = parseInt(data.curse) || 0
     if (curseVal >= 8) { token.classList.add("cursed");    startBloodEffect(token) }
     else               { token.classList.remove("cursed"); stopBloodEffect(token)  }
+  }
+
+  const localId = getLocalPlayerId()
+  const localCurse = parseInt(data.curse) || 0
+  if (
+    !isGM &&
+    localId &&
+    String(playerID).toLowerCase() === localId &&
+    localCurse >= 8 &&
+    !window.__curseWheelTriggeredFor
+  ) {
+    window.__curseWheelTriggeredFor = localId
+    triggerCurseWheel(playerID)
+  } else if (
+    localId &&
+    String(playerID).toLowerCase() === localId &&
+    localCurse < 8 &&
+    window.__curseWheelTriggeredFor === localId
+  ) {
+    window.__curseWheelTriggeredFor = null
   }
 
   // Level up

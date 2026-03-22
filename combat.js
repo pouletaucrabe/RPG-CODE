@@ -171,14 +171,20 @@ function playRoiIntro(mob, tierMob) {
 }
 
 function _startCombatSequence(mob, tierMob) {
-  fadeMusicOut(() => {
-    const track = tierMob === "boss"
-      ? "audio/worldboss.mp3"
-      : tierMob === "high"
-      ? "audio/highcombat.mp3"
-      : "audio/lowcombat.mp3"
-    setTimeout(() => crossfadeMusic(track), 100)
-  })
+  const keepMapMusic =
+    (mob === "kraken" && currentMap === "tourbillon.jpg") ||
+    (mob === "balraug" && currentMap === "balraug.jpg")
+
+  if (!keepMapMusic) {
+    fadeMusicOut(() => {
+      const track = tierMob === "boss"
+        ? "audio/worldboss.mp3"
+        : tierMob === "high"
+        ? "audio/highcombat.mp3"
+        : "audio/lowcombat.mp3"
+      setTimeout(() => crossfadeMusic(track), 100)
+    })
+  }
 
   const intro = document.getElementById("combatIntro"); intro.style.display = "flex"
   const cf    = document.getElementById("combatFilter")
@@ -515,7 +521,7 @@ function returnToMap() {
     setTimeout(() => {
       fade.style.transition = "opacity 0.8s ease"; fade.style.opacity = "0"; fade.style.pointerEvents = "none"
       // Balraug — musique déjà en cours, ne pas relancer
-      if (currentMap && mapMusic[currentMap] && currentMob !== "balraug") crossfadeMusic(mapMusic[currentMap])
+      if (currentMap && mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap])
       if (typeof updateThuumButton === "function") updateThuumButton()
     }, 300)
   }, 600)
