@@ -2204,6 +2204,16 @@ function gmRoll(max) {
   db.ref("diceRoll").push({ player: "MJ", dice: max, result, time: Date.now(), sender: "MJ" })
 }
 
+function toggleDiceBar(forceState) {
+  const bar = document.getElementById("diceBar")
+  const toggle = document.getElementById("diceBarToggle")
+  if (!bar || !toggle) return
+  const collapsed = typeof forceState === "boolean" ? forceState : !bar.classList.contains("collapsed")
+  bar.classList.toggle("collapsed", collapsed)
+  toggle.innerText = collapsed ? "▴" : "▾"
+  toggle.setAttribute("aria-label", collapsed ? "Déplier les dés" : "Replier les dés")
+}
+
 function mobRoll(max) {
   if (!isGM || !combatActive) return
   const result = Math.floor(Math.random() * max) + 1
