@@ -84,6 +84,34 @@ html, body {
   overflow-y: auto; padding: 28px 0 18px; box-sizing: border-box;
 }
 
+/* ========================= */
+/* COMBAT WORLD BOSS SAFETY  */
+/* ========================= */
+
+#gmBar {
+  z-index: 1000000002 !important;
+  pointer-events: auto !important;
+}
+
+#gmBar > * {
+  pointer-events: auto !important;
+}
+
+.gmSection {
+  z-index: 1000000003 !important;
+  pointer-events: auto !important;
+}
+
+#diceBar {
+  z-index: 1000000001 !important;
+}
+
+#combatArena,
+#combatFilter,
+#bossFireOverlay {
+  z-index: 9999998 !important;
+}
+
 /* Final single source of truth for intro and closed MJ bar */
 #introBox {
   position: relative !important;
