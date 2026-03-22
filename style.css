@@ -3453,7 +3453,7 @@ body {
   display: none;
   justify-content: flex-start !important;
   align-items: center !important;
-  padding-top: 36px !important;
+  padding-top: 22px !important;
   box-sizing: border-box !important;
 }
 
@@ -3471,15 +3471,15 @@ body {
   position: relative !important;
   width: min(760px, 82vw) !important;
   max-width: min(760px, 82vw) !important;
-  min-height: 878px !important;
+  min-height: 820px !important;
   aspect-ratio: auto !important;
-  padding: 220px 32px 110px !important;
+  padding: 130px 32px 70px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  gap: 22px !important;
-  background-image: url("images/menu%20intro.png") !important;
+  gap: 16px !important;
+  background: url("images/menu intro.png") center top / 100% 100% no-repeat !important;
   background-position: center top !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
@@ -3498,7 +3498,7 @@ body {
 }
 
 #introBox > #startButton {
-  margin-top: 34px !important;
+  margin-top: 12px !important;
 }
 
 #introBox > div,
@@ -3507,16 +3507,16 @@ body {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  gap: 18px !important;
-  margin-top: 22px !important;
+  gap: 12px !important;
+  margin-top: 6px !important;
 }
 
 #startButton {
-  height: 126px !important;
+  height: 120px !important;
 }
 
 .menuButton {
-  height: 118px !important;
+  height: 112px !important;
 }
 
 #startButton .btn-inner {
