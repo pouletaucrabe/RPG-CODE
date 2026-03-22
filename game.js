@@ -2518,7 +2518,6 @@ function activateGM() {
     isGM = true
     document.getElementById("gmBar").style.display     = "flex"
     toggleGMBar(false)
-    document.getElementById("mjRollBtn").style.display = "inline-block"
     document.getElementById("mjLog").style.display     = "block"
     document.getElementById("gmSaveBar").style.display = "block"
       ensureMadnessGMButton()
