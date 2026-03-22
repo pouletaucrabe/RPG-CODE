@@ -1,4 +1,4 @@
-"use strict"
+﻿"use strict"
 
 /* ========================= */
 /* FICHE PERSONNAGE          */
@@ -8,11 +8,11 @@ function openCharacterSheet(id = null) {
   let playerID
   if (isGM) { if (!id) return; playerID = id }
   else {
-    if (!myToken) { showNotification("Choisissez un personnage 🎭"); return }
+    if (!myToken) { showNotification("Choisissez un personnage ðŸŽ­"); return }
     playerID = (id === "bibi" && myToken.id === "greg") ? "bibi" : myToken.id
   }
   currentSheetPlayer = playerID
-  // Marquer la fiche avec l'ID du joueur pour éviter les sauvegardes croisées
+  // Marquer la fiche avec l'ID du joueur pour Ã©viter les sauvegardes croisÃ©es
   const sheet = document.getElementById("characterSheet")
   if (sheet) sheet.dataset.playerId = playerID
   const inv = document.getElementById("inventaire")
@@ -40,7 +40,7 @@ function openCharacterSheet(id = null) {
   })
   document.getElementById("characterSheet").style.display = "block"
   loadGold(playerID)
-  // Vérifier si des points libres sont disponibles
+  // VÃ©rifier si des points libres sont disponibles
   if (!isGM || playerID === myToken?.id) setTimeout(() => checkFreePoints(playerID), 300)
 }
 
@@ -58,14 +58,14 @@ function saveCharacter() {
     if (f.offsetParent !== null && f.id !== "weight" && f.id !== "maxWeight") data[f.id] = f.value
   })
   db.ref("characters/" + id).update(data).catch(console.error)
-  showNotification("💾 Fiche sauvegardée")
+  showNotification("ðŸ’¾ Fiche sauvegardÃ©e")
 }
 
 function autoSaveCharacter() {
   if (!myToken && !isGM) return
   const id = currentSheetPlayer; if (!id) return
 
-  // Sécurité — vérifier que l'ID de la fiche ouverte correspond bien
+  // SÃ©curitÃ© â€” vÃ©rifier que l'ID de la fiche ouverte correspond bien
   const sheet = document.getElementById("characterSheet")
   const sheetId = sheet?.dataset.playerId
   if (sheetId && sheetId !== id) return
@@ -94,7 +94,7 @@ function updateWeightBar() {
     const w = parseFloat(wm[1].replace(",",".")); if (isNaN(w)) return
     const qm = line.match(/x(\d+)/i); total += w * (qm ? parseInt(qm[1]) : 1)
   })
-  // Lire le max depuis Firebase (poids calculé selon le niveau)
+  // Lire le max depuis Firebase (poids calculÃ© selon le niveau)
   db.ref("characters/" + currentSheetPlayer + "/poids").once("value", snap => {
     const max = snap.val() || (currentSheetPlayer === "bibi" ? 40 : 100)
     document.getElementById("weight").value    = total
@@ -156,7 +156,7 @@ function showCombatHUD() {
     const block = document.createElement("div"); block.className = "combatBlock"
     const t = document.createElement("div"); t.className = "combatAttack"; t.innerText = a.name; block.appendChild(t)
     if (a.type)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Type :</span> "+a.type; block.appendChild(el) }
-    if (a.dice)   { const el=document.createElement("div"); el.className="attackLine"; let txt="🎲 <span class='attackDice'>d"+a.dice+"</span>"; if(a.stat) txt+=" + <span class='attackStat'>"+a.stat.toUpperCase()+"</span>"; el.innerHTML="<span class='attackLabel'>Jet :</span> "+txt; block.appendChild(el) }
+    if (a.dice)   { const el=document.createElement("div"); el.className="attackLine"; let txt="ðŸŽ² <span class='attackDice'>d"+a.dice+"</span>"; if(a.stat) txt+=" + <span class='attackStat'>"+a.stat.toUpperCase()+"</span>"; el.innerHTML="<span class='attackLabel'>Jet :</span> "+txt; block.appendChild(el) }
     if (a.effect) { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Effet :</span> "+a.effect; block.appendChild(el) }
     if (a.crit)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Crit :</span> "+a.crit; block.appendChild(el) }
     box.appendChild(block)
@@ -195,7 +195,7 @@ function openGMPlayerSheet(playerID) {
     const block = document.createElement("div"); block.className = "combatBlock"
     const t = document.createElement("div"); t.className = "combatAttack"; t.innerText = a.name; block.appendChild(t)
     if (a.type)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Type :</span> "+a.type; block.appendChild(el) }
-    if (a.dice)   { const el=document.createElement("div"); el.className="attackLine"; let txt="🎲 <span class='attackDice'>d"+a.dice+"</span>"; if(a.stat) txt+=" + <span class='attackStat'>"+a.stat.toUpperCase()+"</span>"; el.innerHTML="<span class='attackLabel'>Jet :</span> "+txt; block.appendChild(el) }
+    if (a.dice)   { const el=document.createElement("div"); el.className="attackLine"; let txt="ðŸŽ² <span class='attackDice'>d"+a.dice+"</span>"; if(a.stat) txt+=" + <span class='attackStat'>"+a.stat.toUpperCase()+"</span>"; el.innerHTML="<span class='attackLabel'>Jet :</span> "+txt; block.appendChild(el) }
     if (a.effect) { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Effet :</span> "+a.effect; block.appendChild(el) }
     if (a.crit)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Crit :</span> "+a.crit; block.appendChild(el) }
     box.appendChild(block)
@@ -204,9 +204,9 @@ function openGMPlayerSheet(playerID) {
   db.ref("characters/" + playerID).on("value", snap => {
     const d = snap.val(); if (!d) return
     const hp = d.hp||0, curse = d.curse||0, corruption = d.corruption||0
-    let ci = ""; for (let i=0;i<curse;i++) ci+="☠"
+    let ci = ""; for (let i=0;i<curse;i++) ci+="â˜ "
     const sb = document.getElementById("gmStats_"+playerID)
-    if (sb) sb.innerHTML = `<div class="gmMiniLvl">⭐ ${d.lvl||1}</div><div class="gmMiniHP">❤️ ${hp}</div><div class="gmMiniCurse">${ci}</div><div class="gmMiniPower">${corruption>=10?"✨":""}</div>`
+    if (sb) sb.innerHTML = `<div class="gmMiniLvl">â­ ${d.lvl||1}</div><div class="gmMiniHP">â¤ï¸ ${hp}</div><div class="gmMiniCurse">${ci}</div><div class="gmMiniPower">${corruption>=10?"âœ¨":""}</div>`
     const hpBar = document.getElementById("gmHPBar_"+playerID)
     if (hpBar) { const pct=Math.max(0,Math.min(100,hp)); hpBar.style.width=pct+"%"; hpBar.style.background=pct>60?"linear-gradient(90deg,#3cff6b,#0b8a3a)":pct>30?"linear-gradient(90deg,#ffb347,#ff7b00)":"linear-gradient(90deg,#ff4040,#8b0000)" }
   })
@@ -228,10 +228,10 @@ function _smartTarget(attack) {
   const effect = attack.effect || ""
   const name   = (attack.name || "").toLowerCase()
 
-  // Attaque de zone — tous les joueurs
+  // Attaque de zone â€” tous les joueurs
   if (effect === "all") return "all"
 
-  // Attaque corps à corps — joueur le plus proche du token mob
+  // Attaque corps Ã  corps â€” joueur le plus proche du token mob
   if (effect === "melee" || name.includes("coup") || name.includes("frappe") || name.includes("morsure") || name.includes("griffe")) {
     const mobTok = document.getElementById("mobToken")
     if (mobTok) {
@@ -248,15 +248,15 @@ function _smartTarget(attack) {
     }
   }
 
-  // Attaque de malédiction — joueur avec le moins de malédictions actives
+  // Attaque de malÃ©diction â€” joueur avec le moins de malÃ©dictions actives
   if (effect === "curse") {
-    // Cibler celui qui a le moins de malédictions (pire cible = celle qu'on veut affaiblir)
+    // Cibler celui qui a le moins de malÃ©dictions (pire cible = celle qu'on veut affaiblir)
     return alivePlayers[Math.floor(Math.random() * alivePlayers.length)]
   }
 
-  // Attaque à distance / magie — joueur avec le plus de HP (menace principale)
-  if (effect === "ranged" || effect === "magic" || name.includes("flèche") || name.includes("magie") || name.includes("sort")) {
-    // Lecture des HP depuis les tokens stats si dispo, sinon aléatoire
+  // Attaque Ã  distance / magie â€” joueur avec le plus de HP (menace principale)
+  if (effect === "ranged" || effect === "magic" || name.includes("flÃ¨che") || name.includes("magie") || name.includes("sort")) {
+    // Lecture des HP depuis les tokens stats si dispo, sinon alÃ©atoire
     const hpEls = alivePlayers.map(pid => {
       const el = document.querySelector("#stats_" + pid + " .hpText, #stats_" + pid + " .lowHPText")
       const txt = el ? el.innerText : ""
@@ -264,11 +264,11 @@ function _smartTarget(attack) {
       return { pid, hp: m ? parseInt(m[1]) : 50 }
     })
     hpEls.sort((a,b) => b.hp - a.hp)
-    // 60% chance de cibler le plus fort, 40% aléatoire
+    // 60% chance de cibler le plus fort, 40% alÃ©atoire
     return Math.random() < 0.6 ? hpEls[0].pid : alivePlayers[Math.floor(Math.random()*alivePlayers.length)]
   }
 
-  // Par défaut — aléatoire avec légère préférence pour les HP bas
+  // Par dÃ©faut â€” alÃ©atoire avec lÃ©gÃ¨re prÃ©fÃ©rence pour les HP bas
   return alivePlayers[Math.floor(Math.random() * alivePlayers.length)]
 }
 
@@ -279,7 +279,7 @@ function renderAllMobPanels() {
 
   const toggle = document.createElement("div"); toggle.id = "mobAttackToggle"
   toggle.style.cssText = "position:fixed;bottom:160px;right:20px;z-index:9999999;font-family:Cinzel,serif;font-size:11px;color:#ff8888;background:rgba(10,0,0,0.9);border:1px solid rgba(180,40,40,0.5);border-radius:4px;padding:4px 10px;cursor:pointer;"
-  toggle.innerText = "⚔ Attaques Mobs"
+  toggle.innerText = "âš” Attaques Mobs"
 
   const container = document.createElement("div"); container.id = "mobAttackPanel"
   container.style.cssText = "position:fixed;bottom:200px;right:20px;width:270px;display:flex;flex-direction:column;gap:6px;z-index:9999999;max-height:65vh;overflow-y:auto;"
@@ -311,12 +311,12 @@ function renderAllMobPanels() {
 function buildMobSubPanel(mobData, slot) {
   const panel = document.createElement("div"); panel.style.cssText = "background:rgba(10,0,0,0.92);border:2px solid rgba(180,40,40,0.6);border-radius:8px;padding:10px;"
   const header = document.createElement("div"); header.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
-  const tEl = document.createElement("div"); tEl.style.cssText = "font-family:Cinzel,serif;font-size:12px;color:#ff8888;font-weight:bold;"; tEl.innerText = "⚔ "+(mobData.name||"MOB").toUpperCase()+" Niv."+(mobData.lvl||1); header.appendChild(tEl)
+  const tEl = document.createElement("div"); tEl.style.cssText = "font-family:Cinzel,serif;font-size:12px;color:#ff8888;font-weight:bold;"; tEl.innerText = "âš” "+(mobData.name||"MOB").toUpperCase()+" Niv."+(mobData.lvl||1); header.appendChild(tEl)
 
   if (isGM) {
-    const cBtn = document.createElement("button"); cBtn.style.cssText = "padding:2px 8px;font-size:11px;background:rgba(40,40,80,0.5);color:#8888ff;border:1px solid rgba(80,80,180,0.4);border-radius:3px;cursor:pointer;"; cBtn.innerText = "—"
+    const cBtn = document.createElement("button"); cBtn.style.cssText = "padding:2px 8px;font-size:11px;background:rgba(40,40,80,0.5);color:#8888ff;border:1px solid rgba(80,80,180,0.4);border-radius:3px;cursor:pointer;"; cBtn.innerText = "â€”"
     cBtn.onclick=()=>{ const p=panel.closest("#mobAttackPanel"); if(p) p.style.display="none"; const tg=document.getElementById("mobAttackToggle"); if(tg) tg.style.display="block" }; header.appendChild(cBtn)
-    const xBtn = document.createElement("button"); xBtn.style.cssText = "padding:2px 8px;font-size:11px;background:rgba(120,0,0,0.5);color:#ff8888;border:1px solid rgba(180,0,0,0.4);border-radius:3px;cursor:pointer;"; xBtn.innerText = "✕"; xBtn.onclick=()=>removeMobSlot(slot); header.appendChild(xBtn)
+    const xBtn = document.createElement("button"); xBtn.style.cssText = "padding:2px 8px;font-size:11px;background:rgba(120,0,0,0.5);color:#ff8888;border:1px solid rgba(180,0,0,0.4);border-radius:3px;cursor:pointer;"; xBtn.innerText = "âœ•"; xBtn.onclick=()=>removeMobSlot(slot); header.appendChild(xBtn)
   }
   panel.appendChild(header)
 
@@ -325,17 +325,19 @@ function buildMobSubPanel(mobData, slot) {
   const hpFill = document.createElement("div"); hpFill.style.cssText = `width:${pct}%;height:100%;background:${pct>50?"#44ff44":pct>25?"#ffaa00":"#ff3333"};border-radius:3px;transition:width 0.3s;`; hpWrap.appendChild(hpFill); panel.appendChild(hpWrap)
 
   const tier = mobData.tier||"weak", atks = mobAttacks[tier]||mobAttacks.weak, mobLvl = mobData.lvl||1
+  const slotKey = mobData.slot || slot || "mob"
+  window.__mobSpecialUsed = window.__mobSpecialUsed || {}
 
   if (isGM) {
-    // Bouton aléatoire intelligent
+    // Bouton alÃ©atoire intelligent
     const rBtn = document.createElement("button"); rBtn.style.cssText = "width:100%;padding:5px;margin-bottom:5px;font-family:Cinzel,serif;font-size:10px;background:rgba(80,30,120,0.5);color:#cc88ff;border:1px solid rgba(120,50,200,0.5);border-radius:4px;cursor:pointer;"
-    rBtn.innerText = "🎲 Aléatoire (ciblage auto)"
+    rBtn.innerText = "ðŸŽ² AlÃ©atoire (ciblage auto)"
     rBtn.onclick = () => {
-      const av = atks.filter(a=>a.name!==panel._lastAttack)
+      const av = atks.filter(a=>a.name!==panel._lastAttack && !(a.special && window.__mobSpecialUsed[slotKey]))
       const atk = (av.length?av:atks)[Math.floor(Math.random()*(av.length||atks.length))]
       const target = _smartTarget(atk)
       panel._currentTarget = target === "all" ? null : target
-      launchMobAttackFromSlot(atk, mobData, panel, target)
+      launchMobAttackResolved(atk, mobData, panel, target)
     }
     panel.appendChild(rBtn)
 
@@ -344,20 +346,20 @@ function buildMobSubPanel(mobData, slot) {
       const btn = document.createElement("div")
       const min=Math.round(atk.dmgMin*(1+(mobLvl-1)*0.15)), max=Math.round(atk.dmgMax*(1+(mobLvl-1)*0.15))
       btn.style.cssText = `padding:6px 8px;margin-bottom:4px;background:rgba(120,10,10,${isCD?"0.2":"0.4"});border:1px solid rgba(180,40,40,${isCD?"0.2":"0.4"});border-radius:4px;cursor:${isCD?"not-allowed":"pointer"};opacity:${isCD?"0.5":"1"};`
-      btn.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${isCD?"#666":"#ffcccc"};font-weight:bold;">${atk.name}${isCD?" ⏱":""}</span><span style="font-size:9px;color:#ff8888;margin-left:auto;">${min}-${max}</span></div>`
+      btn.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${isCD?"#666":"#ffcccc"};font-weight:bold;">${atk.name}${isCD?" â±":""}</span><span style="font-size:9px;color:#ff8888;margin-left:auto;">${min}-${max}</span></div>`
       if (!isCD) {
         btn.onmouseenter=()=>btn.style.background="rgba(180,20,20,0.6)"
         btn.onmouseleave=()=>btn.style.background="rgba(120,10,10,0.4)"
         btn.onclick=()=>{
           const target = _smartTarget(atk)
           panel._currentTarget = target === "all" ? null : target
-          launchMobAttackFromSlot(atk, mobData, panel, target)
+          launchMobAttackResolved(atk, mobData, panel, target)
         }
       }
       panel.appendChild(btn)
     })
 
-    // Sélection manuelle de cible (override)
+    // SÃ©lection manuelle de cible (override)
     const targetRow = document.createElement("div"); targetRow.style.cssText = "display:flex;gap:3px;margin-top:6px;flex-wrap:wrap;border-top:1px solid rgba(180,40,40,0.2);padding-top:6px;"
     const label = document.createElement("div"); label.style.cssText = "width:100%;font-family:Cinzel,serif;font-size:9px;color:#5a3a3a;margin-bottom:3px;"; label.innerText = "Forcer la cible :"
     targetRow.appendChild(label)
@@ -382,7 +384,7 @@ function buildMobSubPanel(mobData, slot) {
 
 function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget) {
   const target = forcedTarget || panel._currentTarget
-  if (!target && attack.effect !== "all") { showNotification("⚠ Choisissez une cible !"); return }
+  if (!target && attack.effect !== "all") { showNotification("âš  Choisissez une cible !"); return }
   panel._lastAttack = attack.name
   animateMobDice(() => {
     const dmg = getMobDamage(attack, mobData.lvl||1)
@@ -394,7 +396,7 @@ function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget) {
         db.ref("characters/"+target+"/hp").set(Math.max(0,(s.val()||0)-dmg))
         if (attack.effect==="curse") { db.ref("characters/"+target+"/curse").once("value",cs=>{ db.ref("characters/"+target+"/curse").set(Math.min(8,(cs.val()||0)+1)) }) }
         db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now() })
-        showNotification("💥 "+attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
+        showNotification("ðŸ’¥ "+attack.name+" â†’ "+target.toUpperCase()+" â€” "+dmg+" dÃ©gÃ¢ts !"); screenShake()
       })
     }
     setTimeout(() => renderAllMobPanels(), 200)
@@ -408,7 +410,7 @@ function animateMobDice(cb) {
 
 function addMobToFight(mobId, forceTier) {
   if (!isGM) return
-  const freeSlot=MOB_SLOTS.find(s=>!activeMobSlots[s]); if(!freeSlot){ showNotification("⚠ Maximum 3 mobs !"); return }
+  const freeSlot=MOB_SLOTS.find(s=>!activeMobSlots[s]); if(!freeSlot){ showNotification("âš  Maximum 3 mobs !"); return }
   const tier=forceTier||(mobStats[mobId]?mobStats[mobId].tier:"weak")
   getPartyLevel(level => {
     const base=mobStats[mobId]?mobStats[mobId].baseHP:10
@@ -417,7 +419,7 @@ function addMobToFight(mobId, forceTier) {
     const hp=Math.round(base*(tMults[tier]||1.0)*Math.pow(1+effLvl*(tScales[tier]||0.12),1.6))
     const lvl=Math.max(1,level+(tLvl[tier]||0))
     db.ref("combat/"+freeSlot).set({ name:mobId, hp, maxHP:hp, lvl, tier, slot:freeSlot }); activeMobSlots[freeSlot]=true
-    showNotification("⚔ "+mobId.toUpperCase()+" rejoint le combat !")
+    showNotification("âš” "+mobId.toUpperCase()+" rejoint le combat !")
   })
 }
 
@@ -510,7 +512,7 @@ const PNJ_NAMES = {
   "tavernier.png":         "Bjorn le Tavernier",
   "serveuse.png":          "Astrid",
   "marchand.png":          "Egil le Marchand",
-  "voyantepnj.png":        "Sigrún la Voyante",
+  "voyantepnj.png":        "SigrÃºn la Voyante",
   "soulard.png":           "Gunnar l'Ivrogne",
   "garde.png":             "Halvard",
   "forgeron.png":          "Ulfrik le Forgeron",
@@ -520,8 +522,8 @@ const PNJ_NAMES = {
   "marchand2.png":         "Ragnhild la Marchande",
   "gardedunord.png":       "Ivar du Nord",
   "garde2.png":            "Ketill",
-  "conseillerroinord.png": "Conseiller Hákon",
-  "pretre.png":            "Frère Osvald",
+  "conseillerroinord.png": "Conseiller HÃ¡kon",
+  "pretre.png":            "FrÃ¨re Osvald",
   "pnj1.png":              "Un passant",
   "pnj2.png":              "Une villageoise",
   "femmepnj.png":          "Solveig",
@@ -568,7 +570,7 @@ function showStoryImage(image) {
   img.src=resolvePNJImageSrc(image); box.style.opacity="0"; box.style.left="50%"; box.style.transform="translateX(-50%)"; box.style.right="auto"; box.style.display="flex"
   if(!pnjSlotOrder.includes(1)) pnjSlotOrder.push(1); setTimeout(updatePNJPositions,50); setTimeout(()=>box.style.opacity="1",60)
 
-  // Afficher le nom si défini — délai pour laisser passer le set(null) initial
+  // Afficher le nom si dÃ©fini â€” dÃ©lai pour laisser passer le set(null) initial
   const pnjName = getPNJDisplayName(image)
   if (pnjName) {
     document.querySelectorAll("[id^='pnjNameTag']").forEach(el => el.remove())
@@ -606,7 +608,7 @@ function showStoryImage(image) {
 function hideStoryImage() {
   const box=document.getElementById("storyImage"); if(!box) return
   box.style.opacity="0"
-  // Retirer le tag nom seulement si aucun autre PNJ n'est affiché
+  // Retirer le tag nom seulement si aucun autre PNJ n'est affichÃ©
   setTimeout(() => {
     const b2 = document.getElementById("storyImage2")
     const b3 = document.getElementById("storyImage3")
@@ -636,7 +638,7 @@ function closeShop() { db.ref("game/shop").remove() }
 
 function renderShop(partyLvl, shopType) {
   shopType=shopType||"marche"
-  const activeItems=shopType==="armurerie"?shopItemsArmurerie:shopItems, shopTitle=shopType==="armurerie"?"⚔ Armurerie":"🛒 Marché"
+  const activeItems=shopType==="armurerie"?shopItemsArmurerie:shopItems, shopTitle=shopType==="armurerie"?"âš” Armurerie":"ðŸ›’ MarchÃ©"
   db.ref("game/runeChallenge").once("value",snapRune=>{
     const rd=snapRune.val(); let rc=null
     if(rd&&rd.active&&Math.random()<0.30){ const rev=rd.revealedLetters||[], ml=[...new Set("ALUERDSBVTINOPQCM".split("").filter(c=>c.trim()))], unrev=ml.filter(l=>!rev.includes(l)); if(unrev.length){ const let2=unrev[Math.floor(Math.random()*unrev.length)]; rc={letter:let2,rune:runeAlphabet[let2]||"?"} } }
@@ -648,7 +650,7 @@ function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {
   const overlay=document.createElement("div"); overlay.id="shopOverlay"; overlay.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:9999990;opacity:0;transition:opacity 0.5s ease;"
   const box=document.createElement("div"); box.style.cssText="background:url('images/shelf.png') center/100% 100% no-repeat;width:min(900px,92vw);max-height:85vh;overflow-y:auto;padding:50px 50px 40px 50px;min-height:400px;position:relative;font-family:'IM Fell English',serif;"
   const t=document.createElement("div"); t.style.cssText="text-align:center;font-family:'Cinzel Decorative','Cinzel',serif;font-size:28px;color:#1a0a04;margin-bottom:6px;letter-spacing:3px;"; t.innerText=shopTitle; box.appendChild(t)
-  if(runeCard){ const rc=document.createElement("div"); rc.style.cssText="position:relative;background:rgba(200,160,80,0.15);border:2px solid rgba(200,160,80,0.6);border-radius:6px;padding:16px;text-align:center;margin-bottom:16px;"; rc.innerHTML=`<div style="font-family:'Cinzel',serif;font-size:12px;color:#8a6830;margin-bottom:8px;">✦ OBJET MYSTÉRIEUX ✦</div><div style="font-size:28px;color:#c8a050;text-shadow:0 0 10px gold;">${runeCard.rune}</div><div style="font-family:'Cinzel',serif;font-size:14px;color:#7a3800;font-weight:bold;margin-top:8px;">💰 50 po</div>`; if(isGM){ const x=document.createElement("div"); x.style.cssText="position:absolute;top:-8px;right:-8px;width:22px;height:22px;background:#8b2000;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;z-index:10;"; x.innerText="✕"; x.onclick=()=>rc.remove(); rc.appendChild(x) }; box.appendChild(rc) }
+  if(runeCard){ const rc=document.createElement("div"); rc.style.cssText="position:relative;background:rgba(200,160,80,0.15);border:2px solid rgba(200,160,80,0.6);border-radius:6px;padding:16px;text-align:center;margin-bottom:16px;"; rc.innerHTML=`<div style="font-family:'Cinzel',serif;font-size:12px;color:#8a6830;margin-bottom:8px;">âœ¦ OBJET MYSTÃ‰RIEUX âœ¦</div><div style="font-size:28px;color:#c8a050;text-shadow:0 0 10px gold;">${runeCard.rune}</div><div style="font-family:'Cinzel',serif;font-size:14px;color:#7a3800;font-weight:bold;margin-top:8px;">ðŸ’° 50 po</div>`; if(isGM){ const x=document.createElement("div"); x.style.cssText="position:absolute;top:-8px;right:-8px;width:22px;height:22px;background:#8b2000;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;z-index:10;"; x.innerText="âœ•"; x.onclick=()=>rc.remove(); rc.appendChild(x) }; box.appendChild(rc) }
   const sub=document.createElement("div"); sub.style.cssText="text-align:center;font-family:'Cinzel',serif;font-size:13px;color:#3a1a04;margin-bottom:24px;font-weight:bold;"; sub.innerText="Niveau du groupe : "+partyLvl; box.appendChild(sub)
   const cats={}, catOrder=[]; activeItems.forEach(item=>{ if(!cats[item.category]){ cats[item.category]=[]; catOrder.push(item.category) }; cats[item.category].push(item) })
   let currentCat=0
@@ -657,12 +659,12 @@ function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {
   box.appendChild(navBar)
   const zone=document.createElement("div"); zone.id="shopItemsZone"; box.appendChild(zone)
   const catTitleEl=document.createElement("div"); catTitleEl.id="shopCatTitle"; catTitleEl.style.cssText="font-family:'Cinzel',serif;font-size:14px;color:#4a2a0a;letter-spacing:2px;font-weight:bold;"
-  function showCat(idx) { const cat=catOrder[idx],items=cats[cat]; if(catTitleEl) catTitleEl.innerText=categoryLabels[cat]; zone.innerHTML=""; const grid=document.createElement("div"); grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;"; items.forEach(item=>{ const prix=getShopPrice(item,partyLvl),stats=getShopStats(item,partyLvl); const card=document.createElement("div"); card.style.cssText="background:rgba(80,45,12,0.07);border:1px solid rgba(100,60,20,0.3);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:6px;"; const iHtml=item.img?`<img src="images/${item.img}" style="width:40px;height:40px;object-fit:contain;">`:""; card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;">${iHtml}<span style="font-family:'Cinzel',serif;font-size:14px;color:#1a0e04;font-weight:bold;">${item.name}</span></div><div style="font-size:12px;color:#5a3010;font-style:italic;">${stats}</div><div style="font-family:'Cinzel',serif;font-size:14px;color:#7a3800;font-weight:bold;">💰 ${prix} po</div>`; grid.appendChild(card) }); zone.appendChild(grid) }
+  function showCat(idx) { const cat=catOrder[idx],items=cats[cat]; if(catTitleEl) catTitleEl.innerText=categoryLabels[cat]; zone.innerHTML=""; const grid=document.createElement("div"); grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;"; items.forEach(item=>{ const prix=getShopPrice(item,partyLvl),stats=getShopStats(item,partyLvl); const card=document.createElement("div"); card.style.cssText="background:rgba(80,45,12,0.07);border:1px solid rgba(100,60,20,0.3);border-radius:4px;padding:12px;display:flex;flex-direction:column;gap:6px;"; const iHtml=item.img?`<img src="images/${item.img}" style="width:40px;height:40px;object-fit:contain;">`:""; card.innerHTML=`<div style="display:flex;align-items:center;gap:10px;">${iHtml}<span style="font-family:'Cinzel',serif;font-size:14px;color:#1a0e04;font-weight:bold;">${item.name}</span></div><div style="font-size:12px;color:#5a3010;font-style:italic;">${stats}</div><div style="font-family:'Cinzel',serif;font-size:14px;color:#7a3800;font-weight:bold;">ðŸ’° ${prix} po</div>`; grid.appendChild(card) }); zone.appendChild(grid) }
   const navRow=document.createElement("div"); navRow.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-top:16px;"
-  const prev=document.createElement("button"); prev.innerHTML="◀ Précédent"; prev.style.cssText="font-family:'Cinzel',serif;font-size:12px;padding:8px 16px;background:rgba(100,60,20,0.15);color:#2b1a10;border:1px solid rgba(100,60,20,0.3);border-radius:3px;cursor:pointer;"; prev.onclick=()=>{ if(currentCat>0){ currentCat--; navBar.querySelectorAll("button")[currentCat].click() } }
-  const next=document.createElement("button"); next.innerHTML="Suivant ▶"; next.style.cssText="font-family:'Cinzel',serif;font-size:12px;padding:8px 16px;background:rgba(100,60,20,0.15);color:#2b1a10;border:1px solid rgba(100,60,20,0.3);border-radius:3px;cursor:pointer;"; next.onclick=()=>{ if(currentCat<catOrder.length-1){ currentCat++; navBar.querySelectorAll("button")[currentCat].click() } }
+  const prev=document.createElement("button"); prev.innerHTML="â—€ PrÃ©cÃ©dent"; prev.style.cssText="font-family:'Cinzel',serif;font-size:12px;padding:8px 16px;background:rgba(100,60,20,0.15);color:#2b1a10;border:1px solid rgba(100,60,20,0.3);border-radius:3px;cursor:pointer;"; prev.onclick=()=>{ if(currentCat>0){ currentCat--; navBar.querySelectorAll("button")[currentCat].click() } }
+  const next=document.createElement("button"); next.innerHTML="Suivant â–¶"; next.style.cssText="font-family:'Cinzel',serif;font-size:12px;padding:8px 16px;background:rgba(100,60,20,0.15);color:#2b1a10;border:1px solid rgba(100,60,20,0.3);border-radius:3px;cursor:pointer;"; next.onclick=()=>{ if(currentCat<catOrder.length-1){ currentCat++; navBar.querySelectorAll("button")[currentCat].click() } }
   navRow.appendChild(prev); navRow.appendChild(catTitleEl); navRow.appendChild(next); box.appendChild(navRow)
-  if(isGM){ const cb=document.createElement("button"); cb.style.cssText="display:block;margin:20px auto 0;padding:10px 40px;font-family:'Cinzel',serif;font-size:14px;background:linear-gradient(#5a0000,#2a0000);color:#ffaaaa;border:1px solid #aa0000;border-radius:4px;cursor:pointer;"; cb.innerText="✕ Fermer la boutique"; cb.onclick=closeShop; box.appendChild(cb) }
+  if(isGM){ const cb=document.createElement("button"); cb.style.cssText="display:block;margin:20px auto 0;padding:10px 40px;font-family:'Cinzel',serif;font-size:14px;background:linear-gradient(#5a0000,#2a0000);color:#ffaaaa;border:1px solid #aa0000;border-radius:4px;cursor:pointer;"; cb.innerText="âœ• Fermer la boutique"; cb.onclick=closeShop; box.appendChild(cb) }
   overlay.appendChild(box); document.body.appendChild(overlay); showCat(0); catTitleEl.innerText=categoryLabels[catOrder[0]]; setTimeout(()=>overlay.style.opacity="1",20)
 }
 
@@ -670,7 +672,7 @@ function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {
 /* RUNE CHALLENGE            */
 /* ========================= */
 
-function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"᛫":c==="."?"᛬":c==="'"?"'":c) }).join("") }
+function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"á›«":c==="."?"á›¬":c==="'"?"'":c) }).join("") }
 function openRuneChallenge() { if(!isGM) return; _state.runeJustOpened=false; db.ref("game/runeChallenge").set({ active:true, unlockedHints:[], time:Date.now() }); document.querySelectorAll(".gmSection").forEach(s=>s.style.display="none") }
 function closeRuneChallenge() { db.ref("game/runeChallenge").remove(); const ov=document.getElementById("runeChallengeOverlay"); if(ov) ov.remove(); const btn=document.getElementById("playerCodeBtn"); if(btn) btn.remove() }
 function toggleRuneOverlay(data) { const ov=document.getElementById("runeChallengeOverlay"); if(ov) ov.remove(); else renderRuneChallenge(data) }
@@ -679,52 +681,52 @@ function updateRuneMenuBtn(active) { const l=document.getElementById("runeLaunch
 function renderRuneChallenge(data) {
   const uh=data.unlockedHints||[], rev=data.revealedLetters||[], enc=encodeToRunes(secretMessage,rev)
   const ov=document.createElement("div"); ov.id="runeChallengeOverlay"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,5,2,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999990;opacity:0;transition:opacity 0.6s ease;overflow-y:auto;padding:20px 0;"
-  const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;color:#c8a050;letter-spacing:6px;margin-bottom:6px;text-shadow:0 0 20px gold;"; t.innerText="ᚱᚢᚾᛖᛊ ᛞᛖ ᛚ'ᚨᚾᚲᛁᛖᚾ"; ov.appendChild(t)
-  const st=document.createElement("div"); st.style.cssText="font-family:'IM Fell English',serif;font-size:14px;color:#8a6830;margin-bottom:24px;letter-spacing:2px;"; st.innerText="Déchiffrez le message des anciens..."; ov.appendChild(st)
+  const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;color:#c8a050;letter-spacing:6px;margin-bottom:6px;text-shadow:0 0 20px gold;"; t.innerText="áš±áš¢áš¾á›–á›Š á›žá›– á›š'áš¨áš¾áš²á›á›–áš¾"; ov.appendChild(t)
+  const st=document.createElement("div"); st.style.cssText="font-family:'IM Fell English',serif;font-size:14px;color:#8a6830;margin-bottom:24px;letter-spacing:2px;"; st.innerText="DÃ©chiffrez le message des anciens..."; ov.appendChild(st)
   const mb=document.createElement("div"); mb.style.cssText="background:url('images/roc.png') center/100% 100% no-repeat;padding:50px 70px;max-width:700px;width:90vw;text-align:center;margin-bottom:24px;border-radius:4px;"
   const rt=document.createElement("div"); rt.style.cssText="font-size:32px;color:#ffe8a0;line-height:2.2;letter-spacing:6px;font-family:serif;word-break:break-word;font-weight:bold;"; rt.innerText=enc; mb.appendChild(rt); ov.appendChild(mb)
   if(uh.length){ const hb=document.createElement("div"); hb.style.cssText="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:700px;margin-bottom:16px;"; uh.forEach(hid=>{ const h=runeHints.find(x=>x.id===hid); if(!h) return; const card=document.createElement("div"); card.style.cssText="background:rgba(200,160,80,0.12);border:1px solid rgba(200,160,80,0.4);border-radius:6px;padding:8px 16px;font-family:serif;font-size:16px;color:#c8a050;letter-spacing:2px;"; card.innerHTML=`<div style="font-size:10px;color:#8a6830;font-family:Cinzel;margin-bottom:4px;">${h.desc}</div>${h.runes}`; hb.appendChild(card) }); ov.appendChild(hb) }
-  if(rev.length){ const rb=document.createElement("div"); rb.style.cssText="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:700px;margin-bottom:16px;"; const revT=document.createElement("div"); revT.style.cssText="width:100%;text-align:center;font-family:Cinzel;font-size:11px;color:#8a6830;letter-spacing:2px;margin-bottom:4px;"; revT.innerText="— LETTRES RÉVÉLÉES —"; rb.appendChild(revT); rev.forEach(l=>{ const r=runeAlphabet[l]||"?"; const p=document.createElement("div"); p.style.cssText="background:rgba(200,160,80,0.2);border:1px solid gold;border-radius:20px;padding:4px 12px;font-size:18px;color:#f5e6c8;"; p.innerHTML=`<span style="font-family:serif;">${r}</span> <span style="font-family:Cinzel;font-size:12px;color:#c8a050;">${l}</span>`; rb.appendChild(p) }); ov.appendChild(rb) }
-  if(isGM){ const as=document.createElement("div"); as.style.cssText="display:flex;flex-direction:column;align-items:center;gap:10px;width:90vw;max-width:600px;"; const ai=document.createElement("input"); ai.placeholder="Tapez votre réponse ici..."; ai.style.cssText="width:100%;padding:12px 20px;font-family:'Cinzel',serif;font-size:14px;background:rgba(200,160,80,0.1);border:1px solid rgba(200,160,80,0.4);border-radius:4px;color:#f5e6c8;text-align:center;outline:none;"; const sb=document.createElement("button"); sb.innerText="⚔ Valider la réponse"; sb.style.cssText="padding:10px 30px;font-family:'Cinzel',serif;font-size:14px;background:linear-gradient(#7a5520,#3a2508);color:#c8a050;border:1px solid #c8a050;border-radius:4px;cursor:pointer;"; sb.onclick=()=>{ const ans=ai.value.toLowerCase().replace(/[^a-zéèàâêôîûçœ ]/g,"").replace(/\s+/g," ").trim(), tgt=secretAnswer.replace(/[^a-zéèàâêôîûçœ ]/g,"").replace(/\s+/g," ").trim(); if(ans===tgt) showRuneVictory(); else{ ai.style.borderColor="red"; setTimeout(()=>ai.style.borderColor="rgba(200,160,80,0.4)",1000); screenShakeHard() } }; as.appendChild(ai); as.appendChild(sb); ov.appendChild(as)
-    const br=document.createElement("div"); br.style.cssText="display:flex;gap:10px;margin-top:16px;"; const xb=document.createElement("button"); xb.innerText="✕ Quitter"; xb.style.cssText="padding:8px 24px;font-family:'Cinzel',serif;font-size:12px;background:rgba(80,20,20,0.4);color:#ff8080;border:1px solid rgba(180,40,40,0.4);border-radius:4px;cursor:pointer;"; xb.onclick=closeRuneChallenge; br.appendChild(xb); ov.appendChild(br) }
+  if(rev.length){ const rb=document.createElement("div"); rb.style.cssText="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:700px;margin-bottom:16px;"; const revT=document.createElement("div"); revT.style.cssText="width:100%;text-align:center;font-family:Cinzel;font-size:11px;color:#8a6830;letter-spacing:2px;margin-bottom:4px;"; revT.innerText="â€” LETTRES RÃ‰VÃ‰LÃ‰ES â€”"; rb.appendChild(revT); rev.forEach(l=>{ const r=runeAlphabet[l]||"?"; const p=document.createElement("div"); p.style.cssText="background:rgba(200,160,80,0.2);border:1px solid gold;border-radius:20px;padding:4px 12px;font-size:18px;color:#f5e6c8;"; p.innerHTML=`<span style="font-family:serif;">${r}</span> <span style="font-family:Cinzel;font-size:12px;color:#c8a050;">${l}</span>`; rb.appendChild(p) }); ov.appendChild(rb) }
+  if(isGM){ const as=document.createElement("div"); as.style.cssText="display:flex;flex-direction:column;align-items:center;gap:10px;width:90vw;max-width:600px;"; const ai=document.createElement("input"); ai.placeholder="Tapez votre rÃ©ponse ici..."; ai.style.cssText="width:100%;padding:12px 20px;font-family:'Cinzel',serif;font-size:14px;background:rgba(200,160,80,0.1);border:1px solid rgba(200,160,80,0.4);border-radius:4px;color:#f5e6c8;text-align:center;outline:none;"; const sb=document.createElement("button"); sb.innerText="âš” Valider la rÃ©ponse"; sb.style.cssText="padding:10px 30px;font-family:'Cinzel',serif;font-size:14px;background:linear-gradient(#7a5520,#3a2508);color:#c8a050;border:1px solid #c8a050;border-radius:4px;cursor:pointer;"; sb.onclick=()=>{ const ans=ai.value.toLowerCase().replace(/[^a-zÃ©Ã¨Ã Ã¢ÃªÃ´Ã®Ã»Ã§Å“ ]/g,"").replace(/\s+/g," ").trim(), tgt=secretAnswer.replace(/[^a-zÃ©Ã¨Ã Ã¢ÃªÃ´Ã®Ã»Ã§Å“ ]/g,"").replace(/\s+/g," ").trim(); if(ans===tgt) showRuneVictory(); else{ ai.style.borderColor="red"; setTimeout(()=>ai.style.borderColor="rgba(200,160,80,0.4)",1000); screenShakeHard() } }; as.appendChild(ai); as.appendChild(sb); ov.appendChild(as)
+    const br=document.createElement("div"); br.style.cssText="display:flex;gap:10px;margin-top:16px;"; const xb=document.createElement("button"); xb.innerText="âœ• Quitter"; xb.style.cssText="padding:8px 24px;font-family:'Cinzel',serif;font-size:12px;background:rgba(80,20,20,0.4);color:#ff8080;border:1px solid rgba(180,40,40,0.4);border-radius:4px;cursor:pointer;"; xb.onclick=closeRuneChallenge; br.appendChild(xb); ov.appendChild(br) }
   document.body.appendChild(ov); setTimeout(()=>ov.style.opacity="1",20)
 }
 
-function unlockRuneHint(hintId) { db.ref("game/runeChallenge/unlockedHints").once("value",snap=>{ const c=snap.val()||[]; if(!c.includes(hintId)){ c.push(hintId); db.ref("game/runeChallenge/unlockedHints").set(c); showNotification("🔓 Fragment runique découvert !"); flashGold() } }) }
-function revealRuneLetter(letter) { if(!isGM) return; db.ref("game/runeChallenge/revealedLetters").once("value",snap=>{ const c=snap.val()||[], u=letter.toUpperCase(); if(!c.includes(u)){ c.push(u); db.ref("game/runeChallenge/revealedLetters").set(c); showNotification("ᚱ Lettre révélée : "+u+" = "+(runeAlphabet[u]||"?")) } }) }
-function showRuneVictory() { playSound("critSound"); flashGold(); flashGold(); screenShakeHard(); powerExplosion(); const w=document.createElement("div"); w.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative','Cinzel',serif;font-size:40px;color:gold;text-shadow:0 0 20px gold;text-align:center;pointer-events:none;z-index:99999999;"; w.innerHTML="⚔ MESSAGE DÉCHIFFRÉ ⚔<br><span style='font-size:18px;color:#c8a050;'>Les runes révèlent leur secret !</span>"; document.body.appendChild(w); setTimeout(()=>{ w.style.transition="opacity 1s"; w.style.opacity="0"; setTimeout(()=>w.remove(),1000) },4000) }
+function unlockRuneHint(hintId) { db.ref("game/runeChallenge/unlockedHints").once("value",snap=>{ const c=snap.val()||[]; if(!c.includes(hintId)){ c.push(hintId); db.ref("game/runeChallenge/unlockedHints").set(c); showNotification("ðŸ”“ Fragment runique dÃ©couvert !"); flashGold() } }) }
+function revealRuneLetter(letter) { if(!isGM) return; db.ref("game/runeChallenge/revealedLetters").once("value",snap=>{ const c=snap.val()||[], u=letter.toUpperCase(); if(!c.includes(u)){ c.push(u); db.ref("game/runeChallenge/revealedLetters").set(c); showNotification("áš± Lettre rÃ©vÃ©lÃ©e : "+u+" = "+(runeAlphabet[u]||"?")) } }) }
+function showRuneVictory() { playSound("critSound"); flashGold(); flashGold(); screenShakeHard(); powerExplosion(); const w=document.createElement("div"); w.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative','Cinzel',serif;font-size:40px;color:gold;text-shadow:0 0 20px gold;text-align:center;pointer-events:none;z-index:99999999;"; w.innerHTML="âš” MESSAGE DÃ‰CHIFFRÃ‰ âš”<br><span style='font-size:18px;color:#c8a050;'>Les runes rÃ©vÃ¨lent leur secret !</span>"; document.body.appendChild(w); setTimeout(()=>{ w.style.transition="opacity 1s"; w.style.opacity="0"; setTimeout(()=>w.remove(),1000) },4000) }
 function tryRuneEventOnDice() { const sb=document.getElementById("storyImage"); if(!sb||sb.style.display!=="flex") return; db.ref("game/runeChallenge").once("value",snap=>{ const data=snap.val(); if(!data||!data.active) return; if(Math.random()>0.25) return; const rev=data.revealedLetters||[], ml=[...new Set("ALUERDSBVTIN OPQCM".split("").filter(c=>c.trim()))], unrev=ml.filter(l=>!rev.includes(l)); if(!unrev.length) return; const l=unrev[Math.floor(Math.random()*unrev.length)], r=runeAlphabet[l]||"?", d=runeEventDialogues[Math.floor(Math.random()*runeEventDialogues.length)]; showRuneBubble(d,l,r); setTimeout(()=>revealRuneLetter(l),3000) }) }
 function showRuneBubble(dialogue, letter, rune) { const ex=document.getElementById("runeBubble"); if(ex) ex.remove(); const b=document.createElement("div"); b.id="runeBubble"; b.style.cssText="position:fixed;bottom:30%;left:55%;max-width:320px;background:url('images/paper.png') center/100% 100% no-repeat;padding:24px 30px;font-family:'IM Fell English',serif;font-size:15px;color:#2b1a10;line-height:1.6;z-index:9999999;opacity:0;transition:opacity 0.6s ease;pointer-events:none;"; const tx=document.createElement("div"); tx.innerText=dialogue; tx.style.cssText="margin-bottom:12px;font-style:italic;"; b.appendChild(tx); const rd=document.createElement("div"); rd.style.cssText="text-align:center;font-size:32px;color:#c8a050;text-shadow:0 0 10px gold;font-family:serif;margin:8px 0 4px;"; rd.innerText=rune; b.appendChild(rd); const ld=document.createElement("div"); ld.style.cssText="text-align:center;font-family:'Cinzel',serif;font-size:14px;color:#8b4000;letter-spacing:2px;"; ld.innerText="= "+letter; b.appendChild(ld); document.body.appendChild(b); setTimeout(()=>b.style.opacity="1",50); playSound("parcheminSound"); setTimeout(()=>{ b.style.opacity="0"; setTimeout(()=>b.remove(),600) },6000) }
 
 /* ========================= */
-/* MALÉDICTION               */
+/* MALÃ‰DICTION               */
 /* ========================= */
 
-function toggleCurse(level) { if(level===8) addMJLog("☠ Malédiction complète !"); curseLevel=level; document.querySelectorAll(".curseGem").forEach((g,i)=>g.classList.toggle("active",i<level)); if(level===8){ flashRed(); screenShakeHard(); showNotification("☠ La malédiction est complète !"); if(myToken){ myToken.classList.add("cursed"); startBloodEffect(myToken); triggerCurseWheel(myToken.id) } }; if(level<8&&myToken){ myToken.classList.remove("cursed"); stopBloodEffect(myToken) }; saveCurse() }
+function toggleCurse(level) { if(level===8) addMJLog("â˜  MalÃ©diction complÃ¨te !"); curseLevel=level; document.querySelectorAll(".curseGem").forEach((g,i)=>g.classList.toggle("active",i<level)); if(level===8){ flashRed(); screenShakeHard(); showNotification("â˜  La malÃ©diction est complÃ¨te !"); if(myToken){ myToken.classList.add("cursed"); startBloodEffect(myToken); triggerCurseWheel(myToken.id) } }; if(level<8&&myToken){ myToken.classList.remove("cursed"); stopBloodEffect(myToken) }; saveCurse() }
 function saveCurse() { if(!myToken) return; db.ref("characters/"+myToken.id+"/curse").set(curseLevel) }
-function setCorruption(level) { corruptionLevel=level; document.querySelectorAll(".corruptionPoint").forEach((b,i)=>b.classList.toggle("active",i<level)); if(level===10){ addMJLog("✨ Pouvoir activé pour "+(myToken?myToken.id:"")); flashGold(); screenShake(); powerExplosion(); showNotification("✨ Pouvoir disponible !"); if(myToken){ myToken.classList.add("powerReady"); activatePowerMode(myToken.id) } }; if(level<10&&myToken) myToken.classList.remove("powerReady"); saveCorruption() }
+function setCorruption(level) { corruptionLevel=level; document.querySelectorAll(".corruptionPoint").forEach((b,i)=>b.classList.toggle("active",i<level)); if(level===10){ addMJLog("âœ¨ Pouvoir activÃ© pour "+(myToken?myToken.id:"")); flashGold(); screenShake(); powerExplosion(); showNotification("âœ¨ Pouvoir disponible !"); if(myToken){ myToken.classList.add("powerReady"); activatePowerMode(myToken.id) } }; if(level<10&&myToken) myToken.classList.remove("powerReady"); saveCorruption() }
 function saveCorruption() { if(!myToken) return; db.ref("characters/"+myToken.id+"/corruption").set(corruptionLevel) }
 function triggerCurseWheel(playerID) { db.ref("curse/wheel").set({ player:playerID, state:"intro", time:Date.now() }) }
 
 function showCurseIntro(playerID) {
   playSound("curseSound"); playSound("curse1Sound"); let s=document.getElementById("curseIntroScreen"); if(!s){ s=document.createElement("div"); s.id="curseIntroScreen"; document.body.appendChild(s) }; s.innerHTML=""; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;animation:cursePulse 0.5s ease-in-out infinite alternate;"
-  const t=document.createElement("div"); t.innerText="☠ VOUS ÊTES MAUDIT ☠"; t.style.cssText="font-family:Cinzel;font-size:60px;color:#ff0000;text-shadow:0 0 20px red;animation:curseShake 0.1s infinite;text-align:center;margin-bottom:30px;"; s.appendChild(t)
+  const t=document.createElement("div"); t.innerText="â˜  VOUS ÃŠTES MAUDIT â˜ "; t.style.cssText="font-family:Cinzel;font-size:60px;color:#ff0000;text-shadow:0 0 20px red;animation:curseShake 0.1s infinite;text-align:center;margin-bottom:30px;"; s.appendChild(t)
   const sub=document.createElement("div"); sub.innerText=playerID.toUpperCase()+" doit affronter son destin..."; sub.style.cssText="font-family:IM Fell English;font-size:24px;color:#cc4444;text-align:center;opacity:0.8;"; s.appendChild(sub)
   screenShakeHard(); flashRed(); setTimeout(()=>{ if(s) s.remove(); db.ref("curse/wheel/state").set("wheel") },3000)
 }
 
 function showCurseWheelScreen(playerID) {
   const isCursed=myToken&&myToken.id===playerID; let s=document.getElementById("curseWheelScreen"); if(!s){ s=document.createElement("div"); s.id="curseWheelScreen"; document.body.appendChild(s) }; s.innerHTML=""; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"
-  const t=document.createElement("div"); t.innerText="☠ La Roue du Destin ☠"; t.style.cssText="font-family:Cinzel;font-size:36px;color:#cc0000;text-shadow:0 0 20px red;margin-bottom:30px;"; s.appendChild(t)
+  const t=document.createElement("div"); t.innerText="â˜  La Roue du Destin â˜ "; t.style.cssText="font-family:Cinzel;font-size:36px;color:#cc0000;text-shadow:0 0 20px red;margin-bottom:30px;"; s.appendChild(t)
   const canvas=document.createElement("canvas"); canvas.id="curseWheelCanvas"; canvas.width=500; canvas.height=500; canvas.style.cssText="filter:drop-shadow(0 0 20px darkred);"; s.appendChild(canvas)
-  const btn=document.createElement("button"); btn.innerText=isCursed?"⚠ Tourner la Roue ⚠":"En attente de "+playerID.toUpperCase()+"..."; btn.style.cssText="margin-top:30px;padding:14px 40px;font-family:Cinzel;font-size:18px;background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:"+(isCursed?"pointer":"default")+";opacity:"+(isCursed?"1":"0.4")+";"; if(isCursed) btn.onclick=()=>{ btn.disabled=true; btn.style.opacity="0.4"; spinCurseWheel(playerID) }; s.appendChild(btn); drawCurseWheel(canvas,0)
+  const btn=document.createElement("button"); btn.innerText=isCursed?"âš  Tourner la Roue âš ":"En attente de "+playerID.toUpperCase()+"..."; btn.style.cssText="margin-top:30px;padding:14px 40px;font-family:Cinzel;font-size:18px;background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:"+(isCursed?"pointer":"default")+";opacity:"+(isCursed?"1":"0.4")+";"; if(isCursed) btn.onclick=()=>{ btn.disabled=true; btn.style.opacity="0.4"; spinCurseWheel(playerID) }; s.appendChild(btn); drawCurseWheel(canvas,0)
 }
 
 function drawCurseWheel(canvas, rotation) {
   const ctx=canvas.getContext("2d"),cx=250,cy=250,radius=190,n=curseWheelChoices.length,arc=(Math.PI*2)/n
   ctx.clearRect(0,0,500,500); ctx.beginPath(); ctx.arc(cx,cy,radius+14,0,Math.PI*2); ctx.fillStyle="#3a0000"; ctx.fill(); ctx.strokeStyle="#ff4040"; ctx.lineWidth=3; ctx.stroke()
   curseWheelChoices.forEach((ch,i)=>{ const start=rotation+i*arc-Math.PI/2,end=start+arc,mid=start+arc/2; const gx=cx+Math.cos(mid)*radius*0.5,gy=cy+Math.sin(mid)*radius*0.5; const grad=ctx.createRadialGradient(gx,gy,0,cx,cy,radius); grad.addColorStop(0,shadeColor(ch.color,40)); grad.addColorStop(1,ch.color); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,radius,start,end); ctx.closePath(); ctx.fillStyle=grad; ctx.fill(); ctx.strokeStyle="rgba(255,80,80,0.8)"; ctx.lineWidth=2; ctx.stroke(); ctx.save(); ctx.translate(cx,cy); ctx.rotate(mid); ctx.shadowColor="black"; ctx.shadowBlur=8; ctx.font="32px serif"; ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ch.icon,radius*0.65,-18); ctx.font="bold 16px serif"; ctx.fillText(ch.label.split(" ").slice(0,2).join(" "),radius*0.65,8); if(ch.label.split(" ").length>2){ ctx.font="bold 14px serif"; ctx.fillText(ch.label.split(" ").slice(2).join(" "),radius*0.65,26) }; ctx.shadowBlur=0; ctx.restore() })
-  ctx.beginPath(); ctx.arc(cx,cy,36,0,Math.PI*2); const cg=ctx.createRadialGradient(cx-8,cy-8,0,cx,cy,36); cg.addColorStop(0,"#ff4040"); cg.addColorStop(1,"#330000"); ctx.fillStyle=cg; ctx.fill(); ctx.strokeStyle="#ff6060"; ctx.lineWidth=3; ctx.stroke(); ctx.font="26px serif"; ctx.fillStyle="white"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("☠",cx,cy)
+  ctx.beginPath(); ctx.arc(cx,cy,36,0,Math.PI*2); const cg=ctx.createRadialGradient(cx-8,cy-8,0,cx,cy,36); cg.addColorStop(0,"#ff4040"); cg.addColorStop(1,"#330000"); ctx.fillStyle=cg; ctx.fill(); ctx.strokeStyle="#ff6060"; ctx.lineWidth=3; ctx.stroke(); ctx.font="26px serif"; ctx.fillStyle="white"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("â˜ ",cx,cy)
   ctx.save(); ctx.translate(cx,cy-radius-20); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-16,-26); ctx.lineTo(16,-26); ctx.closePath(); ctx.fillStyle="#cc0000"; ctx.fill(); ctx.restore()
 }
 
@@ -763,19 +765,19 @@ function applyCurseEffect(playerID, ri) {
 /* ========================= */
 
 function activatePowerMode(playerID) { if(powerModeActive) return; powerModeActive=true; playSound("powerSound",0.75); const tok=document.getElementById(playerID); if(tok) tok.classList.add("powerReady","powerFull"); if(myToken&&myToken.id===playerID) showUsePowerBtn(playerID) }
-function showUsePowerBtn(playerID) { const ex=document.getElementById("usePowerBtn"); if(ex) ex.remove(); const btn=document.createElement("button"); btn.id="usePowerBtn"; btn.innerHTML="✨ USE POWER ✨"; btn.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:14px 40px;font-family:Cinzel;font-size:20px;letter-spacing:2px;background:linear-gradient(180deg,#8a6000,#4a3000);color:gold;border:2px solid gold;border-radius:10px;cursor:pointer;z-index:999999999;box-shadow:0 0 20px gold,0 0 40px orange;animation:powerBtnPulse 1s ease-in-out infinite alternate;text-shadow:0 0 10px gold;"; btn.onclick=()=>usePower(playerID); document.body.appendChild(btn) }
+function showUsePowerBtn(playerID) { const ex=document.getElementById("usePowerBtn"); if(ex) ex.remove(); const btn=document.createElement("button"); btn.id="usePowerBtn"; btn.innerHTML="âœ¨ USE POWER âœ¨"; btn.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:14px 40px;font-family:Cinzel;font-size:20px;letter-spacing:2px;background:linear-gradient(180deg,#8a6000,#4a3000);color:gold;border:2px solid gold;border-radius:10px;cursor:pointer;z-index:999999999;box-shadow:0 0 20px gold,0 0 40px orange;animation:powerBtnPulse 1s ease-in-out infinite alternate;text-shadow:0 0 10px gold;"; btn.onclick=()=>usePower(playerID); document.body.appendChild(btn) }
 
 function usePower(playerID) {
   const btn=document.getElementById("usePowerBtn"); if(btn) btn.remove()
   db.ref("game/powerSound").set({ player:playerID, time:Date.now() }); playSound("powerSound",0.9); powerExplosion(); powerExplosion(); flashGold(); flashGold(); screenShakeHard()
   for(let i=0;i<30;i++) setTimeout(()=>{ const p=document.createElement("div"); p.style.cssText=`position:fixed;width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;border-radius:50%;background:gold;left:${Math.random()*100}%;top:${Math.random()*100}%;pointer-events:none;z-index:9999998;box-shadow:0 0 8px gold;animation:goldRise 1.5s ease-out forwards;`; document.body.appendChild(p); setTimeout(()=>p.remove(),1500) },i*60)
-  showNotification("✨ "+playerID.toUpperCase()+" LIBÈRE SON POUVOIR !"); addMJLog("✨ "+playerID.toUpperCase()+" utilise son pouvoir !"); db.ref("characters/"+playerID+"/corruption").set(0); powerModeActive=false
+  showNotification("âœ¨ "+playerID.toUpperCase()+" LIBÃˆRE SON POUVOIR !"); addMJLog("âœ¨ "+playerID.toUpperCase()+" utilise son pouvoir !"); db.ref("characters/"+playerID+"/corruption").set(0); powerModeActive=false
   const tok=document.getElementById(playerID); if(tok) setTimeout(()=>tok.classList.remove("powerReady","powerFull"),2000)
   if(currentSheetPlayer===playerID){ corruptionLevel=0; document.querySelectorAll(".corruptionPoint").forEach(pt=>pt.classList.remove("active")) }
 }
 
 /* ========================= */
-/* AURORE BORÉALE            */
+/* AURORE BORÃ‰ALE            */
 /* ========================= */
 
 function triggerAurora() { if(auroraActive) return; auroraActive=true; db.ref("events/aurora").set({ active:true, time:Date.now() }) }
@@ -874,7 +876,7 @@ function showAuroraEvent() {
   const ov=document.createElement("div"); ov.id="auroraOverlay"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999990;opacity:0;transition:opacity 3s ease;"; document.body.appendChild(ov)
   const colors=["rgba(0,255,150,0.22)","rgba(0,220,255,0.18)","rgba(120,60,255,0.16)","rgba(0,255,180,0.20)","rgba(40,180,255,0.17)"]
   for(let i=0;i<8;i++){ const b=document.createElement("div"); b.style.cssText=`position:absolute;top:${Math.random()*60}%;left:-20%;width:140%;height:${80+Math.random()*160}px;background:linear-gradient(90deg,transparent,${colors[i%colors.length]},transparent);border-radius:50%;transform:rotate(${-15+Math.random()*30}deg);animation:auroraDance ${4+Math.random()*6}s ease-in-out infinite;animation-delay:${Math.random()*3}s;filter:blur(8px);`; ov.appendChild(b) }
-  const msg=document.createElement("div"); msg.id="auroraMessage"; msg.innerHTML=`<div style="font-size:42px;margin-bottom:16px;">✨</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:28px;letter-spacing:4px;margin-bottom:12px;color:#a0ffcc;text-shadow:0 0 20px #00ffaa;">AURORES BORÉALES</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#c0fff0;opacity:0.9;line-height:1.6;max-width:500px;text-align:center;">Les cieux s'embrasent de lumières mystiques...</div>`; msg.style.cssText="position:fixed;top:12%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:9999995;opacity:0;transition:opacity 2s ease;"; document.body.appendChild(msg)
+  const msg=document.createElement("div"); msg.id="auroraMessage"; msg.innerHTML=`<div style="font-size:42px;margin-bottom:16px;">âœ¨</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:28px;letter-spacing:4px;margin-bottom:12px;color:#a0ffcc;text-shadow:0 0 20px #00ffaa;">AURORES BORÃ‰ALES</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#c0fff0;opacity:0.9;line-height:1.6;max-width:500px;text-align:center;">Les cieux s'embrasent de lumiÃ¨res mystiques...</div>`; msg.style.cssText="position:fixed;top:12%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:9999995;opacity:0;transition:opacity 2s ease;"; document.body.appendChild(msg)
   setTimeout(()=>{ ov.style.opacity="1"; msg.style.opacity="1" },100)
   startAuroraMusic()
   fadeMusicOut(()=>{})
@@ -900,7 +902,7 @@ function showAuroraEndSequence() {
   if (!end) {
     end = document.createElement("div")
     end.id = "auroraEndMessage"
-    end.innerHTML = `<div style="font-size:34px;margin-bottom:12px;">✦</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:24px;letter-spacing:4px;margin-bottom:10px;color:#d9fff1;text-shadow:0 0 20px rgba(120,255,220,0.8);">LES AURORES S'ÉTEIGNENT</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#d8fff8;opacity:0.92;line-height:1.6;max-width:520px;text-align:center;">Le ciel reprend lentement son souffle.</div>`
+    end.innerHTML = `<div style="font-size:34px;margin-bottom:12px;">âœ¦</div><div style="font-family:Cinzel Decorative,Cinzel,serif;font-size:24px;letter-spacing:4px;margin-bottom:10px;color:#d9fff1;text-shadow:0 0 20px rgba(120,255,220,0.8);">LES AURORES S'Ã‰TEIGNENT</div><div style="font-family:IM Fell English,serif;font-size:18px;color:#d8fff8;opacity:0.92;line-height:1.6;max-width:520px;text-align:center;">Le ciel reprend lentement son souffle.</div>`
     end.style.cssText = "position:fixed;top:14%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;z-index:99999999;opacity:0;transition:opacity 2s ease;"
     document.body.appendChild(end)
   }
@@ -926,7 +928,7 @@ function showAuroraEndSequence() {
 
 function updateBifrostBtn() {
   const ex=document.getElementById("bifrostBtn"), should=auroraActive&&currentMap==="arbre.jpg"
-  if(should&&!ex){ const btn=document.createElement("div"); btn.id="bifrostBtn"; btn.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;cursor:"+(isGM?"pointer":"default")+";pointer-events:"+(isGM?"auto":"none")+";text-align:center;opacity:0;transition:opacity 1.5s ease;"; btn.innerHTML=`<div style="font-family:'Cinzel Decorative','Cinzel',serif;font-size:30px;color:#44ccff;text-shadow:0 0 20px #0099ff;letter-spacing:10px;padding:20px 40px;background:rgba(0,50,100,0.5);border:2px solid rgba(100,200,255,0.5);border-radius:12px;box-shadow:0 0 30px rgba(0,150,255,0.4);">BIFROST<br><span style="font-size:12px;letter-spacing:4px;opacity:0.7;">✦ LE PONT ARC-EN-CIEL ✦</span></div>`; if(isGM) btn.onclick=()=>triggerBifrostFlash(); document.body.appendChild(btn); setTimeout(()=>btn.style.opacity="1",50) }
+  if(should&&!ex){ const btn=document.createElement("div"); btn.id="bifrostBtn"; btn.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;cursor:"+(isGM?"pointer":"default")+";pointer-events:"+(isGM?"auto":"none")+";text-align:center;opacity:0;transition:opacity 1.5s ease;"; btn.innerHTML=`<div style="font-family:'Cinzel Decorative','Cinzel',serif;font-size:30px;color:#44ccff;text-shadow:0 0 20px #0099ff;letter-spacing:10px;padding:20px 40px;background:rgba(0,50,100,0.5);border:2px solid rgba(100,200,255,0.5);border-radius:12px;box-shadow:0 0 30px rgba(0,150,255,0.4);">BIFROST<br><span style="font-size:12px;letter-spacing:4px;opacity:0.7;">âœ¦ LE PONT ARC-EN-CIEL âœ¦</span></div>`; if(isGM) btn.onclick=()=>triggerBifrostFlash(); document.body.appendChild(btn); setTimeout(()=>btn.style.opacity="1",50) }
   else if(!should&&ex){ ex.style.transition="opacity 1s"; ex.style.opacity="0"; setTimeout(()=>{ if(ex.parentNode) ex.remove() },1000) }
 }
 
@@ -953,19 +955,19 @@ function doBifrostFlash() {
 
 function checkOdinVision() { if(odinVisionShown) return; db.ref("events/aurora").once("value",a=>{ if(!a.val()||!a.val().active) return; db.ref("game/runeChallenge").once("value",r=>{ const rc=r.val(); if(!rc||!rc.active) return; odinVisionShown=true; setTimeout(()=>triggerOdinVision(),2000+Math.random()*5000) }) }) }
 function triggerOdinVision() { const msg=ODIN_VISIONS[Math.floor(Math.random()*ODIN_VISIONS.length)]; db.ref("game/odinVision").set({ msg, time:Date.now() }); db.ref("game/runeChallenge/revealedLetters").once("value",snap=>{ const l=snap.val()||[], al="ABCDEFGHIJKLMNOPRSTUVWXYZ".split(""), ul=al.filter(x=>!l.includes(x)); if(ul.length){ const p=ul[Math.floor(Math.random()*ul.length)]; l.push(p); db.ref("game/runeChallenge/revealedLetters").set(l) } }) }
-function showOdinVision(msg) { const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999990;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 1.5s ease;"; const bg=document.createElement("div"); bg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,rgba(30,0,80,0.7) 0%,rgba(0,0,40,0.5) 100%);"; ov.appendChild(bg); const d=document.createElement("div"); d.style.cssText="position:relative;z-index:1;text-align:center;max-width:560px;padding:36px 40px;background:rgba(10,5,30,0.75);border:1px solid rgba(160,120,255,0.3);border-radius:12px;"; const img=document.createElement("img"); img.src="images/odin.png"; img.style.cssText="width:90px;height:90px;object-fit:contain;border-radius:50%;border:2px solid rgba(180,150,255,0.4);margin-bottom:16px;opacity:0.9;"; img.onerror=()=>img.style.display="none"; d.appendChild(img); const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative',serif;font-size:14px;color:rgba(220,200,255,0.7);letter-spacing:6px;margin-bottom:16px;"; t.innerText="✦ Odin vous parle ✦"; d.appendChild(t); const m=document.createElement("div"); m.style.cssText="font-family:'IM Fell English',serif;font-size:22px;color:rgba(255,245,220,0.97);font-style:italic;line-height:1.7;"; m.innerText=msg; d.appendChild(m); ov.appendChild(d); document.body.appendChild(ov); setTimeout(()=>ov.style.opacity="1",50); setTimeout(()=>{ ov.style.opacity="0"; setTimeout(()=>{ if(ov.parentNode) ov.remove() },1500); if(isGM) db.ref("game/odinVision").remove(); odinVisionShown=false },7000) }
+function showOdinVision(msg) { const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999990;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 1.5s ease;"; const bg=document.createElement("div"); bg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,rgba(30,0,80,0.7) 0%,rgba(0,0,40,0.5) 100%);"; ov.appendChild(bg); const d=document.createElement("div"); d.style.cssText="position:relative;z-index:1;text-align:center;max-width:560px;padding:36px 40px;background:rgba(10,5,30,0.75);border:1px solid rgba(160,120,255,0.3);border-radius:12px;"; const img=document.createElement("img"); img.src="images/odin.png"; img.style.cssText="width:90px;height:90px;object-fit:contain;border-radius:50%;border:2px solid rgba(180,150,255,0.4);margin-bottom:16px;opacity:0.9;"; img.onerror=()=>img.style.display="none"; d.appendChild(img); const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative',serif;font-size:14px;color:rgba(220,200,255,0.7);letter-spacing:6px;margin-bottom:16px;"; t.innerText="âœ¦ Odin vous parle âœ¦"; d.appendChild(t); const m=document.createElement("div"); m.style.cssText="font-family:'IM Fell English',serif;font-size:22px;color:rgba(255,245,220,0.97);font-style:italic;line-height:1.7;"; m.innerText=msg; d.appendChild(m); ov.appendChild(d); document.body.appendChild(ov); setTimeout(()=>ov.style.opacity="1",50); setTimeout(()=>{ ov.style.opacity="0"; setTimeout(()=>{ if(ov.parentNode) ov.remove() },1500); if(isGM) db.ref("game/odinVision").remove(); odinVisionShown=false },7000) }
 
 /* ========================= */
-/* ÉLÉMENTS MAP              */
+/* Ã‰LÃ‰MENTS MAP              */
 /* ========================= */
 
 function clearAllElements() { db.ref("elements").remove() }
 function renderMapElement(data) {
   const ex=document.getElementById("elem_"+data.id); if(ex) ex.remove(); if(!document.getElementById("map")) return
   const el=document.createElement("div"); el.id="elem_"+data.id; el.style.cssText=`position:absolute;left:${data.x}px;top:${data.y}px;width:90px;height:90px;cursor:${isGM?"grab":data.clickable?"pointer":"default"};z-index:5000;user-select:none;transition:opacity 0.4s;opacity:0;`
-  if(data.isRune){ const rs=document.createElement("div"); rs.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#c8a050;text-shadow:0 0 15px gold;background:rgba(30,15,5,0.85);border:2px solid rgba(200,160,80,0.6);border-radius:50%;animation:tokenRingPulse 2s ease-in-out infinite;pointer-events:none;"; rs.innerText="ᚱ"; el.appendChild(rs) }
+  if(data.isRune){ const rs=document.createElement("div"); rs.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#c8a050;text-shadow:0 0 15px gold;background:rgba(30,15,5,0.85);border:2px solid rgba(200,160,80,0.6);border-radius:50%;animation:tokenRingPulse 2s ease-in-out infinite;pointer-events:none;"; rs.innerText="áš±"; el.appendChild(rs) }
   else{ const img=document.createElement("img"); img.src="images/"+data.image; img.style.cssText="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.8));pointer-events:none;"; el.appendChild(img) }
-  if(isGM){ const rb=document.createElement("div"); rb.style.cssText="position:absolute;top:-8px;right:-8px;width:20px;height:20px;background:#cc0000;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;cursor:pointer;box-shadow:0 0 6px black;z-index:10;"; rb.innerText="✕"; rb.onclick=e=>{ e.stopPropagation(); db.ref("elements/"+data.id).remove() }; el.appendChild(rb) }
+  if(isGM){ const rb=document.createElement("div"); rb.style.cssText="position:absolute;top:-8px;right:-8px;width:20px;height:20px;background:#cc0000;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;cursor:pointer;box-shadow:0 0 6px black;z-index:10;"; rb.innerText="âœ•"; rb.onclick=e=>{ e.stopPropagation(); db.ref("elements/"+data.id).remove() }; el.appendChild(rb) }
   if(data.clickable){ el.onclick=()=>{ if(data.isRune&&data.runeHint){ unlockRuneHint(data.runeHint); flashGold(); el.style.filter="drop-shadow(0 0 20px gold) brightness(2)"; setTimeout(()=>el.style.filter="",600); db.ref("elements/"+data.id).remove() } else if(data.wantedData) showWantedOverlay(data.wantedData); else if(!isGM){ const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999999;cursor:pointer;"; const bi=document.createElement("img"); bi.src="images/"+data.image; bi.style.cssText="max-width:80vw;max-height:80vh;object-fit:contain;"; ov.appendChild(bi); ov.onclick=()=>ov.remove(); document.body.appendChild(ov) } } }
   if(isGM){ let dg=false,ox=0,oy=0; el.addEventListener("mousedown",e=>{ if(e.target===el.querySelector("div")) return; dg=true; ox=e.clientX-data.x; oy=e.clientY-data.y; el.style.cursor="grabbing"; e.stopPropagation() }); document.addEventListener("mousemove",e=>{ if(!dg) return; data.x=e.clientX-ox; data.y=e.clientY-oy; el.style.left=data.x+"px"; el.style.top=data.y+"px" }); document.addEventListener("mouseup",()=>{ if(!dg) return; dg=false; el.style.cursor="grab"; db.ref("elements/"+data.id+"/x").set(data.x); db.ref("elements/"+data.id+"/y").set(data.y) }) }
   document.body.appendChild(el); setTimeout(()=>el.style.opacity="1",20)
@@ -975,11 +977,11 @@ function renderMapElement(data) {
 /* WANTED                    */
 /* ========================= */
 
-function openWantedEditor() { const wb=document.getElementById("wantedMobBtn"); if(wb){ wb.innerText="— Choisir un mob —"; wb.dataset.value="" }; document.getElementById("wantedEditor").style.display="flex" }
+function openWantedEditor() { const wb=document.getElementById("wantedMobBtn"); if(wb){ wb.innerText="â€” Choisir un mob â€”"; wb.dataset.value="" }; document.getElementById("wantedEditor").style.display="flex" }
 function createWantedPoster() { const mob=document.getElementById("wantedMobBtn")?.dataset.value||"", tier=document.getElementById("wantedTierBtn")?.dataset.value||"weak", reward=document.getElementById("wantedReward").value; if(!mob){ showNotification("Choisissez un mob !"); return }; document.getElementById("wantedEditor").style.display="none"; const id="wanted_"+Date.now(), pd={ mob, tier, reward, id }; db.ref("game/wantedPosters/"+id).set(pd); db.ref("elements/"+id).set({ type:"image", image:"wanted.png", x:Math.floor(Math.random()*600+200), y:Math.floor(Math.random()*400+200), id, clickable:true, wantedData:pd }); db.ref("game/wantedOpen").set({ poster:pd, time:Date.now() }) }
-function renderWantedPoster(data) { const list=document.getElementById("wantedList"); if(!list) return; const card=document.createElement("div"); card.id="wantedCard_"+data.id; card.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(60,40,10,0.4);border:1px solid rgba(150,100,30,0.4);border-radius:4px;"; const img=document.createElement("img"); img.src="images/"+data.mob+".png"; img.style.cssText="width:36px;height:36px;object-fit:contain;border-radius:3px;"; img.onerror=()=>img.style.opacity="0.3"; card.appendChild(img); const info=document.createElement("div"); info.style.cssText="flex:1;"; info.innerHTML=`<div style="font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,80);">${data.mob.toUpperCase()}</div><div style="font-size:10px;color:rgb(200,160,60);">💰 ${data.reward} po — ${data.tier}</div>`; card.appendChild(info); const open=document.createElement("button"); open.style.cssText="padding:2px 8px;font-size:10px;background:rgba(90,70,20,0.5);color:#ffd68a;border:1px solid rgba(170,130,40,0.45);border-radius:3px;cursor:pointer;"; open.innerText="Ouvrir"; open.onclick=()=>showWantedOverlay(data); card.appendChild(open); const del=document.createElement("button"); del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"; del.innerText="✕"; del.onclick=()=>{ db.ref("game/wantedPosters/"+data.id).remove(); db.ref("elements/"+data.id).remove(); card.remove() }; card.appendChild(del); list.appendChild(card) }
-function showWantedOverlay(data) { const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999999;cursor:pointer;"; ov.onclick=()=>ov.remove(); const p=document.createElement("div"); p.style.cssText="position:relative;width:300px;padding:30px 20px;text-align:center;"; const bg=document.createElement("img"); bg.src="images/wanted.png"; bg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;opacity:0.9;"; p.appendChild(bg); const inner=document.createElement("div"); inner.style.cssText="position:relative;z-index:1;padding:20px;"; const mi=document.createElement("img"); mi.src="images/"+data.mob+".png"; mi.style.cssText="width:100px;height:100px;object-fit:contain;border:3px solid rgb(100,60,10);border-radius:4px;margin:10px auto;display:block;"; inner.appendChild(mi); const n=document.createElement("div"); n.style.cssText="font-family:'Cinzel Decorative',serif;font-size:18px;color:rgb(80,40,0);letter-spacing:3px;margin-bottom:8px;"; n.innerText=data.mob.toUpperCase(); inner.appendChild(n); const r=document.createElement("div"); r.style.cssText="font-family:Cinzel,serif;font-size:22px;color:rgb(120,70,0);font-weight:bold;"; r.innerText="💰 "+data.reward+" po"; inner.appendChild(r); p.appendChild(inner); ov.appendChild(p); document.body.appendChild(ov) }
-function toggleWantedDropdown(el) { const dd=document.getElementById("wantedMobDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; if(!dd.dataset.built){ dd.dataset.built="1"; const em=document.createElement("div"); em.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,120,60);cursor:pointer;"; em.innerText="— Choisir un mob —"; em.onmousedown=e=>{ e.stopPropagation(); selectWantedMob("","— Choisir un mob —") }; dd.appendChild(em); WANTED_MOBS.forEach(m=>{ const it=document.createElement("div"); it.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,120);cursor:pointer;"; it.innerText=m.charAt(0).toUpperCase()+m.slice(1); it.onmousedown=e=>{ e.stopPropagation(); selectWantedMob(m,it.innerText) }; it.onmouseenter=()=>it.style.background="rgb(60,35,5)"; it.onmouseleave=()=>it.style.background=""; dd.appendChild(it) }) }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
+function renderWantedPoster(data) { const list=document.getElementById("wantedList"); if(!list) return; const card=document.createElement("div"); card.id="wantedCard_"+data.id; card.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(60,40,10,0.4);border:1px solid rgba(150,100,30,0.4);border-radius:4px;"; const img=document.createElement("img"); img.src="images/"+data.mob+".png"; img.style.cssText="width:36px;height:36px;object-fit:contain;border-radius:3px;"; img.onerror=()=>img.style.opacity="0.3"; card.appendChild(img); const info=document.createElement("div"); info.style.cssText="flex:1;"; info.innerHTML=`<div style="font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,80);">${data.mob.toUpperCase()}</div><div style="font-size:10px;color:rgb(200,160,60);">ðŸ’° ${data.reward} po â€” ${data.tier}</div>`; card.appendChild(info); const open=document.createElement("button"); open.style.cssText="padding:2px 8px;font-size:10px;background:rgba(90,70,20,0.5);color:#ffd68a;border:1px solid rgba(170,130,40,0.45);border-radius:3px;cursor:pointer;"; open.innerText="Ouvrir"; open.onclick=()=>showWantedOverlay(data); card.appendChild(open); const del=document.createElement("button"); del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"; del.innerText="âœ•"; del.onclick=()=>{ db.ref("game/wantedPosters/"+data.id).remove(); db.ref("elements/"+data.id).remove(); card.remove() }; card.appendChild(del); list.appendChild(card) }
+function showWantedOverlay(data) { const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999999;cursor:pointer;"; ov.onclick=()=>ov.remove(); const p=document.createElement("div"); p.style.cssText="position:relative;width:300px;padding:30px 20px;text-align:center;"; const bg=document.createElement("img"); bg.src="images/wanted.png"; bg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;opacity:0.9;"; p.appendChild(bg); const inner=document.createElement("div"); inner.style.cssText="position:relative;z-index:1;padding:20px;"; const mi=document.createElement("img"); mi.src="images/"+data.mob+".png"; mi.style.cssText="width:100px;height:100px;object-fit:contain;border:3px solid rgb(100,60,10);border-radius:4px;margin:10px auto;display:block;"; inner.appendChild(mi); const n=document.createElement("div"); n.style.cssText="font-family:'Cinzel Decorative',serif;font-size:18px;color:rgb(80,40,0);letter-spacing:3px;margin-bottom:8px;"; n.innerText=data.mob.toUpperCase(); inner.appendChild(n); const r=document.createElement("div"); r.style.cssText="font-family:Cinzel,serif;font-size:22px;color:rgb(120,70,0);font-weight:bold;"; r.innerText="ðŸ’° "+data.reward+" po"; inner.appendChild(r); p.appendChild(inner); ov.appendChild(p); document.body.appendChild(ov) }
+function toggleWantedDropdown(el) { const dd=document.getElementById("wantedMobDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; if(!dd.dataset.built){ dd.dataset.built="1"; const em=document.createElement("div"); em.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,120,60);cursor:pointer;"; em.innerText="â€” Choisir un mob â€”"; em.onmousedown=e=>{ e.stopPropagation(); selectWantedMob("","â€” Choisir un mob â€”") }; dd.appendChild(em); WANTED_MOBS.forEach(m=>{ const it=document.createElement("div"); it.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,120);cursor:pointer;"; it.innerText=m.charAt(0).toUpperCase()+m.slice(1); it.onmousedown=e=>{ e.stopPropagation(); selectWantedMob(m,it.innerText) }; it.onmouseenter=()=>it.style.background="rgb(60,35,5)"; it.onmouseleave=()=>it.style.background=""; dd.appendChild(it) }) }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
 function selectWantedMob(val, lbl) { const btn=document.getElementById("wantedMobBtn"); if(btn){ btn.innerText=lbl; btn.dataset.value=val }; const dd=document.getElementById("wantedMobDropdown"); if(dd) dd.style.display="none" }
 function toggleWantedTierDropdown(el) { const dd=document.getElementById("wantedTierDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
 function selectWantedTier(val, lbl) { const btn=document.getElementById("wantedTierBtn"); if(btn){ btn.innerText=lbl; btn.dataset.value=val }; const dd=document.getElementById("wantedTierDropdown"); if(dd) dd.style.display="none"; const rw=WANTED_REWARDS[val]||WANTED_REWARDS.weak, ri=document.getElementById("wantedReward"); if(ri) ri.value=rw[Math.floor(Math.random()*rw.length)] }
@@ -999,7 +1001,7 @@ function showSaveMenu() {
 }
 
 /* ========================= */
-/* SORT CIMETIÈRE            */
+/* SORT CIMETIÃˆRE            */
 /* ========================= */
 
 function startSpellAura() { if(document.getElementById("spellAura")) return; const a=document.createElement("div"); a.id="spellAura"; a.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5000;opacity:0;transition:opacity 2s ease;"; const v=document.createElement("div"); v.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;box-shadow:inset 0 0 80px rgba(150,0,255,0.5);animation:spellPulse 2s ease-in-out infinite alternate;"; a.appendChild(v); document.body.appendChild(a); setTimeout(()=>a.style.opacity="1",50) }
@@ -1044,15 +1046,15 @@ function renderSpellDiceGame(data) {
   let realCur=SPELL_PLAYERS.filter(p=>!freed.includes(p))[0]||SPELL_PLAYERS[0]
   for(let i=0;i<SPELL_PLAYERS.length;i++){ const p=SPELL_PLAYERS[(turnIdx+i)%SPELL_PLAYERS.length]; if(!freed.includes(p)){ realCur=p; break } }
   const ov=document.createElement("div"); ov.id="spellMiniGame"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999990;opacity:0;transition:opacity 0.8s ease;overflow:hidden;background:rgba(10,0,18,0.92);"
-  const ttl=document.createElement("div"); ttl.style.cssText="position:relative;z-index:1;font-family:'Cinzel Decorative',serif;font-size:22px;color:#dd66ff;letter-spacing:5px;text-shadow:0 0 30px #aa00ff;text-align:center;margin-bottom:8px;"; ttl.innerText="⛧  SORT D'EMPRISONNEMENT  ⛧"; ov.appendChild(ttl)
-  const sub=document.createElement("div"); sub.style.cssText="position:relative;z-index:1;font-family:'IM Fell English',serif;font-size:14px;color:#9944cc;font-style:italic;margin-bottom:28px;text-align:center;"; sub.innerText="Lancez un D20 — seul un coup critique peut briser les chaînes..."; ov.appendChild(sub)
+  const ttl=document.createElement("div"); ttl.style.cssText="position:relative;z-index:1;font-family:'Cinzel Decorative',serif;font-size:22px;color:#dd66ff;letter-spacing:5px;text-shadow:0 0 30px #aa00ff;text-align:center;margin-bottom:8px;"; ttl.innerText="â›§  SORT D'EMPRISONNEMENT  â›§"; ov.appendChild(ttl)
+  const sub=document.createElement("div"); sub.style.cssText="position:relative;z-index:1;font-family:'IM Fell English',serif;font-size:14px;color:#9944cc;font-style:italic;margin-bottom:28px;text-align:center;"; sub.innerText="Lancez un D20 â€” seul un coup critique peut briser les chaÃ®nes..."; ov.appendChild(sub)
   const sr=document.createElement("div"); sr.style.cssText="position:relative;z-index:1;display:flex;gap:20px;margin-bottom:28px;flex-wrap:wrap;justify-content:center;"
-  SPELL_PLAYERS.forEach(pid=>{ const t=tries[pid]||0,iF=freed.includes(pid),isOut=t>=SPELL_MAX_TRIES&&!iF,isCur=pid===realCur&&!iF; const card=document.createElement("div"); card.style.cssText=`display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 20px;border-radius:10px;border:2px solid ${iF?"#44ff44":isOut?"#ff4444":isCur?"#cc44ff":"rgba(150,0,255,0.4)"};background:${isCur?"rgba(120,0,180,0.3)":"rgba(0,0,0,0.3)"};min-width:100px;text-align:center;`; const n=document.createElement("div"); n.style.cssText=`font-family:Cinzel,serif;font-size:13px;letter-spacing:2px;color:${iF?"#44ff44":isOut?"#ff6666":isCur?"#dd88ff":"#9955cc"};`; n.innerText=(iF?"✓ ":isOut?"✕ ":isCur?"▶ ":"")+pid.toUpperCase(); card.appendChild(n); const dr=document.createElement("div"); dr.style.cssText="display:flex;gap:4px;"; for(let i=0;i<SPELL_MAX_TRIES;i++){ const d=document.createElement("div"); d.style.cssText="width:12px;height:12px;border-radius:2px;border:1px solid rgba(150,0,255,0.5);background:"+(i<t?(iF?"#44ff44":"rgba(180,0,80,0.6)"):"transparent")+";"; dr.appendChild(d) }; card.appendChild(dr); sr.appendChild(card) })
+  SPELL_PLAYERS.forEach(pid=>{ const t=tries[pid]||0,iF=freed.includes(pid),isOut=t>=SPELL_MAX_TRIES&&!iF,isCur=pid===realCur&&!iF; const card=document.createElement("div"); card.style.cssText=`display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 20px;border-radius:10px;border:2px solid ${iF?"#44ff44":isOut?"#ff4444":isCur?"#cc44ff":"rgba(150,0,255,0.4)"};background:${isCur?"rgba(120,0,180,0.3)":"rgba(0,0,0,0.3)"};min-width:100px;text-align:center;`; const n=document.createElement("div"); n.style.cssText=`font-family:Cinzel,serif;font-size:13px;letter-spacing:2px;color:${iF?"#44ff44":isOut?"#ff6666":isCur?"#dd88ff":"#9955cc"};`; n.innerText=(iF?"âœ“ ":isOut?"âœ• ":isCur?"â–¶ ":"")+pid.toUpperCase(); card.appendChild(n); const dr=document.createElement("div"); dr.style.cssText="display:flex;gap:4px;"; for(let i=0;i<SPELL_MAX_TRIES;i++){ const d=document.createElement("div"); d.style.cssText="width:12px;height:12px;border-radius:2px;border:1px solid rgba(150,0,255,0.5);background:"+(i<t?(iF?"#44ff44":"rgba(180,0,80,0.6)"):"transparent")+";"; dr.appendChild(d) }; card.appendChild(dr); sr.appendChild(card) })
   ov.appendChild(sr)
-  if(myToken&&myToken.id===realCur&&!freed.includes(myToken.id)){ const t=tries[myToken.id]||0; if(t<SPELL_MAX_TRIES){ const rb=document.createElement("div"); rb.style.cssText="position:relative;z-index:1;width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 35%,rgba(180,0,255,0.6),rgba(80,0,150,0.3));border:3px solid rgba(200,50,255,0.8);box-shadow:0 0 30px rgba(180,0,255,0.5);cursor:pointer;margin-bottom:16px;animation:bifrostPulse 2s ease-in-out infinite alternate;"; rb.innerHTML=`<span style="font-size:36px;">🎲</span><span style="font-family:Cinzel,serif;font-size:11px;color:#cc88ff;letter-spacing:2px;margin-top:4px;">LANCER D20</span>`; rb.onclick=()=>rollSpellDice(myToken.id,t); ov.appendChild(rb); const h=document.createElement("div"); h.style.cssText="position:relative;z-index:1;font-family:Cinzel,serif;font-size:11px;color:#7733aa;font-style:italic;"; h.innerText=`Essai ${t+1} / ${SPELL_MAX_TRIES}`; ov.appendChild(h) } else { const out=document.createElement("div"); out.style.cssText="position:relative;z-index:1;font-family:Cinzel,serif;font-size:14px;color:#ff6666;text-shadow:0 0 10px red;"; out.innerText="✕ Vos essais sont épuisés..."; ov.appendChild(out) } }
-  else if(myToken&&!freed.includes(myToken.id)){ const w=document.createElement("div"); w.style.cssText="position:relative;z-index:1;font-family:'IM Fell English',serif;font-size:14px;color:#9944cc;font-style:italic;"; w.innerText=`✦ Au tour de ${realCur.toUpperCase()} de briser son sort... ✦`; ov.appendChild(w) }
-  else if(myToken&&freed.includes(myToken.id)){ const d=document.createElement("div"); d.style.cssText="position:relative;z-index:1;font-family:Cinzel,serif;font-size:15px;color:#44ff44;text-shadow:0 0 10px lime;"; d.innerText="✓ Vous êtes libéré — attendez les autres..."; ov.appendChild(d) }
-  if(isGM){ const gr=document.createElement("div"); gr.style.cssText="position:relative;z-index:1;display:flex;gap:8px;margin-top:16px;"; const lb=document.createElement("button"); lb.innerText="🔓 Libérer"; lb.style.cssText="padding:8px 18px;font-family:Cinzel,serif;font-size:12px;background:rgba(20,80,20,0.5);color:#88ff88;border:1px solid rgba(50,180,50,0.5);border-radius:4px;cursor:pointer;"; lb.onclick=()=>db.ref("game/cemeterySpell").update({ freed:true }); gr.appendChild(lb); ov.appendChild(gr) }
+  if(myToken&&myToken.id===realCur&&!freed.includes(myToken.id)){ const t=tries[myToken.id]||0; if(t<SPELL_MAX_TRIES){ const rb=document.createElement("div"); rb.style.cssText="position:relative;z-index:1;width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 35%,rgba(180,0,255,0.6),rgba(80,0,150,0.3));border:3px solid rgba(200,50,255,0.8);box-shadow:0 0 30px rgba(180,0,255,0.5);cursor:pointer;margin-bottom:16px;animation:bifrostPulse 2s ease-in-out infinite alternate;"; rb.innerHTML=`<span style="font-size:36px;">ðŸŽ²</span><span style="font-family:Cinzel,serif;font-size:11px;color:#cc88ff;letter-spacing:2px;margin-top:4px;">LANCER D20</span>`; rb.onclick=()=>rollSpellDice(myToken.id,t); ov.appendChild(rb); const h=document.createElement("div"); h.style.cssText="position:relative;z-index:1;font-family:Cinzel,serif;font-size:11px;color:#7733aa;font-style:italic;"; h.innerText=`Essai ${t+1} / ${SPELL_MAX_TRIES}`; ov.appendChild(h) } else { const out=document.createElement("div"); out.style.cssText="position:relative;z-index:1;font-family:Cinzel,serif;font-size:14px;color:#ff6666;text-shadow:0 0 10px red;"; out.innerText="âœ• Vos essais sont Ã©puisÃ©s..."; ov.appendChild(out) } }
+  else if(myToken&&!freed.includes(myToken.id)){ const w=document.createElement("div"); w.style.cssText="position:relative;z-index:1;font-family:'IM Fell English',serif;font-size:14px;color:#9944cc;font-style:italic;"; w.innerText=`âœ¦ Au tour de ${realCur.toUpperCase()} de briser son sort... âœ¦`; ov.appendChild(w) }
+  else if(myToken&&freed.includes(myToken.id)){ const d=document.createElement("div"); d.style.cssText="position:relative;z-index:1;font-family:Cinzel,serif;font-size:15px;color:#44ff44;text-shadow:0 0 10px lime;"; d.innerText="âœ“ Vous Ãªtes libÃ©rÃ© â€” attendez les autres..."; ov.appendChild(d) }
+  if(isGM){ const gr=document.createElement("div"); gr.style.cssText="position:relative;z-index:1;display:flex;gap:8px;margin-top:16px;"; const lb=document.createElement("button"); lb.innerText="ðŸ”“ LibÃ©rer"; lb.style.cssText="padding:8px 18px;font-family:Cinzel,serif;font-size:12px;background:rgba(20,80,20,0.5);color:#88ff88;border:1px solid rgba(50,180,50,0.5);border-radius:4px;cursor:pointer;"; lb.onclick=()=>db.ref("game/cemeterySpell").update({ freed:true }); gr.appendChild(lb); ov.appendChild(gr) }
   document.body.appendChild(ov); setTimeout(()=>ov.style.opacity="1",50)
 }
 
@@ -1062,14 +1064,14 @@ function rollSpellDice(playerId, currentTries) {
   showSpellRollResult(roll,isCrit,isFail,playerId,()=>{
     const newTries=currentTries+1
     if(isCrit){ db.ref("game/cemeterySpell/freed_players").once("value",s=>{ const fp=s.val()||[]; if(!fp.includes(playerId)) fp.push(playerId); db.ref("game/cemeterySpell/freed_players").set(fp); const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(SPELL_PLAYERS.every(p=>(d.freed_players||[]).includes(p))) setTimeout(()=>db.ref("game/cemeterySpell").update({ freed:true }),1000) }) }) }
-    else{ db.ref("game/cemeterySpell/tries").once("value",s=>{ const t=s.val()||{}; t[playerId]=newTries; db.ref("game/cemeterySpell/tries").set(t); if(isFail){ db.ref("characters/"+playerId).once("value",cs=>{ const cd=cs.val(); if(cd){ db.ref("characters/"+playerId+"/hp").set(Math.max(0,(cd.hp||0)-10)); showNotification("💀 "+playerId.toUpperCase()+" perd 10 HP !") } }) }; const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); if(newTries>=SPELL_MAX_TRIES){ setTimeout(()=>{ db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(!d) return; const t2=d.tries||{}; const fp=d.freed_players||[]; const allOut=SPELL_PLAYERS.every(p=>fp.includes(p)||(t2[p]||0)>=SPELL_MAX_TRIES); if(allOut){ const anyF=SPELL_PLAYERS.some(p=>fp.includes(p)); if(!anyF&&isGM){ db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:true }); setTimeout(()=>startCombat(Math.random()>0.5?"zombie":"zombie2","high"),2000) } else db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:false }) } }) },500) } }) }
+    else{ db.ref("game/cemeterySpell/tries").once("value",s=>{ const t=s.val()||{}; t[playerId]=newTries; db.ref("game/cemeterySpell/tries").set(t); if(isFail){ db.ref("characters/"+playerId).once("value",cs=>{ const cd=cs.val(); if(cd){ db.ref("characters/"+playerId+"/hp").set(Math.max(0,(cd.hp||0)-10)); showNotification("ðŸ’€ "+playerId.toUpperCase()+" perd 10 HP !") } }) }; const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); if(newTries>=SPELL_MAX_TRIES){ setTimeout(()=>{ db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(!d) return; const t2=d.tries||{}; const fp=d.freed_players||[]; const allOut=SPELL_PLAYERS.every(p=>fp.includes(p)||(t2[p]||0)>=SPELL_MAX_TRIES); if(allOut){ const anyF=SPELL_PLAYERS.some(p=>fp.includes(p)); if(!anyF&&isGM){ db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:true }); setTimeout(()=>startCombat(Math.random()>0.5?"zombie":"zombie2","high"),2000) } else db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:false }) } }) },500) } }) }
   })
 }
 
 function showSpellRollResult(roll, isCrit, isFail, playerId, cb) {
   const res=document.createElement("div"); res.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999999;text-align:center;pointer-events:none;font-family:'Cinzel Decorative',serif;"
   const color=isCrit?"#44ff44":isFail?"#ff4444":"#cc88ff"
-  res.innerHTML=`<div style="font-size:48px;margin-bottom:8px;">${roll}</div><div style="font-size:24px;color:${color};text-shadow:0 0 20px ${color};letter-spacing:3px;">${isCrit?"⚡ CRITIQUE ! ⚡":isFail?"💀 ÉCHEC CRITIQUE":`D20 : ${roll}`}</div><div style="font-size:14px;color:${color};opacity:0.8;margin-top:6px;font-family:Cinzel,serif;">${isCrit?"Sort brisé !":isFail?"-10 HP":"Pas assez..."}</div>`
+  res.innerHTML=`<div style="font-size:48px;margin-bottom:8px;">${roll}</div><div style="font-size:24px;color:${color};text-shadow:0 0 20px ${color};letter-spacing:3px;">${isCrit?"âš¡ CRITIQUE ! âš¡":isFail?"ðŸ’€ Ã‰CHEC CRITIQUE":`D20 : ${roll}`}</div><div style="font-size:14px;color:${color};opacity:0.8;margin-top:6px;font-family:Cinzel,serif;">${isCrit?"Sort brisÃ© !":isFail?"-10 HP":"Pas assez..."}</div>`
   document.body.appendChild(res); if(isCrit){ flashGold(); flashGold(); screenShake() }; if(isFail) screenShakeHard()
   setTimeout(()=>{ res.style.transition="opacity 0.8s"; res.style.opacity="0"; setTimeout(()=>{ res.remove(); if(cb) cb() },800) },2500)
 }
@@ -1079,7 +1081,7 @@ function showSpellFreed() {
   setTimeout(()=>{ if(currentMap&&mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap]) },1000)
   playSound("powerSound",0.8); flashGold(); flashGold(); screenShakeHard(); powerExplosion()
   const msg=document.createElement("div"); msg.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:36px;color:#cc88ff;text-shadow:0 0 30px purple;text-align:center;z-index:99999999;pointer-events:none;"
-  msg.innerHTML="⚡ SORT BRISÉ ⚡<br><span style='font-size:18px;color:#aa66ff;'>Les héros sont libérés !</span>"; document.body.appendChild(msg)
+  msg.innerHTML="âš¡ SORT BRISÃ‰ âš¡<br><span style='font-size:18px;color:#aa66ff;'>Les hÃ©ros sont libÃ©rÃ©s !</span>"; document.body.appendChild(msg)
   setTimeout(()=>{ msg.style.transition="opacity 1s"; msg.style.opacity="0"; setTimeout(()=>msg.remove(),1000) },4000)
 }
 
@@ -1117,9 +1119,9 @@ function toggleGMShortcutHelp() {
     { key:"R",   label:"PNJ / High PNJ" },
     { key:"T",   label:"Mobs / PNJ Combat" },
     { key:"X",   label:"XP" },
-    { key:"E",   label:"Éléments" },
+    { key:"E",   label:"Ã‰lÃ©ments" },
     { key:"S",   label:"Sauvegarder" },
-    { key:"J",   label:"Fiche joueur sélectionné" },
+    { key:"J",   label:"Fiche joueur sÃ©lectionnÃ©" },
     { key:"B",   label:"Fiche Bibi" },
     { key:"Esc", label:"Fermer / Retour" },
     { key:"?",   label:"Cette aide" },
@@ -1135,7 +1137,7 @@ function toggleGMShortcutHelp() {
     overlay.appendChild(row)
   })
 
-  // Fermeture au clic extérieur
+  // Fermeture au clic extÃ©rieur
   setTimeout(() => {
     document.addEventListener("mousedown", function close(ev) {
       if (!overlay.contains(ev.target)) { overlay.remove(); document.removeEventListener("mousedown", close) }
@@ -1156,7 +1158,7 @@ function toggleGMShortcutHelp() {
 
 
 /* ========================= */
-/* PNJ ALLIÉS — INVOCATION   */
+/* PNJ ALLIÃ‰S â€” INVOCATION   */
 /* ========================= */
 
 function openAllyPNJPanel() {
@@ -1164,7 +1166,7 @@ function openAllyPNJPanel() {
   // Uniquement en combat de world boss
   const worldBosses = ["balraug","fenrir","jormungand","kraken","nhiddog","roi","odin","thor","freya"]
   if (!worldBosses.includes(currentMob)) {
-    showNotification("⚠ Les divinités n'interviennent que lors des combats de World Boss !")
+    showNotification("âš  Les divinitÃ©s n'interviennent que lors des combats de World Boss !")
     return
   }
   const existing = document.getElementById("allyPNJPanel")
@@ -1176,7 +1178,7 @@ function openAllyPNJPanel() {
   panel.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,20,24,0.97);border:1px solid #1e5a66;box-shadow:0 0 0 1px #8a6520,0 0 40px rgba(0,0,0,0.9);border-radius:3px;padding:16px;z-index:99999999;min-width:380px;max-width:92vw;max-height:82vh;overflow-y:auto;font-family:Cinzel,serif;"
 
   const title = document.createElement("div"); title.style.cssText = "font-size:11px;letter-spacing:3px;color:#1e8a9a;margin-bottom:12px;border-bottom:1px solid rgba(30,90,102,0.3);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center;"
-  title.innerHTML = '<span>⚔ INVOQUER UNE DIVINITÉ</span><span style="cursor:pointer;color:#ff8888;font-size:14px;" onclick="document.getElementById(\'allyPNJPanel\').remove()">✕</span>'
+  title.innerHTML = '<span>âš” INVOQUER UNE DIVINITÃ‰</span><span style="cursor:pointer;color:#ff8888;font-size:14px;" onclick="document.getElementById(\'allyPNJPanel\').remove()">âœ•</span>'
   panel.appendChild(title)
 
   db.ref("combat/usedAllies").once("value", snap => {
@@ -1194,7 +1196,7 @@ function openAllyPNJPanel() {
         const typeLabels = { damage:"ATQ", heal:"SOIN", malus:"MALUS", buff:"BUFF" }
         const btn = document.createElement("div")
         btn.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:5px;border-radius:2px;border:1px solid ${isUsed?"rgba(30,90,102,0.15)":pnj.color+"55"};background:${isUsed?"rgba(5,15,20,0.3)":`rgba(8,20,24,0.9)`};cursor:${isUsed?"not-allowed":"pointer"};opacity:${isUsed?"0.4":"1"};transition:background 0.15s;`
-        btn.innerHTML = `<span style="font-size:20px;">${action.icon}</span><div style="flex:1;"><div style="font-size:12px;color:${isUsed?"#444":pnj.color};letter-spacing:1px;">${action.label}${action.dice?" <span style='color:#8888ff;font-size:10px;'>(D"+action.dice+")</span>":""}</div><div style="font-size:10px;color:#5a7a8a;margin-top:2px;">${action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(30,90,102,0.2);color:${typeColors[action.type]};letter-spacing:1px;">${isUsed?"UTILISÉ":typeLabels[action.type]}</span>`
+        btn.innerHTML = `<span style="font-size:20px;">${action.icon}</span><div style="flex:1;"><div style="font-size:12px;color:${isUsed?"#444":pnj.color};letter-spacing:1px;">${action.label}${action.dice?" <span style='color:#8888ff;font-size:10px;'>(D"+action.dice+")</span>":""}</div><div style="font-size:10px;color:#5a7a8a;margin-top:2px;">${action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(30,90,102,0.2);color:${typeColors[action.type]};letter-spacing:1px;">${isUsed?"UTILISÃ‰":typeLabels[action.type]}</span>`
         if (!isUsed) {
           btn.onmouseenter=()=>btn.style.background=`rgba(20,40,52,0.95)`
           btn.onmouseleave=()=>btn.style.background=`rgba(8,20,24,0.9)`
@@ -1237,7 +1239,7 @@ function _allyChooseTarget(pnj, action, panel) {
     picker.appendChild(btn)
   })
   const cancel = document.createElement("button"); cancel.style.cssText = "display:block;width:100%;padding:6px;font-family:Cinzel,serif;font-size:11px;background:rgba(80,20,20,0.4);color:#ff8888;border:1px solid rgba(180,40,40,0.4);border-radius:2px;cursor:pointer;"
-  cancel.innerText = "✕ Annuler"; cancel.onclick=()=>picker.remove(); picker.appendChild(cancel)
+  cancel.innerText = "âœ• Annuler"; cancel.onclick=()=>picker.remove(); picker.appendChild(cancel)
   document.body.appendChild(picker)
 }
 
@@ -1249,14 +1251,14 @@ function _executeAllyAction(pnj, action, targetId, panel) {
 }
 
 function _allyInvocationCinematic(pnj, action, targetId) {
-  // ÉTAPE 1 — Tremblement + flash
+  // Ã‰TAPE 1 â€” Tremblement + flash
   screenShakeHard()
   setTimeout(()=>screenShakeHard(), 300)
   const flash = document.createElement("div"); flash.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:white;opacity:0;pointer-events:none;z-index:999999990;transition:opacity 0.05s;"
   document.body.appendChild(flash)
   setTimeout(()=>{ flash.style.opacity="0.7"; setTimeout(()=>{ flash.style.transition="opacity 0.4s"; flash.style.opacity="0"; setTimeout(()=>flash.remove(),400) },80) },50)
 
-  // ÉTAPE 2 — Image du dieu + message solennel (après 600ms)
+  // Ã‰TAPE 2 â€” Image du dieu + message solennel (aprÃ¨s 600ms)
   setTimeout(()=>{
     const cinScreen = document.createElement("div"); cinScreen.id = "allyCinScreen"
     cinScreen.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999999995;opacity:0;transition:opacity 0.6s ease;`
@@ -1280,7 +1282,7 @@ function _allyInvocationCinematic(pnj, action, targetId) {
 
     document.body.appendChild(cinScreen)
 
-    // Son impact — fade out après 2s
+    // Son impact â€” fade out aprÃ¨s 2s
     const impact = new Audio("audio/impact.mp3"); impact.volume = 0.85; impact.play().catch(()=>{})
     setTimeout(()=>{ let iv=setInterval(()=>{ if(impact.volume>0.05) impact.volume=Math.max(0,impact.volume-0.06); else{ impact.pause(); clearInterval(iv) } },100) }, 2000)
 
@@ -1289,7 +1291,7 @@ function _allyInvocationCinematic(pnj, action, targetId) {
       setTimeout(()=>{ img.style.opacity="1"; nameEl.style.opacity="1"; msgEl.style.opacity="1" }, 50)
     }, 20)
 
-    // ÉTAPE 3 — Après 4s, lancer le dé
+    // Ã‰TAPE 3 â€” AprÃ¨s 4s, lancer le dÃ©
     setTimeout(()=>{
       cinScreen.style.opacity = "0"
       setTimeout(()=>{ cinScreen.remove(); _rollAllyDice(pnj, action, targetId) }, 600)
@@ -1308,7 +1310,7 @@ function _rollAllyDice(pnj, action, targetId) {
   document.body.appendChild(diceOverlay)
   setTimeout(()=>diceOverlay.style.opacity="1", 20)
 
-  // Roulade identique à celle des joueurs
+  // Roulade identique Ã  celle des joueurs
   let spins = 0; const maxSpins = 16
   const spinIv = setInterval(()=>{
     spins++
@@ -1324,13 +1326,13 @@ function _rollAllyDice(pnj, action, targetId) {
       const diceInv = new Audio("audio/diceinv.mp3"); diceInv.volume = 0.85; diceInv.play().catch(()=>{})
       setTimeout(()=>{ let iv=setInterval(()=>{ if(diceInv.volume>0.05) diceInv.volume=Math.max(0,diceInv.volume-0.05); else{ diceInv.pause(); clearInterval(iv) } },100) }, 3000)
 
-      // Son crit/fail UNIQUEMENT selon résultat, après 400ms
+      // Son crit/fail UNIQUEMENT selon rÃ©sultat, aprÃ¨s 400ms
       setTimeout(()=>{
         if (roll === action.dice) playSound("critSound", 0.8)
         else if (roll === 1) playSound("failSound", 0.8)
       }, 400)
 
-      // Fermer après 2s puis appliquer
+      // Fermer aprÃ¨s 2s puis appliquer
       setTimeout(()=>{
         diceOverlay.style.opacity = "0"
         setTimeout(()=>{ diceOverlay.remove(); _applyAllyResult(pnj, action, roll, targetId) }, 400)
@@ -1346,11 +1348,11 @@ function _applyAllyResult(pnj, action, roll, targetId) {
   // Animation solennelle
   _playAllyAnim(action.anim, pnj.color, isCrit)
 
-  // Résultat à l'écran
+  // RÃ©sultat Ã  l'Ã©cran
   setTimeout(()=>{
     const resultEl = document.createElement("div")
     resultEl.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',Cinzel,serif;font-size:${isCrit?"42px":"28px"};color:${isCrit?"gold":isFail?"#ff6666":pnj.color};text-shadow:0 0 20px ${isCrit?"gold":isFail?"red":pnj.color};text-align:center;pointer-events:none;z-index:99999999;opacity:0;transition:opacity 0.5s ease;`
-    resultEl.innerText = isCrit ? "✦ PUISSANCE DIVINE ✦" : isFail ? "✦ RÉSISTANCE ✦" : ""
+    resultEl.innerText = isCrit ? "âœ¦ PUISSANCE DIVINE âœ¦" : isFail ? "âœ¦ RÃ‰SISTANCE âœ¦" : ""
     if (resultEl.innerText) {
       document.body.appendChild(resultEl)
       setTimeout(()=>resultEl.style.opacity="1",20)
@@ -1365,7 +1367,7 @@ function _applyAllyResult(pnj, action, roll, targetId) {
       if (isCrit && action.critMult) dmg *= action.critMult
       if (isFail) dmg = Math.floor(dmg * 0.2)
       dmg = Math.max(1, Math.round(dmg))
-      // Frappe en chaîne (Thor) — sinon mob principal uniquement
+      // Frappe en chaÃ®ne (Thor) â€” sinon mob principal uniquement
       const slots = action.chainMin && roll >= action.chainMin ? ["mob","mob2","mob3"] : ["mob"]
       let applied = false
       slots.forEach(slot => {
@@ -1377,15 +1379,15 @@ function _applyAllyResult(pnj, action, roll, targetId) {
           applied = true
         })
       })
-      const chainTxt = slots.length > 1 ? " (frappe en chaîne !)" : ""
-      addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : ${dmg} dégâts${chainTxt}${isCrit?" ✨ CRITIQUE":""}`)
-      showNotification(`${action.icon} ${pnj.name} : ${dmg} dégâts !${isCrit?" CRITIQUE !":""}`)
+      const chainTxt = slots.length > 1 ? " (frappe en chaÃ®ne !)" : ""
+      addMJLog(`${action.icon} ${pnj.name} â€” ${action.label} (D${action.dice}=${roll}) : ${dmg} dÃ©gÃ¢ts${chainTxt}${isCrit?" âœ¨ CRITIQUE":""}`)
+      showNotification(`${action.icon} ${pnj.name} : ${dmg} dÃ©gÃ¢ts !${isCrit?" CRITIQUE !":""}`)
       flashRed(); if(isCrit){ screenShakeHard(); flashRed() } else screenShake()
     }
     else if (action.type==="heal" && targetId) {
       const healAmt = action.healMult ? roll*action.healMult : action.healAmt||roll
       db.ref("characters/"+targetId+"/hp").once("value",s=>{ db.ref("characters/"+targetId+"/hp").set(Math.min(300,(s.val()||0)+healAmt)) })
-      addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : +${healAmt} HP à ${targetId.toUpperCase()}`)
+      addMJLog(`${action.icon} ${pnj.name} â€” ${action.label} (D${action.dice}=${roll}) : +${healAmt} HP Ã  ${targetId.toUpperCase()}`)
       showNotification(`${action.icon} ${pnj.name} soigne ${targetId.toUpperCase()} de ${healAmt} HP !`)
       flashGold(); if(isCrit){ powerExplosion(); flashGold() }
     }
@@ -1394,12 +1396,12 @@ function _applyAllyResult(pnj, action, roll, targetId) {
       if (success) {
         db.ref("combat/mob/malus").set({ label:action.label, source:pnj.name, roll, time:Date.now() })
         setTimeout(()=>db.ref("combat/mob/malus").remove(), 12000)
-        addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : succès !`)
+        addMJLog(`${action.icon} ${pnj.name} â€” ${action.label} (D${action.dice}=${roll}) : succÃ¨s !`)
         showNotification(`${action.icon} ${pnj.name} affaiblit l'ennemi !`)
         screenShake()
       } else {
-        addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : résistance de l'ennemi`)
-        showNotification(`${action.icon} ${pnj.name} : résistance de l'ennemi...`)
+        addMJLog(`${action.icon} ${pnj.name} â€” ${action.label} (D${action.dice}=${roll}) : rÃ©sistance de l'ennemi`)
+        showNotification(`${action.icon} ${pnj.name} : rÃ©sistance de l'ennemi...`)
       }
     }
     else if (action.type==="buff" && targetId) {
@@ -1407,8 +1409,8 @@ function _applyAllyResult(pnj, action, roll, targetId) {
       const mainStats = { greg:"force", ju:"perspi", elo:"charme" }
       const stat = mainStats[targetId]||"force"
       db.ref("characters/"+targetId+"/"+stat).once("value",s=>{ db.ref("characters/"+targetId+"/"+stat).set((s.val()||0)+buffAmt) })
-      addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : +${buffAmt} ${stat} à ${targetId.toUpperCase()}`)
-      showNotification(`${action.icon} ${pnj.name} : +${buffAmt} ${stat} à ${targetId.toUpperCase()} !`)
+      addMJLog(`${action.icon} ${pnj.name} â€” ${action.label} (D${action.dice}=${roll}) : +${buffAmt} ${stat} Ã  ${targetId.toUpperCase()}`)
+      showNotification(`${action.icon} ${pnj.name} : +${buffAmt} ${stat} Ã  ${targetId.toUpperCase()} !`)
       flashGold(); powerExplosion()
     }
   }, 800)
@@ -1422,7 +1424,7 @@ function _applyAllyResult(pnj, action, roll, targetId) {
 }
 
 function _playAllyAnim(animType, color, isCrit) {
-  // Animation solennelle — voile coloré + particules lentes
+  // Animation solennelle â€” voile colorÃ© + particules lentes
   const overlay = document.createElement("div"); overlay.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999990;opacity:0;transition:opacity 1.5s ease;`
   document.body.appendChild(overlay)
 
@@ -1464,7 +1466,7 @@ function openAllyPNJViewer() {
   db.ref("game/playerAllyAccess").once("value", snap => {
     const access = snap.val()
     if (!access) {
-      showNotification("Aucune invocation donnée par le MJ")
+      showNotification("Aucune invocation donnÃ©e par le MJ")
       return
     }
 
@@ -1483,7 +1485,7 @@ function openAllyPNJViewer() {
     panel.style.cssText = "position:fixed;bottom:80px;left:84px;background:rgba(8,20,24,0.97);border:1px solid rgba(140,80,255,0.4);box-shadow:0 0 0 1px rgba(80,40,160,0.3),0 0 30px rgba(0,0,0,0.9);border-radius:3px;padding:14px;z-index:99999999;min-width:300px;max-width:88vw;max-height:75vh;overflow-y:auto;font-family:Cinzel,serif;"
 
     const title = document.createElement("div"); title.style.cssText = "font-size:10px;letter-spacing:3px;color:#a880ff;margin-bottom:12px;border-bottom:1px solid rgba(140,80,255,0.2);padding-bottom:6px;display:flex;justify-content:space-between;"
-    title.innerHTML = '<span>✦ INVOCATION AUTORISÉE</span><span style="cursor:pointer;color:#ff8888;" onclick="document.getElementById(\'allyViewerPanel\').remove()">✕</span>'
+    title.innerHTML = '<span>âœ¦ INVOCATION AUTORISÃ‰E</span><span style="cursor:pointer;color:#ff8888;" onclick="document.getElementById(\'allyViewerPanel\').remove()">âœ•</span>'
     panel.appendChild(title)
 
     const block = document.createElement("div"); block.style.cssText = "margin-bottom:6px;border-bottom:1px solid rgba(140,80,255,0.1);padding-bottom:10px;"
@@ -1494,7 +1496,7 @@ function openAllyPNJViewer() {
     header.appendChild(img); header.appendChild(info); block.appendChild(header)
 
     const row = document.createElement("div"); row.style.cssText = "display:flex;align-items:flex-start;gap:8px;padding:8px 8px;margin-bottom:3px;border-radius:2px;border:1px solid rgba(140,80,255,0.2);background:rgba(8,15,22,0.6);"
-    row.innerHTML = `<span style="font-size:16px;margin-top:1px;">${granted.action.icon}</span><div style="flex:1;"><div style="font-size:11px;color:${granted.pnj.color};letter-spacing:1px;">${granted.action.label} <span style="color:#5555aa;font-size:9px;">(D${granted.action.dice})</span></div><div style="font-size:10px;color:#3a5a6a;margin-top:3px;line-height:1.5;">${granted.action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(80,40,160,0.25);color:#d8b0ff;letter-spacing:1px;">AUTORISÉE</span>`
+    row.innerHTML = `<span style="font-size:16px;margin-top:1px;">${granted.action.icon}</span><div style="flex:1;"><div style="font-size:11px;color:${granted.pnj.color};letter-spacing:1px;">${granted.action.label} <span style="color:#5555aa;font-size:9px;">(D${granted.action.dice})</span></div><div style="font-size:10px;color:#3a5a6a;margin-top:3px;line-height:1.5;">${granted.action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(80,40,160,0.25);color:#d8b0ff;letter-spacing:1px;">AUTORISÃ‰E</span>`
     row.style.cursor = "pointer"
     row.style.transition = "background 0.15s,border-color 0.15s,transform 0.15s"
     row.onmouseenter = () => { row.style.background = "rgba(20,30,48,0.85)"; row.style.borderColor = granted.pnj.color + "88"; row.style.transform = "translateX(-2px)" }
@@ -1507,7 +1509,7 @@ function openAllyPNJViewer() {
 }
 
 /* ========================= */
-/* POINTS LIBRES — LEVEL UP  */
+/* POINTS LIBRES â€” LEVEL UP  */
 /* ========================= */
 
 function showFreePointsPanel(playerID, points) {
@@ -1518,11 +1520,11 @@ function showFreePointsPanel(playerID, points) {
   panel.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,20,24,0.98);border:1px solid #1e5a66;box-shadow:0 0 0 1px #8a6520,0 0 40px rgba(0,0,0,0.9);border-radius:3px;padding:20px;z-index:999999999;min-width:320px;font-family:Cinzel,serif;"
 
   const title = document.createElement("div"); title.style.cssText = "font-size:11px;letter-spacing:3px;color:#d4a835;margin-bottom:6px;text-align:center;"
-  title.innerText = "✦ LEVEL UP ✦"
+  title.innerText = "âœ¦ LEVEL UP âœ¦"
   panel.appendChild(title)
 
   const sub = document.createElement("div"); sub.style.cssText = "font-family:'IM Fell English',serif;font-size:13px;color:#6a9aaa;text-align:center;margin-bottom:16px;font-style:italic;"
-  sub.innerText = "Répartissez vos points de capacité"
+  sub.innerText = "RÃ©partissez vos points de capacitÃ©"
   panel.appendChild(sub)
 
   const counter = document.createElement("div"); counter.id = "freePointsCounter"; counter.style.cssText = "text-align:center;font-size:28px;color:#d4a835;margin-bottom:16px;letter-spacing:2px;"
@@ -1533,7 +1535,7 @@ function showFreePointsPanel(playerID, points) {
   const changes = {}
 
   const stats = ["force","charme","perspi","chance","defense"]
-  const statLabels = { force:"Force", charme:"Charme", perspi:"Perspicacité", chance:"Chance", defense:"Défense" }
+  const statLabels = { force:"Force", charme:"Charme", perspi:"PerspicacitÃ©", chance:"Chance", defense:"DÃ©fense" }
 
   stats.forEach(stat => {
     const row = document.createElement("div"); row.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:6px 10px;background:rgba(10,30,38,0.6);border:1px solid rgba(30,90,102,0.3);border-radius:2px;"
@@ -1544,7 +1546,7 @@ function showFreePointsPanel(playerID, points) {
     const addedEl = document.createElement("div"); addedEl.id = "fp_added_"+stat; addedEl.style.cssText = "font-size:11px;color:#d4a835;min-width:40px;text-align:center;"
     addedEl.innerText = "+0"
 
-    const minus = document.createElement("button"); minus.innerText = "−"; minus.style.cssText = "width:26px;height:26px;font-size:16px;background:rgba(80,20,20,0.5);color:#ff8888;border:1px solid rgba(180,40,40,0.4);border-radius:2px;cursor:pointer;margin:0 4px;"
+    const minus = document.createElement("button"); minus.innerText = "âˆ’"; minus.style.cssText = "width:26px;height:26px;font-size:16px;background:rgba(80,20,20,0.5);color:#ff8888;border:1px solid rgba(180,40,40,0.4);border-radius:2px;cursor:pointer;margin:0 4px;"
     minus.onclick = () => {
       if (!(changes[stat] > 0)) return
       changes[stat]--; remaining++
@@ -1567,7 +1569,7 @@ function showFreePointsPanel(playerID, points) {
   })
 
   const confirmBtn = document.createElement("button"); confirmBtn.style.cssText = "width:100%;margin-top:12px;padding:10px;font-family:Cinzel,serif;font-size:13px;background:rgba(10,40,52,0.8);color:#a0c8d0;border:1px solid #1e5a66;border-radius:2px;cursor:pointer;opacity:0.4;letter-spacing:2px;transition:all 0.2s;"
-  confirmBtn.innerText = "✦ Confirmer"; confirmBtn.disabled = true
+  confirmBtn.innerText = "âœ¦ Confirmer"; confirmBtn.disabled = true
   confirmBtn.onclick = () => {
     const updates = {}
     Object.keys(changes).forEach(stat => { if (changes[stat]) updates[stat] = firebase.database.ServerValue }) // placeholder
@@ -1581,7 +1583,7 @@ function showFreePointsPanel(playerID, points) {
       upd.freePoints = 0
       db.ref("characters/" + playerID).update(upd).then(() => {
         panel.remove()
-        showNotification("✦ Stats améliorées !")
+        showNotification("âœ¦ Stats amÃ©liorÃ©es !")
         flashGold()
         // Recharger la fiche si ouverte
         if (currentSheetPlayer === playerID) {
@@ -1635,7 +1637,7 @@ function saveGold() {
   input.style.display = "none"
   const display = document.getElementById("goldDisplay")
   if (display) { display.innerText = val + " po"; display.style.display = "block" }
-  showNotification("💰 " + val + " pièces d'or")
+  showNotification("ðŸ’° " + val + " piÃ¨ces d'or")
 }
 
 function loadGold(playerID) {
@@ -1649,7 +1651,7 @@ function loadGold(playerID) {
 }
 
 /* ========================= */
-/* JOURNAL MJ — RÉDUIRE      */
+/* JOURNAL MJ â€” RÃ‰DUIRE      */
 /* ========================= */
 
 function toggleMJLog() {
@@ -1659,7 +1661,7 @@ function toggleMJLog() {
   if (!content || !btn) return
   const collapsed = content.style.display === "none"
   content.style.display = collapsed ? "block" : "none"
-  btn.innerText = collapsed ? "▼" : "▲"
+  btn.innerText = collapsed ? "â–¼" : "â–²"
   log.style.maxHeight = collapsed ? "260px" : "auto"
 }
 
@@ -1706,6 +1708,63 @@ function grantAllyActionToPlayers(pnj, action) {
     actionId: action.id,
     time: Date.now()
   }).then(() => {
-    showNotification("✦ " + action.label + " donnée aux joueurs")
+    showNotification("âœ¦ " + action.label + " donnÃ©e aux joueurs")
   })
 }
+function launchMobAttackResolved(attack, mobData, panel, forcedTarget) {
+  const target = forcedTarget || (panel && panel._currentTarget)
+  if (!target && attack.effect !== "all") { showNotification("? Choisissez une cible !"); return }
+  const slotKey = (mobData && mobData.slot) || "mob"
+  window.__mobSpecialUsed = window.__mobSpecialUsed || {}
+  if (attack.special && window.__mobSpecialUsed[slotKey]) {
+    showNotification("? Cette sp?ciale a d?j? ?t? utilis?e.")
+    return
+  }
+  if (panel) panel._lastAttack = attack.name
+  animateMobDice(() => {
+    const roll = Math.floor(Math.random() * 20) + 1
+    const dc = attack.hitDC || 1
+    if (roll < dc) {
+      if (attack.special) window.__mobSpecialUsed[slotKey] = true
+      db.ref("game/mobAttackEvent").set({
+        attackName: attack.name + " (rat?)",
+        icon: attack.icon,
+        dmg: 0,
+        target: attack.effect === "all" || target === "all" ? "TOUS" : (target || "CIBLE"),
+        mobName: (mobData.name || "MOB").toUpperCase(),
+        time: Date.now(),
+        roll: roll,
+        dc: dc,
+        miss: true,
+        special: !!attack.special
+      })
+      showNotification("?? " + (mobData.name || "MOB").toUpperCase() + " rate " + attack.name + " (" + roll + "/" + dc + ")")
+      setTimeout(() => renderAllMobPanels(), 120)
+      return
+    }
+    const dmg = getMobDamage(attack, (mobData && mobData.lvl) || 1)
+    if (attack.special) window.__mobSpecialUsed[slotKey] = true
+    if (attack.effect === "all" || target === "all") {
+      ;["greg","ju","elo","bibi"].forEach(pid => {
+        db.ref("characters/" + pid + "/hp").once("value", s => {
+          db.ref("characters/" + pid + "/hp").set(Math.max(0, (s.val() || 0) - dmg))
+        })
+      })
+      db.ref("game/mobAttackEvent").set({ attackName: attack.name, icon: attack.icon, dmg: dmg, target: "TOUS", mobName: (mobData.name || "MOB").toUpperCase(), time: Date.now(), roll: roll, dc: dc, special: !!attack.special })
+    } else {
+      db.ref("characters/" + target + "/hp").once("value", s => {
+        db.ref("characters/" + target + "/hp").set(Math.max(0, (s.val() || 0) - dmg))
+        if (attack.effect === "curse") {
+          db.ref("characters/" + target + "/curse").once("value", cs => {
+            db.ref("characters/" + target + "/curse").set(Math.min(8, (cs.val() || 0) + 1))
+          })
+        }
+        db.ref("game/mobAttackEvent").set({ attackName: attack.name, icon: attack.icon, dmg: dmg, target: target.toUpperCase(), mobName: (mobData.name || "MOB").toUpperCase(), time: Date.now(), roll: roll, dc: dc, special: !!attack.special })
+        showNotification("?? " + attack.name + " ? " + target.toUpperCase() + " ? " + dmg + " d?g?ts !")
+        screenShake()
+      })
+    }
+    setTimeout(() => renderAllMobPanels(), 200)
+  })
+}
+
