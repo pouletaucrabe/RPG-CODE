@@ -1379,7 +1379,7 @@ db.ref("game/powerSound").on("value", snap => {
   if (!data) return
   const pInfo = playerPowerSounds[data.player]
   if (!pInfo) return
-  const snd = new Audio(pInfo.file)
+  const snd = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath(pInfo.file) : (/^(https?:|data:|blob:|\/|audio\/)/i.test(String(pInfo.file || "")) ? String(pInfo.file || "") : "audio/" + pInfo.file))
   snd.volume = 0; snd.play().catch(() => {})
   const inIv = setInterval(() => { if (snd.volume < 0.85) snd.volume = Math.min(0.85, snd.volume + 0.06); else clearInterval(inIv) }, 80)
   if (pInfo.fadeAt) {
