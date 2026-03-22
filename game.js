@@ -144,6 +144,17 @@ function applyMapLoreBookReward(entry, playerId) {
   showNotification("📖 " + playerId.toUpperCase() + " gagne +" + reward.amount + " " + reward.label)
 }
 
+function getLocalPlayerId() {
+  if (myToken && myToken.id) return String(myToken.id).toLowerCase()
+  const selectedToken = document.querySelector(".token.selectedPlayer")
+  if (selectedToken && selectedToken.id) return String(selectedToken.id).toLowerCase()
+  const menuMini = document.getElementById("playerMenuMini")
+  if (menuMini && menuMini.dataset && menuMini.dataset.playerId) return String(menuMini.dataset.playerId).toLowerCase()
+  const sheet = document.getElementById("characterSheet")
+  if (sheet && sheet.dataset && sheet.dataset.playerId) return String(sheet.dataset.playerId).toLowerCase()
+  return ""
+}
+
 function showMapLoreBookOverlay(bookData) {
   const entry = MAP_LORE_BOOK_ENTRIES[bookData?.id]
   if (!entry) return
@@ -1429,7 +1440,7 @@ db.ref("game/playerDeath").on("value", snap => {
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
   const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
   screenShakeHard()
-  if (!isGM && myToken && String(myToken.id || "").toLowerCase() === String(pid || "").toLowerCase() && !window.__combatOutcomeShowing) {
+  if (!isGM && getLocalPlayerId() === String(pid || "").toLowerCase() && !window.__combatOutcomeShowing) {
       window.__pendingLocalDefeat = true
       combatActive = true
       setGameState("COMBAT")
@@ -1461,7 +1472,7 @@ db.ref("game/combatOutcome").on("value", snap => {
   }
 
   if (data.type === "defeat") {
-    if (data.player && myToken && String(data.player).toLowerCase() !== String(myToken.id || "").toLowerCase()) return
+    if (data.player && getLocalPlayerId() && String(data.player).toLowerCase() !== getLocalPlayerId()) return
     if (window.__pendingLocalDefeat) return
     window.__pendingLocalDefeat = true
     showDefeat()

@@ -773,7 +773,9 @@ function _resolveRemoteCombatEnd(attempt = 0) {
     if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
 
     if (outcome && outcome.type === "defeat") {
-      const localId = myToken ? String(myToken.id || "").toLowerCase() : ""
+      const localId = typeof getLocalPlayerId === "function"
+        ? getLocalPlayerId()
+        : (myToken ? String(myToken.id || "").toLowerCase() : "")
       const targetId = String(outcome.player || "").toLowerCase()
       if (targetId && localId && targetId === localId) {
         window.__pendingLocalDefeat = true
