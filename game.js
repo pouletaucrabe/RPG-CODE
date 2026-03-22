@@ -1462,6 +1462,7 @@ db.ref("game/combatOutcome").on("value", snap => {
 
   if (data.type === "defeat") {
     if (data.player && myToken && String(data.player).toLowerCase() !== String(myToken.id || "").toLowerCase()) return
+    if (window.__pendingLocalDefeat) return
     window.__pendingLocalDefeat = true
     showDefeat()
   }

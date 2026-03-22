@@ -416,8 +416,9 @@ function showVictory() {
 }
 
 function showDefeat() {
+  if (window.__combatOutcomeShowing) return
   window.__combatOutcomeShowing = true
-  window.__pendingLocalDefeat = false
+  window.__pendingLocalDefeat = true
   combatActive = true
   setGameState("COMBAT")
   playSound("defeatSound")

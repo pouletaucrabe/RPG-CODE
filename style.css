@@ -3242,21 +3242,19 @@ body {
   width: 58px !important;
   height: 58px !important;
   border-radius: 50% !important;
-  border: 1px solid rgba(83, 168, 194, 0.38) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(40,127,152,0.95), rgba(12,56,71,0.98) 48%, rgba(5,17,22,1) 100%) !important;
+  border: none !important;
+  background: url("images/boutonrond1.png") center/100% 100% no-repeat !important;
   box-shadow:
-    inset 0 0 16px rgba(104, 222, 255, 0.12),
-    0 0 0 2px rgba(9, 40, 53, 0.72),
+    0 0 0 1px rgba(32, 19, 6, 0.45),
     0 8px 18px rgba(0,0,0,0.42) !important;
 }
 
 .gmIcon:hover {
   transform: translateY(-2px) scale(1.05) !important;
   box-shadow:
-    inset 0 0 18px rgba(104, 222, 255, 0.16),
-    0 0 0 2px rgba(22, 77, 97, 0.86),
-    0 0 18px rgba(57, 193, 229, 0.24) !important;
+    0 0 0 1px rgba(84, 54, 18, 0.75),
+    0 0 18px rgba(221, 176, 84, 0.22),
+    0 8px 22px rgba(0,0,0,0.5) !important;
 }
 
 .gmSection {
