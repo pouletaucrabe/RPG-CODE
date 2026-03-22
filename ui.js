@@ -914,8 +914,10 @@ function showAuroraEndSequence() {
   stopAuroraMusic(true, () => {
     if (ov && ov.parentNode) ov.remove()
     if (end && end.parentNode) {
-      end.style.opacity = "0"
-      setTimeout(() => { if (end.parentNode) end.remove() }, 2200)
+      setTimeout(() => {
+        end.style.opacity = "0"
+        setTimeout(() => { if (end.parentNode) end.remove() }, 2200)
+      }, 4000)
     }
     if (currentMap && mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap])
   })
