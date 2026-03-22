@@ -319,8 +319,8 @@ function showMobIntro(mob) {
 function fadeToCombat() {
   const arena     = document.getElementById("combatArena")
   const tokenZone = document.getElementById("combatTokens")
-  arena.style.cssText = "display:block;position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:auto;z-index:100;"
-  tokenZone.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;"
+  arena.style.cssText = "display:block;position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:100;"
+  tokenZone.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"
 
   ;["greg","ju","elo","bibi"].forEach((id, i) => {
     const token = document.getElementById(id)
@@ -328,11 +328,12 @@ function fadeToCombat() {
     tokenZone.appendChild(token)
     token.style.transition = "none"; token.style.position = "absolute"; token.style.display = "flex"
     const startX = Math.round((window.innerWidth - 4 * 110) / 2)
-    token.style.left   = (startX + i * 110) + "px"
-    token.style.top    = Math.round(window.innerHeight * 0.65) + "px"
-    token.style.zIndex = "200"; token.style.width = "70px"; token.style.height = "70px"
-    setTimeout(() => { token.style.transition = "" }, 50)
-  })
+      token.style.left   = (startX + i * 110) + "px"
+      token.style.top    = Math.round(window.innerHeight * 0.65) + "px"
+      token.style.zIndex = "200"; token.style.width = "70px"; token.style.height = "70px"
+      token.style.pointerEvents = "auto"
+      setTimeout(() => { token.style.transition = "" }, 50)
+    })
 
   const mob = document.getElementById("mobToken")
   if (mob) {
