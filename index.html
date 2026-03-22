@@ -233,6 +233,7 @@
 
 <!-- BARRE MJ -->
 <div id="gmBar">
+  <button id="gmBarToggle" type="button" onclick="toggleGMBar()" aria-label="Replier le menu MJ">▾</button>
   <button class="gmIcon" onclick="toggleGMSection('gmCharacters')" title="Personnages (P)">🎭</button>
   <button class="gmIcon" onclick="toggleGMSection('mapMenu')"      title="Maps (M)">🗺</button>
   <button class="gmIcon" onclick="toggleGMSection('pnjMenu')"      title="PNJ (R)">👤</button>
@@ -775,7 +776,7 @@
 </div>
 
 <!-- POPUP DIFFICULTÉ MOB -->
-<div id="mobDiffPopup" style="display:none;position:fixed;z-index:99999999;background:rgb(15,3,3);border:1px solid rgb(180,40,40);border-radius:6px;padding:8px;box-shadow:0 0 20px rgba(180,0,0,0.4);" onmousedown="event.stopPropagation()">
+<div id="mobDiffPopup" style="display:none;position:fixed;z-index:1000000004;background:rgb(15,3,3);border:1px solid rgb(180,40,40);border-radius:6px;padding:8px;box-shadow:0 0 20px rgba(180,0,0,0.4);" onmousedown="event.stopPropagation()">
   <div id="mobDiffName" style="font-family:Cinzel,serif;font-size:10px;color:rgb(200,100,100);letter-spacing:2px;text-align:center;margin-bottom:6px;"></div>
   <div style="display:flex;flex-direction:column;gap:4px;">
     <button onclick="launchMobDiff('weak')"   style="padding:4px 14px;font-family:Cinzel,serif;font-size:11px;background:rgb(30,10,10);color:rgb(180,220,180);border:1px solid rgb(60,120,60);border-radius:3px;cursor:pointer;">● Faible</button>

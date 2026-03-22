@@ -1324,22 +1324,10 @@ db.ref("game/shop").on("value", snap => {
     window.__lastOpenedShopTime = isOpen && data && data.time ? data.time : null
     window.__lastShopEventSignature = isOpen && data && data.time ? ("open:" + data.time) : "init-closed"
     window.__shopInitDone = true
-  } else if (window.__shopWasOpen !== isOpen) {
-    const now = Date.now()
-    const signature = isOpen
-      ? ("open:" + ((data && data.time) || now))
-      : ("close:" + (window.__lastOpenedShopTime || "none"))
-    if (signature !== window.__lastShopEventSignature && (window.__lastShopSoundState !== isOpen || (now - window.__lastShopSoundAt) > 700)) {
-      const snd = new Audio("audio/clic.mp3")
-      snd.volume = 0.8
-      snd.play().catch(() => {})
-      window.__lastShopSoundState = isOpen
-      window.__lastShopSoundAt = now
-      window.__lastShopEventSignature = signature
-    }
-    if (isOpen && data && data.time) window.__lastOpenedShopTime = data.time
-    window.__shopWasOpen = isOpen
   }
+  if (isOpen && data && data.time) window.__lastOpenedShopTime = data.time
+  window.__lastShopEventSignature = isOpen && data && data.time ? ("open:" + data.time) : "closed"
+  window.__shopWasOpen = isOpen
   const existing = document.getElementById("shopOverlay")
   if (existing) existing.remove()
   if (!data || !data.open) return
@@ -2223,6 +2211,19 @@ function toggleDiceBar(forceState) {
   toggle.setAttribute("aria-label", collapsed ? "Déplier les dés" : "Replier les dés")
 }
 
+function toggleGMBar(forceState) {
+  const bar = document.getElementById("gmBar")
+  const toggle = document.getElementById("gmBarToggle")
+  if (!bar || !toggle) return
+  const collapsed = typeof forceState === "boolean" ? forceState : !bar.classList.contains("collapsed")
+  if (collapsed) {
+    document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" })
+  }
+  bar.classList.toggle("collapsed", collapsed)
+  toggle.innerText = collapsed ? "▴" : "▾"
+  toggle.setAttribute("aria-label", collapsed ? "Déplier le menu MJ" : "Replier le menu MJ")
+}
+
 function mobRoll(max) {
   if (!isGM || !combatActive) return
   const result = Math.floor(Math.random() * max) + 1
@@ -2516,6 +2517,7 @@ function requestGM() {
 function activateGM() {
     isGM = true
     document.getElementById("gmBar").style.display     = "flex"
+    toggleGMBar(false)
     document.getElementById("mjRollBtn").style.display = "inline-block"
     document.getElementById("mjLog").style.display     = "block"
     document.getElementById("gmSaveBar").style.display = "block"

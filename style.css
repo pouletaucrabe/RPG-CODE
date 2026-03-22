@@ -267,6 +267,32 @@ html, body {
   box-shadow: 0 0 10px rgba(0,0,0,0.45) !important;
 }
 
+#gmBarToggle {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border: 1px solid rgba(180,140,60,0.72) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(52,35,8,0.96), rgba(26,18,5,0.98)) !important;
+  color: #f4d37b !important;
+  font-family: Cinzel, serif !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 0 10px rgba(0,0,0,0.45) !important;
+}
+
+#gmBar.collapsed {
+  gap: 0 !important;
+}
+
+#gmBar.collapsed .gmIcon {
+  display: none !important;
+}
+
 #diceBar.collapsed {
   padding: 10px 10px !important;
   gap: 0 !important;
