@@ -3151,6 +3151,7 @@ body {
   align-items: center !important;
   justify-content: flex-start !important;
   gap: 16px !important;
+  background-image: url("images/menu%20intro.png") !important;
   background-position: center top !important;
   background-size: contain !important;
   background-repeat: no-repeat !important;
@@ -3255,6 +3256,28 @@ body {
     0 0 0 1px rgba(84, 54, 18, 0.75),
     0 0 18px rgba(221, 176, 84, 0.22),
     0 8px 22px rgba(0,0,0,0.5) !important;
+}
+
+/* Final hard override: no background frame on closed MJ bar */
+#gmBar {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+#gmBar::before,
+#gmBar::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  background-image: none !important;
 }
 
 .gmSection {
