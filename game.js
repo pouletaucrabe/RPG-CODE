@@ -35,6 +35,8 @@ window.__shopWasOpen = false
 window.__shopInitDone = false
 window.__lastShopSoundState = null
 window.__lastShopSoundAt = 0
+window.__lastShopEventSignature = null
+window.__lastOpenedShopTime = null
 
 const MAP_LORE_BOOK_MAPS = [
   "taverne.jpg",
@@ -1319,16 +1321,23 @@ db.ref("game/shop").on("value", snap => {
   const isOpen = !!(data && data.open)
   if (!window.__shopInitDone) {
     window.__shopWasOpen = isOpen
+    window.__lastOpenedShopTime = isOpen && data && data.time ? data.time : null
+    window.__lastShopEventSignature = isOpen && data && data.time ? ("open:" + data.time) : "init-closed"
     window.__shopInitDone = true
   } else if (window.__shopWasOpen !== isOpen) {
     const now = Date.now()
-    if (window.__lastShopSoundState !== isOpen || (now - window.__lastShopSoundAt) > 700) {
+    const signature = isOpen
+      ? ("open:" + ((data && data.time) || now))
+      : ("close:" + (window.__lastOpenedShopTime || "none"))
+    if (signature !== window.__lastShopEventSignature && (window.__lastShopSoundState !== isOpen || (now - window.__lastShopSoundAt) > 700)) {
       const snd = new Audio("audio/clic.mp3")
       snd.volume = 0.8
       snd.play().catch(() => {})
       window.__lastShopSoundState = isOpen
       window.__lastShopSoundAt = now
+      window.__lastShopEventSignature = signature
     }
+    if (isOpen && data && data.time) window.__lastOpenedShopTime = data.time
     window.__shopWasOpen = isOpen
   }
   const existing = document.getElementById("shopOverlay")
@@ -2389,6 +2398,8 @@ function startGame() {
     window.__shopInitDone = false
     window.__lastShopSoundState = null
     window.__lastShopSoundAt = 0
+    window.__lastShopEventSignature = null
+    window.__lastOpenedShopTime = null
     if (window.__combatStatsRef && window.__combatStatsCb) {
       window.__combatStatsRef.off("value", window.__combatStatsCb)
       window.__combatStatsRef = null
