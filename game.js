@@ -1405,7 +1405,32 @@ db.ref("game/mobAttackEvent").on("value", snap => {
   if (!data) return
   const notif = document.createElement("div")
   notif.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999999;text-align:center;pointer-events:none;background:rgba(0,0,0,0.85);border:2px solid rgba(220,40,40,0.7);border-radius:12px;padding:24px 40px;box-shadow:0 0 40px rgba(200,0,0,0.5);opacity:0;transition:opacity 0.3s ease;"
-  notif.innerHTML = `<div style="font-size:48px;margin-bottom:8px;">${data.icon}</div>${data.mobName ? `<div style="font-family:Cinzel,serif;font-size:12px;color:#ff8888;letter-spacing:2px;margin-bottom:4px;">${data.mobName}</div>` : ""}<div style="font-family:'Cinzel Decorative',serif;font-size:22px;color:#ff4444;text-shadow:0 0 20px red;letter-spacing:3px;margin-bottom:10px;">${data.attackName}</div><div style="font-family:Cinzel,serif;font-size:18px;color:#ffaaaa;">→ <span style="color:#fff;font-weight:bold;">${data.target}</span></div><div style="font-family:Cinzel,serif;font-size:28px;color:#ff3333;font-weight:bold;text-shadow:0 0 10px red;margin-top:6px;">-${data.dmg} HP</div>`
+  const icon = document.createElement("div")
+  icon.style.cssText = "font-size:48px;margin-bottom:8px;"
+  icon.innerText = String(data.icon || "")
+  notif.appendChild(icon)
+  if (data.mobName) {
+    const mobName = document.createElement("div")
+    mobName.style.cssText = "font-family:Cinzel,serif;font-size:12px;color:#ff8888;letter-spacing:2px;margin-bottom:4px;"
+    mobName.innerText = String(data.mobName)
+    notif.appendChild(mobName)
+  }
+  const attackName = document.createElement("div")
+  attackName.style.cssText = "font-family:'Cinzel Decorative',serif;font-size:22px;color:#ff4444;text-shadow:0 0 20px red;letter-spacing:3px;margin-bottom:10px;"
+  attackName.innerText = String(data.attackName || "")
+  notif.appendChild(attackName)
+  const targetLine = document.createElement("div")
+  targetLine.style.cssText = "font-family:Cinzel,serif;font-size:18px;color:#ffaaaa;"
+  targetLine.appendChild(document.createTextNode("→ "))
+  const targetStrong = document.createElement("span")
+  targetStrong.style.cssText = "color:#fff;font-weight:bold;"
+  targetStrong.innerText = String(data.target || "")
+  targetLine.appendChild(targetStrong)
+  notif.appendChild(targetLine)
+  const damage = document.createElement("div")
+  damage.style.cssText = "font-family:Cinzel,serif;font-size:28px;color:#ff3333;font-weight:bold;text-shadow:0 0 10px red;margin-top:6px;"
+  damage.innerText = "-" + clampInteger(data.dmg, 0, 9999) + " HP"
+  notif.appendChild(damage)
   document.body.appendChild(notif)
   setTimeout(() => { notif.style.opacity = "1" }, 30)
   setTimeout(() => {

@@ -147,6 +147,59 @@ function updateCombatHPBar(hp) {
   else               { bar.style.background = "linear-gradient(90deg,#ff4040,#8b0000)"; bar.style.boxShadow = "0 0 10px red"; bar.style.animation = "hpDangerPulse 0.7s infinite alternate" }
 }
 
+function appendAttackLine(container, label, value) {
+  if (value == null || value === "") return
+  const line = document.createElement("div")
+  line.className = "attackLine"
+  const labelEl = document.createElement("span")
+  labelEl.className = "attackLabel"
+  labelEl.innerText = label + " :"
+  line.appendChild(labelEl)
+  line.appendChild(document.createTextNode(" " + value))
+  container.appendChild(line)
+}
+
+function appendAttackDiceLine(container, dice, stat) {
+  if (!dice) return
+  const line = document.createElement("div")
+  line.className = "attackLine"
+  const labelEl = document.createElement("span")
+  labelEl.className = "attackLabel"
+  labelEl.innerText = "Jet :"
+  const diceEl = document.createElement("span")
+  diceEl.className = "attackDice"
+  diceEl.innerText = "d" + dice
+  line.appendChild(labelEl)
+  line.appendChild(document.createTextNode(" 🎲 "))
+  line.appendChild(diceEl)
+  if (stat) {
+    const statEl = document.createElement("span")
+    statEl.className = "attackStat"
+    statEl.innerText = String(stat).toUpperCase()
+    line.appendChild(document.createTextNode(" + "))
+    line.appendChild(statEl)
+  }
+  container.appendChild(line)
+}
+
+function populateAttackBlock(block, attack) {
+  const t = document.createElement("div")
+  t.className = "combatAttack"
+  t.innerText = attack.name
+  block.appendChild(t)
+  appendAttackLine(block, "Type", attack.type)
+  appendAttackDiceLine(block, attack.dice, attack.stat)
+  appendAttackLine(block, "Effet", attack.effect)
+  appendAttackLine(block, "Crit", attack.crit)
+}
+
+function cleanupGMPlayerSheetListener(playerID) {
+  if (!window.__gmMiniRefs || !window.__gmMiniRefs[playerID]) return
+  const binding = window.__gmMiniRefs[playerID]
+  binding.ref.off("value", binding.cb)
+  delete window.__gmMiniRefs[playerID]
+}
+
 function showCombatHUD() {
   if (!myToken) return
   const player = myToken.id, playerAttacks = attacks[player]
@@ -155,11 +208,7 @@ function showCombatHUD() {
   const box = document.getElementById("combatHUDAttacks"); box.innerHTML = ""
   if (playerAttacks) playerAttacks.forEach(a => {
     const block = document.createElement("div"); block.className = "combatBlock"
-    const t = document.createElement("div"); t.className = "combatAttack"; t.innerText = a.name; block.appendChild(t)
-    if (a.type)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Type :</span> "+a.type; block.appendChild(el) }
-    if (a.dice)   { const el=document.createElement("div"); el.className="attackLine"; let txt="🎲 <span class='attackDice'>d"+a.dice+"</span>"; if(a.stat) txt+=" + <span class='attackStat'>"+a.stat.toUpperCase()+"</span>"; el.innerHTML="<span class='attackLabel'>Jet :</span> "+txt; block.appendChild(el) }
-    if (a.effect) { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Effet :</span> "+a.effect; block.appendChild(el) }
-    if (a.crit)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Crit :</span> "+a.crit; block.appendChild(el) }
+    populateAttackBlock(block, a)
     box.appendChild(block)
   })
   document.getElementById("combatHUD").style.display = "none"
@@ -174,6 +223,7 @@ function togglePlayerAttacks() {
 
 function showGMCombatPanel() {
   if (!isGM) return
+  if (window.__gmMiniRefs) Object.keys(window.__gmMiniRefs).forEach(cleanupGMPlayerSheetListener)
   const panel = document.getElementById("gmCombatPanel"); panel.innerHTML = ""
   ;[{ id:"elo",name:"ELO" }, { id:"ju",name:"YU" }, { id:"greg",name:"GREG" }].forEach(p => {
     const btn = document.createElement("button"); btn.className = "gmAttackButton"; btn.innerText = p.name
@@ -184,33 +234,57 @@ function showGMCombatPanel() {
 
 function openGMPlayerSheet(playerID) {
   const panel = document.getElementById("gmCombatPanel")
-  const old = document.getElementById("gmMini_" + playerID); if (old) { old.remove(); return }
+  const old = document.getElementById("gmMini_" + playerID); if (old) { cleanupGMPlayerSheetListener(playerID); old.remove(); return }
   const box = document.createElement("div"); box.className = "gmMiniSheet"; box.id = "gmMini_" + playerID
   const title = document.createElement("div"); title.className = "gmMiniTitle"
-  title.innerHTML = '<img class="gmMiniToken" src="images/'+playerID+'.png">'+playerID.toUpperCase(); box.appendChild(title)
+  const titleImg = document.createElement("img")
+  titleImg.className = "gmMiniToken"
+  titleImg.src = "images/" + sanitizeAssetName(playerID + ".png")
+  title.appendChild(titleImg)
+  title.appendChild(document.createTextNode(playerID.toUpperCase()))
+  box.appendChild(title)
   const hpc = document.createElement("div"); hpc.className = "gmMiniHPContainer"
   const hpb = document.createElement("div"); hpb.className = "gmMiniHPBar"; hpb.id = "gmHPBar_"+playerID; hpc.appendChild(hpb); box.appendChild(hpc)
   const stats = document.createElement("div"); stats.className = "gmMiniStats"; stats.id = "gmStats_"+playerID; box.appendChild(stats)
   const pa = attacks[playerID]
   if (pa) pa.forEach(a => {
     const block = document.createElement("div"); block.className = "combatBlock"
-    const t = document.createElement("div"); t.className = "combatAttack"; t.innerText = a.name; block.appendChild(t)
-    if (a.type)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Type :</span> "+a.type; block.appendChild(el) }
-    if (a.dice)   { const el=document.createElement("div"); el.className="attackLine"; let txt="🎲 <span class='attackDice'>d"+a.dice+"</span>"; if(a.stat) txt+=" + <span class='attackStat'>"+a.stat.toUpperCase()+"</span>"; el.innerHTML="<span class='attackLabel'>Jet :</span> "+txt; block.appendChild(el) }
-    if (a.effect) { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Effet :</span> "+a.effect; block.appendChild(el) }
-    if (a.crit)   { const el=document.createElement("div"); el.className="attackLine"; el.innerHTML="<span class='attackLabel'>Crit :</span> "+a.crit; block.appendChild(el) }
+    populateAttackBlock(block, a)
     box.appendChild(block)
   })
   panel.appendChild(box); makeDraggable(box)
-  db.ref("characters/" + playerID).on("value", snap => {
+  const ref = db.ref("characters/" + playerID)
+  const cb = snap => {
     const d = snap.val(); if (!d) return
     const hp = d.hp||0, curse = d.curse||0, corruption = d.corruption||0
     let ci = ""; for (let i=0;i<curse;i++) ci+="☠"
     const sb = document.getElementById("gmStats_"+playerID)
-    if (sb) sb.innerHTML = `<div class="gmMiniLvl">⭐ ${d.lvl||1}</div><div class="gmMiniHP">❤️ ${hp}</div><div class="gmMiniCurse">${ci}</div><div class="gmMiniPower">${corruption>=10?"✨":""}</div>`
+    if (sb) {
+      sb.replaceChildren()
+      const lvlEl = document.createElement("div")
+      lvlEl.className = "gmMiniLvl"
+      lvlEl.innerText = "⭐ " + (d.lvl || 1)
+      const hpEl = document.createElement("div")
+      hpEl.className = "gmMiniHP"
+      hpEl.innerText = "❤️ " + hp
+      const curseEl = document.createElement("div")
+      curseEl.className = "gmMiniCurse"
+      curseEl.innerText = ci
+      const powerEl = document.createElement("div")
+      powerEl.className = "gmMiniPower"
+      powerEl.innerText = corruption >= 10 ? "✨" : ""
+      sb.appendChild(lvlEl)
+      sb.appendChild(hpEl)
+      sb.appendChild(curseEl)
+      sb.appendChild(powerEl)
+    }
     const hpBar = document.getElementById("gmHPBar_"+playerID)
     if (hpBar) { const pct=Math.max(0,Math.min(100,hp)); hpBar.style.width=pct+"%"; hpBar.style.background=pct>60?"linear-gradient(90deg,#3cff6b,#0b8a3a)":pct>30?"linear-gradient(90deg,#ffb347,#ff7b00)":"linear-gradient(90deg,#ff4040,#8b0000)" }
-  })
+  }
+  if (!window.__gmMiniRefs) window.__gmMiniRefs = {}
+  cleanupGMPlayerSheetListener(playerID)
+  window.__gmMiniRefs[playerID] = { ref, cb }
+  ref.on("value", cb)
 }
 
 /* ========================= */
@@ -1169,7 +1243,14 @@ function showSpellFreed() {
   setTimeout(()=>{ if(currentMap&&mapMusic[currentMap]) crossfadeMusic(mapMusic[currentMap]) },1000)
   playSound("powerSound",0.8); flashGold(); flashGold(); screenShakeHard(); powerExplosion()
   const msg=document.createElement("div"); msg.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:36px;color:#cc88ff;text-shadow:0 0 30px purple;text-align:center;z-index:99999999;pointer-events:none;"
-  msg.innerHTML="⚡ SORT BRISÉ ⚡<br><span style='font-size:18px;color:#aa66ff;'>Les héros sont libérés !</span>"; document.body.appendChild(msg)
+  const msgTitle = document.createElement("div")
+  msgTitle.innerText = "⚡ SORT BRISÉ ⚡"
+  const msgSub = document.createElement("span")
+  msgSub.style.cssText = "font-size:18px;color:#aa66ff;"
+  msgSub.innerText = "Les héros sont libérés !"
+  msg.appendChild(msgTitle)
+  msg.appendChild(msgSub)
+  document.body.appendChild(msg)
   setTimeout(()=>{ msg.style.transition="opacity 1s"; msg.style.opacity="0"; setTimeout(()=>msg.remove(),1000) },4000)
 }
 
@@ -1218,10 +1299,14 @@ function toggleGMShortcutHelp() {
   shortcuts.forEach(({ key, label }) => {
     const row = document.createElement("div")
     row.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:24px;"
-    row.innerHTML = `
-      <span style="font-size:12px;color:#a0c8d0;">${label}</span>
-      <span style="background:rgba(15,42,48,0.9);border:1px solid #2e6a78;border-radius:3px;font-size:11px;color:#5a9aaa;padding:2px 8px;min-width:28px;text-align:center;">${key}</span>
-    `
+    const labelEl = document.createElement("span")
+    labelEl.style.cssText = "font-size:12px;color:#a0c8d0;"
+    labelEl.innerText = label
+    const keyEl = document.createElement("span")
+    keyEl.style.cssText = "background:rgba(15,42,48,0.9);border:1px solid #2e6a78;border-radius:3px;font-size:11px;color:#5a9aaa;padding:2px 8px;min-width:28px;text-align:center;"
+    keyEl.innerText = key
+    row.appendChild(labelEl)
+    row.appendChild(keyEl)
     overlay.appendChild(row)
   })
 
@@ -1266,7 +1351,17 @@ function openAllyPNJPanel() {
   panel.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,20,24,0.97);border:1px solid #1e5a66;box-shadow:0 0 0 1px #8a6520,0 0 40px rgba(0,0,0,0.9);border-radius:3px;padding:16px;z-index:99999999;min-width:380px;max-width:92vw;max-height:82vh;overflow-y:auto;font-family:Cinzel,serif;"
 
   const title = document.createElement("div"); title.style.cssText = "font-size:11px;letter-spacing:3px;color:#1e8a9a;margin-bottom:12px;border-bottom:1px solid rgba(30,90,102,0.3);padding-bottom:8px;display:flex;justify-content:space-between;align-items:center;"
-  title.innerHTML = '<span>⚔ INVOQUER UNE DIVINITÉ</span><span style="cursor:pointer;color:#ff8888;font-size:14px;" onclick="document.getElementById(\'allyPNJPanel\').remove()">✕</span>'
+  const titleText = document.createElement("span")
+  titleText.innerText = "⚔ INVOQUER UNE DIVINITÉ"
+  const titleClose = document.createElement("span")
+  titleClose.style.cssText = "cursor:pointer;color:#ff8888;font-size:14px;"
+  titleClose.innerText = "✕"
+  titleClose.onclick = () => {
+    const panelEl = document.getElementById("allyPNJPanel")
+    if (panelEl) panelEl.remove()
+  }
+  title.appendChild(titleText)
+  title.appendChild(titleClose)
   panel.appendChild(title)
 
   db.ref("combat/usedAllies").once("value", snap => {
@@ -1275,7 +1370,15 @@ function openAllyPNJPanel() {
       const block = document.createElement("div"); block.style.cssText = "margin-bottom:14px;border-bottom:1px solid rgba(30,90,102,0.15);padding-bottom:12px;"
       const header = document.createElement("div"); header.style.cssText = "display:flex;align-items:center;gap:10px;margin-bottom:8px;"
       const img = document.createElement("img"); img.src = "images/"+pnj.image; img.style.cssText = `width:40px;height:40px;border-radius:50%;border:2px solid ${pnj.color};object-fit:contain;box-shadow:0 0 10px ${pnj.color}44;`; img.onerror=()=>img.style.opacity="0.3"
-      const info = document.createElement("div"); info.innerHTML = `<div style="font-size:14px;color:${pnj.color};letter-spacing:2px;text-shadow:0 0 8px ${pnj.color}88;">${pnj.name}</div><div style="font-size:10px;color:#5a9aaa;">${pnj.role}</div>`
+      const info = document.createElement("div")
+      const infoName = document.createElement("div")
+      infoName.style.cssText = `font-size:14px;color:${pnj.color};letter-spacing:2px;text-shadow:0 0 8px ${pnj.color}88;`
+      infoName.innerText = pnj.name
+      const infoRole = document.createElement("div")
+      infoRole.style.cssText = "font-size:10px;color:#5a9aaa;"
+      infoRole.innerText = pnj.role
+      info.appendChild(infoName)
+      info.appendChild(infoRole)
       header.appendChild(img); header.appendChild(info); block.appendChild(header)
 
       pnj.actions.forEach(action => {
@@ -1284,7 +1387,31 @@ function openAllyPNJPanel() {
         const typeLabels = { damage:"ATQ", heal:"SOIN", malus:"MALUS", buff:"BUFF" }
         const btn = document.createElement("div")
         btn.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:5px;border-radius:2px;border:1px solid ${isUsed?"rgba(30,90,102,0.15)":pnj.color+"55"};background:${isUsed?"rgba(5,15,20,0.3)":`rgba(8,20,24,0.9)`};cursor:${isUsed?"not-allowed":"pointer"};opacity:${isUsed?"0.4":"1"};transition:background 0.15s;`
-        btn.innerHTML = `<span style="font-size:20px;">${action.icon}</span><div style="flex:1;"><div style="font-size:12px;color:${isUsed?"#444":pnj.color};letter-spacing:1px;">${action.label}${action.dice?" <span style='color:#8888ff;font-size:10px;'>(D"+action.dice+")</span>":""}</div><div style="font-size:10px;color:#5a7a8a;margin-top:2px;">${action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(30,90,102,0.2);color:${typeColors[action.type]};letter-spacing:1px;">${isUsed?"UTILISÉ":typeLabels[action.type]}</span>`
+        const iconEl = document.createElement("span")
+        iconEl.style.fontSize = "20px"
+        iconEl.innerText = action.icon
+        const center = document.createElement("div")
+        center.style.flex = "1"
+        const labelEl = document.createElement("div")
+        labelEl.style.cssText = `font-size:12px;color:${isUsed?"#444":pnj.color};letter-spacing:1px;`
+        labelEl.innerText = action.label
+        if (action.dice) {
+          const diceEl = document.createElement("span")
+          diceEl.style.cssText = "color:#8888ff;font-size:10px;"
+          diceEl.innerText = " (D" + action.dice + ")"
+          labelEl.appendChild(diceEl)
+        }
+        const descEl = document.createElement("div")
+        descEl.style.cssText = "font-size:10px;color:#5a7a8a;margin-top:2px;"
+        descEl.innerText = action.desc
+        center.appendChild(labelEl)
+        center.appendChild(descEl)
+        const badge = document.createElement("span")
+        badge.style.cssText = `font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(30,90,102,0.2);color:${typeColors[action.type]};letter-spacing:1px;`
+        badge.innerText = isUsed ? "UTILISÉ" : typeLabels[action.type]
+        btn.appendChild(iconEl)
+        btn.appendChild(center)
+        btn.appendChild(badge)
         if (!isUsed) {
           btn.onmouseenter=()=>btn.style.background=`rgba(20,40,52,0.95)`
           btn.onmouseleave=()=>btn.style.background=`rgba(8,20,24,0.9)`
@@ -1319,10 +1446,17 @@ function triggerAllyAction(pnj, action, panel) {
 function _allyChooseTarget(pnj, action, panel) {
   const picker = document.createElement("div"); picker.id = "allyTargetPicker"
   picker.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,20,24,0.98);border:1px solid "+pnj.color+";border-radius:3px;padding:16px;z-index:999999999;font-family:Cinzel,serif;min-width:220px;"
-  picker.innerHTML = `<div style="font-size:11px;color:${pnj.color};letter-spacing:2px;margin-bottom:12px;">CHOISIR LA CIBLE</div>`
+  const pickerTitle = document.createElement("div")
+  pickerTitle.style.cssText = `font-size:11px;color:${pnj.color};letter-spacing:2px;margin-bottom:12px;`
+  pickerTitle.innerText = "CHOISIR LA CIBLE"
+  picker.appendChild(pickerTitle)
   ;["greg","ju","elo","bibi"].forEach(pid => {
     const btn = document.createElement("button"); btn.style.cssText = "display:block;width:100%;padding:8px;margin-bottom:6px;font-family:Cinzel,serif;font-size:12px;background:rgba(10,30,38,0.8);color:#e0f0f4;border:1px solid rgba(30,90,102,0.5);border-radius:2px;cursor:pointer;text-align:left;"
-    btn.innerHTML = `<img src="images/${pid}.png" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:8px;">${pid.toUpperCase()}`
+    const img = document.createElement("img")
+    img.src = "images/" + sanitizeAssetName(pid + ".png")
+    img.style.cssText = "width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:8px;"
+    btn.appendChild(img)
+    btn.appendChild(document.createTextNode(pid.toUpperCase()))
     btn.onclick=()=>{ picker.remove(); _executeAllyAction(pnj, action, pid, panel) }
     picker.appendChild(btn)
   })
@@ -1573,7 +1707,17 @@ function openAllyPNJViewer() {
     panel.style.cssText = "position:fixed;bottom:80px;left:84px;background:rgba(8,20,24,0.97);border:1px solid rgba(140,80,255,0.4);box-shadow:0 0 0 1px rgba(80,40,160,0.3),0 0 30px rgba(0,0,0,0.9);border-radius:3px;padding:14px;z-index:99999999;min-width:300px;max-width:88vw;max-height:75vh;overflow-y:auto;font-family:Cinzel,serif;"
 
     const title = document.createElement("div"); title.style.cssText = "font-size:10px;letter-spacing:3px;color:#a880ff;margin-bottom:12px;border-bottom:1px solid rgba(140,80,255,0.2);padding-bottom:6px;display:flex;justify-content:space-between;"
-    title.innerHTML = '<span>✦ INVOCATION AUTORISÉE</span><span style="cursor:pointer;color:#ff8888;" onclick="document.getElementById(\'allyViewerPanel\').remove()">✕</span>'
+    const titleLeft = document.createElement("span")
+    titleLeft.innerText = "✦ INVOCATION AUTORISÉE"
+    const titleRight = document.createElement("span")
+    titleRight.style.cssText = "cursor:pointer;color:#ff8888;"
+    titleRight.innerText = "✕"
+    titleRight.onclick = () => {
+      const panelEl = document.getElementById("allyViewerPanel")
+      if (panelEl) panelEl.remove()
+    }
+    title.appendChild(titleLeft)
+    title.appendChild(titleRight)
     panel.appendChild(title)
 
     const block = document.createElement("div"); block.style.cssText = "margin-bottom:6px;border-bottom:1px solid rgba(140,80,255,0.1);padding-bottom:10px;"
@@ -1584,7 +1728,29 @@ function openAllyPNJViewer() {
     header.appendChild(img); header.appendChild(info); block.appendChild(header)
 
     const row = document.createElement("div"); row.style.cssText = "display:flex;align-items:flex-start;gap:8px;padding:8px 8px;margin-bottom:3px;border-radius:2px;border:1px solid rgba(140,80,255,0.2);background:rgba(8,15,22,0.6);"
-    row.innerHTML = `<span style="font-size:16px;margin-top:1px;">${granted.action.icon}</span><div style="flex:1;"><div style="font-size:11px;color:${granted.pnj.color};letter-spacing:1px;">${granted.action.label} <span style="color:#5555aa;font-size:9px;">(D${granted.action.dice})</span></div><div style="font-size:10px;color:#3a5a6a;margin-top:3px;line-height:1.5;">${granted.action.desc}</div></div><span style="font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(80,40,160,0.25);color:#d8b0ff;letter-spacing:1px;">AUTORISÉE</span>`
+    const rowIcon = document.createElement("span")
+    rowIcon.style.cssText = "font-size:16px;margin-top:1px;"
+    rowIcon.innerText = granted.action.icon
+    const rowCenter = document.createElement("div")
+    rowCenter.style.flex = "1"
+    const rowLabel = document.createElement("div")
+    rowLabel.style.cssText = `font-size:11px;color:${granted.pnj.color};letter-spacing:1px;`
+    rowLabel.innerText = granted.action.label + " "
+    const rowDice = document.createElement("span")
+    rowDice.style.cssText = "color:#5555aa;font-size:9px;"
+    rowDice.innerText = "(D" + granted.action.dice + ")"
+    rowLabel.appendChild(rowDice)
+    const rowDesc = document.createElement("div")
+    rowDesc.style.cssText = "font-size:10px;color:#3a5a6a;margin-top:3px;line-height:1.5;"
+    rowDesc.innerText = granted.action.desc
+    rowCenter.appendChild(rowLabel)
+    rowCenter.appendChild(rowDesc)
+    const rowBadge = document.createElement("span")
+    rowBadge.style.cssText = "font-size:9px;padding:2px 7px;border-radius:2px;background:rgba(80,40,160,0.25);color:#d8b0ff;letter-spacing:1px;"
+    rowBadge.innerText = "AUTORISÉE"
+    row.appendChild(rowIcon)
+    row.appendChild(rowCenter)
+    row.appendChild(rowBadge)
     row.style.cursor = "pointer"
     row.style.transition = "background 0.15s,border-color 0.15s,transform 0.15s"
     row.onmouseenter = () => { row.style.background = "rgba(20,30,48,0.85)"; row.style.borderColor = granted.pnj.color + "88"; row.style.transform = "translateX(-2px)" }
