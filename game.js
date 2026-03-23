@@ -23,6 +23,53 @@ window.__authReady = false
 window.__authUid = null
 window.__authLoginStarted = false
 window.__authLoginPromise = null
+window.__authRole = null
+window.__authPlayerId = null
+window.__authRoleRef = null
+window.__authRoleCb = null
+window.__authProfileRef = null
+window.__authProfileCb = null
+
+function detachFirebaseAccessSync() {
+  if (window.__authRoleRef && window.__authRoleCb) {
+    window.__authRoleRef.off("value", window.__authRoleCb)
+  }
+  if (window.__authProfileRef && window.__authProfileCb) {
+    window.__authProfileRef.off("value", window.__authProfileCb)
+  }
+  window.__authRoleRef = null
+  window.__authRoleCb = null
+  window.__authProfileRef = null
+  window.__authProfileCb = null
+  window.__authRole = null
+  window.__authPlayerId = null
+}
+
+function syncFirebaseAccessForUser(uid) {
+  detachFirebaseAccessSync()
+  if (!uid) return
+
+  const roleRef = db.ref("roles/" + uid)
+  const roleCb = snap => {
+    const role = snap.val()
+    window.__authRole = typeof role === "string" ? role : null
+    if (window.__authRole === "gm" && !isGM) activateGM(true)
+  }
+
+  const profileRef = db.ref("profiles/" + uid + "/playerId")
+  const profileCb = snap => {
+    const playerId = snap.val()
+    window.__authPlayerId = typeof playerId === "string" ? playerId : null
+  }
+
+  window.__authRoleRef = roleRef
+  window.__authRoleCb = roleCb
+  window.__authProfileRef = profileRef
+  window.__authProfileCb = profileCb
+
+  roleRef.on("value", roleCb)
+  profileRef.on("value", profileCb)
+}
 
 function initFirebaseAnonymousAuth() {
   if (!auth) return Promise.resolve(null)
@@ -39,15 +86,18 @@ function initFirebaseAnonymousAuth() {
     auth.onAuthStateChanged(user => {
       window.__authReady = !!user
       window.__authUid = user?.uid || null
+      syncFirebaseAccessForUser(window.__authUid)
       if (user) finish(user)
     }, error => {
       console.warn("Firebase auth state error:", error)
+      detachFirebaseAccessSync()
       finish(null)
     })
 
     if (auth.currentUser) {
       window.__authReady = true
       window.__authUid = auth.currentUser.uid
+      syncFirebaseAccessForUser(window.__authUid)
       finish(auth.currentUser)
       return
     }
@@ -2635,12 +2685,17 @@ document.addEventListener("click", e => {
 /* ========================= */
 
 function requestGM() {
+  if (window.__authRole === "gm") {
+    activateGM(true)
+    return
+  }
   const password = prompt("Mot de passe MJ")
   if (password && password.toLowerCase().trim() === "mouches") activateGM()
   else showNotification("Accès refusé")
 }
 
-function activateGM() {
+function activateGM(fromFirebaseRole = false) {
+    if (isGM) return
     isGM = true
     document.getElementById("gmBar").style.display     = "flex"
     document.getElementById("mjRollBtn").style.display = "inline-block"
@@ -2648,7 +2703,7 @@ function activateGM() {
     document.getElementById("gmSaveBar").style.display = "block"
       ensureMadnessGMButton()
       updateThuumButton()
-    showNotification("🎲 Mode MJ activé")
+    showNotification(fromFirebaseRole ? "🎲 Mode MJ activé (Firebase)" : "🎲 Mode MJ activé")
     }
 
 function toggleGMSection(id) {
@@ -2935,3 +2990,6 @@ document.addEventListener("keydown", e => {
     showNotification("Choisissez un personnage 🎭")
   }
 })
+
+
+
