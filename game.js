@@ -17,6 +17,52 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig)
 firebase.database().goOnline()
 const db = firebase.database()
+const auth = typeof firebase.auth === "function" ? firebase.auth() : null
+
+window.__authReady = false
+window.__authUid = null
+window.__authLoginStarted = false
+window.__authLoginPromise = null
+
+function initFirebaseAnonymousAuth() {
+  if (!auth) return Promise.resolve(null)
+  if (window.__authLoginPromise) return window.__authLoginPromise
+
+  window.__authLoginPromise = new Promise(resolve => {
+    let resolved = false
+    const finish = user => {
+      if (resolved) return
+      resolved = true
+      resolve(user || null)
+    }
+
+    auth.onAuthStateChanged(user => {
+      window.__authReady = !!user
+      window.__authUid = user?.uid || null
+      if (user) finish(user)
+    }, error => {
+      console.warn("Firebase auth state error:", error)
+      finish(null)
+    })
+
+    if (auth.currentUser) {
+      window.__authReady = true
+      window.__authUid = auth.currentUser.uid
+      finish(auth.currentUser)
+      return
+    }
+
+    window.__authLoginStarted = true
+    auth.signInAnonymously().catch(error => {
+      console.warn("Firebase anonymous auth failed:", error)
+      finish(null)
+    })
+  })
+
+  return window.__authLoginPromise
+}
+
+initFirebaseAnonymousAuth()
 
 window.groupMadness = 0
 window.groupMadnessTier = 0
