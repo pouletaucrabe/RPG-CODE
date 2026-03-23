@@ -2102,6 +2102,9 @@ function saveGame() {
 function _applyLoadData(data, callback) {
   const ops = []
 
+  window.__combatOutcomeShowing = false
+  window.__pendingLocalDefeat = false
+
   // Écriture directe sur chaque ref — pas de update() depuis la racine avec des slashes
   if (data.characters)          ops.push(db.ref("characters").set(data.characters))
   if (data.tokens)              ops.push(db.ref("tokens").set(data.tokens))
@@ -2131,6 +2134,19 @@ function _applyLoadData(data, callback) {
   ops.push(db.ref("curse/wheel").remove())
   ops.push(db.ref("game/bifrostFlash").remove())
   ops.push(db.ref("game/mobAttackEvent").remove())
+  ops.push(db.ref("game/combatState").remove())
+  ops.push(db.ref("game/combatOutcome").remove())
+  ops.push(db.ref("game/playerDeath").remove())
+  ops.push(db.ref("game/playerRevive").remove())
+  ops.push(db.ref("game/playerAllyAccess").remove())
+  ops.push(db.ref("game/playerThuum").remove())
+  ops.push(db.ref("game/playerThuumAccess").remove())
+  ops.push(db.ref("game/thuumCast").remove())
+  ops.push(db.ref("game/thuumUnlockEvent").remove())
+  ops.push(db.ref("game/allyAction").remove())
+  ops.push(db.ref("game/odinVision").remove())
+  ops.push(db.ref("game/powerSound").remove())
+  ops.push(db.ref("game/document").remove())
 
   Promise.all(ops).then(callback).catch(e => {
     console.error("Load error:", e)
@@ -2145,9 +2161,29 @@ function loadGame() {
   try { data = JSON.parse(save) } catch(e) { showNotification("Sauvegarde corrompue"); return }
   if (!data.characters && !data.tokens) { showNotification("Sauvegarde vide"); return }
   _applyLoadData(data, () => {
+    combatActive = false
+    combatStarting = false
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     db.ref("events/aurora").remove()
+    ;[
+      "mobAttackPanel",
+      "allyPNJPanel",
+      "allyViewerPanel",
+      "runeChallengeOverlay",
+      "spellMiniGame",
+      "curseIntroScreen",
+      "curseWheelScreen",
+      "documentOverlay"
+    ].forEach(id => {
+      const el = document.getElementById(id)
+      if (el) el.remove()
+    })
+    const combatArena = document.getElementById("combatArena"); if (combatArena) combatArena.style.display = "none"
+    const combatGrid = document.getElementById("combatGrid"); if (combatGrid) combatGrid.style.display = "none"
+    const combatFilter = document.getElementById("combatFilter"); if (combatFilter) combatFilter.style.display = "none"
+    const defeatScreen = document.getElementById("defeatScreen"); if (defeatScreen) defeatScreen.style.display = "none"
+    const fade = document.getElementById("fadeScreen"); if (fade) { fade.style.opacity = "0"; fade.style.pointerEvents = "none" }
     updateMadnessVisibility()
     updateThuumButton()
     showNotification("✅ Partie chargée")
@@ -2159,8 +2195,28 @@ function loadSave(saveName) {
   const data  = saves[saveName]
   if (!data) { showNotification("Sauvegarde introuvable"); return }
   _applyLoadData(data, () => {
+    combatActive = false
+    combatStarting = false
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
+    ;[
+      "mobAttackPanel",
+      "allyPNJPanel",
+      "allyViewerPanel",
+      "runeChallengeOverlay",
+      "spellMiniGame",
+      "curseIntroScreen",
+      "curseWheelScreen",
+      "documentOverlay"
+    ].forEach(id => {
+      const el = document.getElementById(id)
+      if (el) el.remove()
+    })
+    const combatArena = document.getElementById("combatArena"); if (combatArena) combatArena.style.display = "none"
+    const combatGrid = document.getElementById("combatGrid"); if (combatGrid) combatGrid.style.display = "none"
+    const combatFilter = document.getElementById("combatFilter"); if (combatFilter) combatFilter.style.display = "none"
+    const defeatScreen = document.getElementById("defeatScreen"); if (defeatScreen) defeatScreen.style.display = "none"
+    const fade = document.getElementById("fadeScreen"); if (fade) { fade.style.opacity = "0"; fade.style.pointerEvents = "none" }
     updateMadnessVisibility()
     updateThuumButton()
     const panel = document.getElementById("savePanel"); if (panel) panel.remove()
