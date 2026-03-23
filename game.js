@@ -2059,7 +2059,7 @@ function saveGame() {
       pending--
       if (pending === 0) {
         try {
-          const saves = JSON.parse(localStorage.getItem("rpg_saves") || "{}")
+          const saves = parseLocalStorageJSON("rpg_saves", {})
           saves[saveName] = data
           localStorage.setItem("rpg_saves", JSON.stringify(saves))
           localStorage.setItem("rpg_save",  JSON.stringify(data))
@@ -2130,7 +2130,7 @@ function loadGame() {
 }
 
 function loadSave(saveName) {
-  const saves = JSON.parse(localStorage.getItem("rpg_saves") || "{}")
+  const saves = parseLocalStorageJSON("rpg_saves", {})
   const data  = saves[saveName]
   if (!data) { showNotification("Sauvegarde introuvable"); return }
   _applyLoadData(data, () => {
@@ -2146,7 +2146,7 @@ function loadSave(saveName) {
 
 function deleteSave(saveName) {
   if (!confirm("Supprimer cette sauvegarde ?")) return
-  const saves = JSON.parse(localStorage.getItem("rpg_saves") || "{}")
+  const saves = parseLocalStorageJSON("rpg_saves", {})
   delete saves[saveName]
   localStorage.setItem("rpg_saves", JSON.stringify(saves))
   showSaveMenu()
@@ -2492,7 +2492,7 @@ function startDialogue() {
 function showDialogue() {
   const d = dialogue[index]
   document.getElementById("dialoguePortrait").src = d.portrait
-  document.getElementById("dialogueText").innerHTML = d.text
+  document.getElementById("dialogueText").textContent = d.text
 }
 
 document.addEventListener("click", e => {

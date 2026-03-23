@@ -977,9 +977,98 @@ function renderMapElement(data) {
 /* ========================= */
 
 function openWantedEditor() { const wb=document.getElementById("wantedMobBtn"); if(wb){ wb.innerText="— Choisir un mob —"; wb.dataset.value="" }; document.getElementById("wantedEditor").style.display="flex" }
-function createWantedPoster() { const mob=document.getElementById("wantedMobBtn")?.dataset.value||"", tier=document.getElementById("wantedTierBtn")?.dataset.value||"weak", reward=document.getElementById("wantedReward").value; if(!mob){ showNotification("Choisissez un mob !"); return }; document.getElementById("wantedEditor").style.display="none"; const id="wanted_"+Date.now(), pd={ mob, tier, reward, id }; db.ref("game/wantedPosters/"+id).set(pd); db.ref("elements/"+id).set({ type:"image", image:"wanted.png", x:Math.floor(Math.random()*600+200), y:Math.floor(Math.random()*400+200), id, clickable:true, wantedData:pd }); db.ref("game/wantedOpen").set({ poster:pd, time:Date.now() }) }
-function renderWantedPoster(data) { const list=document.getElementById("wantedList"); if(!list) return; const card=document.createElement("div"); card.id="wantedCard_"+data.id; card.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(60,40,10,0.4);border:1px solid rgba(150,100,30,0.4);border-radius:4px;"; const img=document.createElement("img"); img.src="images/"+data.mob+".png"; img.style.cssText="width:36px;height:36px;object-fit:contain;border-radius:3px;"; img.onerror=()=>img.style.opacity="0.3"; card.appendChild(img); const info=document.createElement("div"); info.style.cssText="flex:1;"; info.innerHTML=`<div style="font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,80);">${data.mob.toUpperCase()}</div><div style="font-size:10px;color:rgb(200,160,60);">💰 ${data.reward} po — ${data.tier}</div>`; card.appendChild(info); const open=document.createElement("button"); open.style.cssText="padding:2px 8px;font-size:10px;background:rgba(90,70,20,0.5);color:#ffd68a;border:1px solid rgba(170,130,40,0.45);border-radius:3px;cursor:pointer;"; open.innerText="Ouvrir"; open.onclick=()=>showWantedOverlay(data); card.appendChild(open); const del=document.createElement("button"); del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"; del.innerText="✕"; del.onclick=()=>{ db.ref("game/wantedPosters/"+data.id).remove(); db.ref("elements/"+data.id).remove(); card.remove() }; card.appendChild(del); list.appendChild(card) }
-function showWantedOverlay(data) { const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999999;cursor:pointer;"; ov.onclick=()=>ov.remove(); const p=document.createElement("div"); p.style.cssText="position:relative;width:300px;padding:30px 20px;text-align:center;"; const bg=document.createElement("img"); bg.src="images/wanted.png"; bg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;opacity:0.9;"; p.appendChild(bg); const inner=document.createElement("div"); inner.style.cssText="position:relative;z-index:1;padding:20px;"; const mi=document.createElement("img"); mi.src="images/"+data.mob+".png"; mi.style.cssText="width:100px;height:100px;object-fit:contain;border:3px solid rgb(100,60,10);border-radius:4px;margin:10px auto;display:block;"; inner.appendChild(mi); const n=document.createElement("div"); n.style.cssText="font-family:'Cinzel Decorative',serif;font-size:18px;color:rgb(80,40,0);letter-spacing:3px;margin-bottom:8px;"; n.innerText=data.mob.toUpperCase(); inner.appendChild(n); const r=document.createElement("div"); r.style.cssText="font-family:Cinzel,serif;font-size:22px;color:rgb(120,70,0);font-weight:bold;"; r.innerText="💰 "+data.reward+" po"; inner.appendChild(r); p.appendChild(inner); ov.appendChild(p); document.body.appendChild(ov) }
+function normalizeWantedPosterData(data) {
+  const allowedTiers = Object.keys(WANTED_REWARDS || {})
+  const mob = WANTED_MOBS.includes(data?.mob) ? data.mob : ""
+  const tier = allowedTiers.includes(data?.tier) ? data.tier : "weak"
+  const reward = clampInteger(data?.reward, 1, 999999)
+  const id = String(data?.id || ("wanted_" + Date.now()))
+  if (!mob) return null
+  return { mob, tier, reward, id }
+}
+
+function createWantedPoster() {
+  const normalized = normalizeWantedPosterData({
+    mob: document.getElementById("wantedMobBtn")?.dataset.value || "",
+    tier: document.getElementById("wantedTierBtn")?.dataset.value || "weak",
+    reward: document.getElementById("wantedReward").value,
+    id: "wanted_" + Date.now()
+  })
+  if (!normalized) { showNotification("Affiche invalide"); return }
+  document.getElementById("wantedEditor").style.display="none"
+  db.ref("game/wantedPosters/" + normalized.id).set(normalized)
+  db.ref("elements/" + normalized.id).set({ type:"image", image:"wanted.png", x:Math.floor(Math.random()*600+200), y:Math.floor(Math.random()*400+200), id:normalized.id, clickable:true, wantedData:normalized })
+  db.ref("game/wantedOpen").set({ poster:normalized, time:Date.now() })
+}
+
+function renderWantedPoster(data) {
+  const normalized = normalizeWantedPosterData(data)
+  const list=document.getElementById("wantedList")
+  if(!list || !normalized) return
+  const safeMobImage = sanitizeAssetName(normalized.mob + ".png")
+  const card=document.createElement("div")
+  card.id="wantedCard_" + normalized.id
+  card.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(60,40,10,0.4);border:1px solid rgba(150,100,30,0.4);border-radius:4px;"
+  const img=document.createElement("img")
+  img.src="images/" + safeMobImage
+  img.style.cssText="width:36px;height:36px;object-fit:contain;border-radius:3px;"
+  img.onerror=()=>img.style.opacity="0.3"
+  card.appendChild(img)
+  const info=document.createElement("div")
+  info.style.cssText="flex:1;"
+  const name=document.createElement("div")
+  name.style.cssText="font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,80);"
+  name.innerText = normalized.mob.toUpperCase()
+  const meta=document.createElement("div")
+  meta.style.cssText="font-size:10px;color:rgb(200,160,60);"
+  meta.innerText = "💰 " + normalized.reward + " po — " + normalized.tier
+  info.appendChild(name)
+  info.appendChild(meta)
+  card.appendChild(info)
+  const open=document.createElement("button")
+  open.style.cssText="padding:2px 8px;font-size:10px;background:rgba(90,70,20,0.5);color:#ffd68a;border:1px solid rgba(170,130,40,0.45);border-radius:3px;cursor:pointer;"
+  open.innerText="Ouvrir"
+  open.onclick=()=>showWantedOverlay(normalized)
+  card.appendChild(open)
+  const del=document.createElement("button")
+  del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"
+  del.innerText="✕"
+  del.onclick=()=>{ db.ref("game/wantedPosters/" + normalized.id).remove(); db.ref("elements/" + normalized.id).remove(); card.remove() }
+  card.appendChild(del)
+  list.appendChild(card)
+}
+
+function showWantedOverlay(data) {
+  const normalized = normalizeWantedPosterData(data)
+  if (!normalized) return
+  const safeMobImage = sanitizeAssetName(normalized.mob + ".png")
+  const ov=document.createElement("div")
+  ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999999;cursor:pointer;"
+  ov.onclick=()=>ov.remove()
+  const p=document.createElement("div")
+  p.style.cssText="position:relative;width:300px;padding:30px 20px;text-align:center;"
+  const bg=document.createElement("img")
+  bg.src="images/wanted.png"
+  bg.style.cssText="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;opacity:0.9;"
+  p.appendChild(bg)
+  const inner=document.createElement("div")
+  inner.style.cssText="position:relative;z-index:1;padding:20px;"
+  const mi=document.createElement("img")
+  mi.src="images/" + safeMobImage
+  mi.style.cssText="width:100px;height:100px;object-fit:contain;border:3px solid rgb(100,60,10);border-radius:4px;margin:10px auto;display:block;"
+  inner.appendChild(mi)
+  const n=document.createElement("div")
+  n.style.cssText="font-family:'Cinzel Decorative',serif;font-size:18px;color:rgb(80,40,0);letter-spacing:3px;margin-bottom:8px;"
+  n.innerText=normalized.mob.toUpperCase()
+  inner.appendChild(n)
+  const r=document.createElement("div")
+  r.style.cssText="font-family:Cinzel,serif;font-size:22px;color:rgb(120,70,0);font-weight:bold;"
+  r.innerText="💰 " + normalized.reward + " po"
+  inner.appendChild(r)
+  p.appendChild(inner)
+  ov.appendChild(p)
+  document.body.appendChild(ov)
+}
 function toggleWantedDropdown(el) { const dd=document.getElementById("wantedMobDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; if(!dd.dataset.built){ dd.dataset.built="1"; const em=document.createElement("div"); em.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,120,60);cursor:pointer;"; em.innerText="— Choisir un mob —"; em.onmousedown=e=>{ e.stopPropagation(); selectWantedMob("","— Choisir un mob —") }; dd.appendChild(em); WANTED_MOBS.forEach(m=>{ const it=document.createElement("div"); it.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,120);cursor:pointer;"; it.innerText=m.charAt(0).toUpperCase()+m.slice(1); it.onmousedown=e=>{ e.stopPropagation(); selectWantedMob(m,it.innerText) }; it.onmouseenter=()=>it.style.background="rgb(60,35,5)"; it.onmouseleave=()=>it.style.background=""; dd.appendChild(it) }) }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
 function selectWantedMob(val, lbl) { const btn=document.getElementById("wantedMobBtn"); if(btn){ btn.innerText=lbl; btn.dataset.value=val }; const dd=document.getElementById("wantedMobDropdown"); if(dd) dd.style.display="none" }
 function toggleWantedTierDropdown(el) { const dd=document.getElementById("wantedTierDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
@@ -991,11 +1080,11 @@ function selectWantedTier(val, lbl) { const btn=document.getElementById("wantedT
 
 function showSaveMenu() {
   if(!isGM) return; const old=document.getElementById("savePanel"); if(old) old.remove()
-  const saves=JSON.parse(localStorage.getItem("rpg_saves")||"{}"), keys=Object.keys(saves)
+  const saves=parseLocalStorageJSON("rpg_saves", {}), keys=Object.keys(saves)
   const panel=document.createElement("div"); panel.id="savePanel"; panel.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:2px solid gold;border-radius:12px;padding:24px;z-index:999999999;font-family:Cinzel;color:#f5e6c8;min-width:340px;box-shadow:0 0 40px black;"; document.body.appendChild(panel)
   const t=document.createElement("div"); t.style.cssText="text-align:center;color:gold;font-size:18px;margin-bottom:16px;"; t.innerText="Sauvegardes"; panel.appendChild(t)
   if(!keys.length){ const e=document.createElement("div"); e.style.cssText="text-align:center;opacity:0.5;margin-bottom:12px;font-size:13px;"; e.innerText="Aucune sauvegarde"; panel.appendChild(e) }
-  keys.forEach(sn=>{ const d=saves[sn]._saveDate||"", row=document.createElement("div"); row.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;"; const lbl=document.createElement("div"); lbl.style.cssText="flex:1;font-size:13px;line-height:1.4;"; lbl.innerHTML=sn+"<br><small style='opacity:0.5'>"+d+"</small>"; const bl=document.createElement("button"); bl.innerText="Charger"; bl.style.cssText="background:linear-gradient(#7a5533,#4b321c);color:#f5e6c8;border:1px solid #caa46b;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:Cinzel;font-size:12px;"; bl.addEventListener("click",()=>loadSave(sn)); const bd=document.createElement("button"); bd.innerText="X"; bd.style.cssText="background:#3a0000;color:#ff6060;border:1px solid #660000;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px;"; bd.addEventListener("click",()=>deleteSave(sn)); row.appendChild(lbl); row.appendChild(bl); row.appendChild(bd); panel.appendChild(row) })
+  keys.forEach(sn=>{ const d=String(saves[sn]?._saveDate||""); const row=document.createElement("div"); row.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;"; const lbl=document.createElement("div"); lbl.style.cssText="flex:1;font-size:13px;line-height:1.4;"; const title=document.createElement("div"); title.innerText=sn; const meta=document.createElement("small"); meta.style.opacity="0.5"; meta.innerText=d; lbl.appendChild(title); lbl.appendChild(meta); const bl=document.createElement("button"); bl.innerText="Charger"; bl.style.cssText="background:linear-gradient(#7a5533,#4b321c);color:#f5e6c8;border:1px solid #caa46b;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:Cinzel;font-size:12px;"; bl.addEventListener("click",()=>loadSave(sn)); const bd=document.createElement("button"); bd.innerText="X"; bd.style.cssText="background:#3a0000;color:#ff6060;border:1px solid #660000;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px;"; bd.addEventListener("click",()=>deleteSave(sn)); row.appendChild(lbl); row.appendChild(bl); row.appendChild(bd); panel.appendChild(row) })
   const footer=document.createElement("div"); footer.style.cssText="display:flex;gap:8px;margin-top:16px;justify-content:center;"; const bn=document.createElement("button"); bn.innerText="Nouvelle"; bn.style.cssText="background:linear-gradient(#2a7a2a,#1a4a1a);color:gold;border:2px solid gold;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:Cinzel;"; bn.addEventListener("click",()=>{ panel.remove(); saveGame() }); const bc=document.createElement("button"); bc.innerText="Fermer"; bc.style.cssText="background:#222;color:#f5e6c8;border:1px solid #555;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:Cinzel;"; bc.addEventListener("click",()=>panel.remove()); footer.appendChild(bn); footer.appendChild(bc); panel.appendChild(footer)
 }
 

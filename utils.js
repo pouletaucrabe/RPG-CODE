@@ -33,6 +33,32 @@ function resolveAudioPath(path) {
   return "audio/" + src
 }
 
+function sanitizeAssetName(name) {
+  const value = String(name || "").trim()
+  if (!value) return ""
+  if (/^(https?:|data:|blob:|javascript:)/i.test(value)) return ""
+  if (value.includes("..") || /[\\/]/.test(value)) return ""
+  return value.replace(/[\u0000-\u001f<>:"|?*]/g, "").trim()
+}
+
+function clampInteger(value, min = 0, max = Number.MAX_SAFE_INTEGER) {
+  const parsed = parseInt(value, 10)
+  if (isNaN(parsed)) return min
+  return Math.max(min, Math.min(max, parsed))
+}
+
+function parseLocalStorageJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw)
+    return parsed == null ? fallback : parsed
+  } catch (e) {
+    console.warn("Invalid localStorage JSON for", key, e)
+    return fallback
+  }
+}
+
 function safeRemoveElement(id) {
   const el = typeof id === "string" ? document.getElementById(id) : id
   if (el && el.parentNode) el.parentNode.removeChild(el)
