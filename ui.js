@@ -9,7 +9,7 @@ function openCharacterSheet(id = null) {
   if (isGM) { if (!id) return; playerID = id }
   else {
     if (!myToken) { showNotification("Choisissez un personnage 🎭"); return }
-    playerID = (id === "bibi" && myToken.id === "greg") ? "bibi" : myToken.id
+    playerID = id === "bibi" ? "bibi" : myToken.id
   }
   currentSheetPlayer = playerID
   // Marquer la fiche avec l'ID du joueur pour éviter les sauvegardes croisées
@@ -53,6 +53,7 @@ function closeCharacterSheet() {
 
 function saveCharacter() {
   if (!myToken && !isGM) return
+  if (!isGM && currentSheetPlayer === "bibi" && myToken && myToken.id !== "greg") return
   const id = currentSheetPlayer, data = {}
   document.querySelectorAll("#characterSheet .sheetField").forEach(f => {
     if (f.offsetParent !== null && f.id !== "weight" && f.id !== "maxWeight") data[f.id] = f.value
