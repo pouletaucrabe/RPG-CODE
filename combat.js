@@ -831,21 +831,21 @@ function _resolveRemoteCombatEnd(attempt = 0) {
   })
 }
 
-  document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   db.ref("game/combatState").on("value", snap => {
-      const data = snap.val()
+    const data = snap.val()
 
-      if (!gameStarted) return
-      if (gameState !== "GAME" && gameState !== "COMBAT" && gameState !== "DIALOGUE") return
+    if (!gameStarted) return
+    if (gameState !== "GAME" && gameState !== "COMBAT" && gameState !== "DIALOGUE") return
 
-      if (!data || !data.active) {
-        if (!isGM && (window.__combatOutcomeShowing || window.__pendingLocalDefeat)) return
-        if (!isGM && (combatActive || gameState === "COMBAT" || window.__combatOutcomeShowing || window.__pendingLocalDefeat)) {
-          _resolveRemoteCombatEnd()
-        }
-        return
+    if (!data || !data.active) {
+      if (!isGM && (window.__combatOutcomeShowing || window.__pendingLocalDefeat)) return
+      if (!isGM && (combatActive || gameState === "COMBAT" || window.__combatOutcomeShowing || window.__pendingLocalDefeat)) {
+        _resolveRemoteCombatEnd()
       }
+      return
+    }
 
-      if (!isGM) _startRemoteCombat(data)
+    if (!isGM) _startRemoteCombat(data)
   })
 })

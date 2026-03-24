@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="only light">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English&display=swap" rel="stylesheet">
   <title>RPG Test</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1">
   <style>
     #playerCodeBtn, #playerCodeBtn * {
       color: #ffd700 !important;
@@ -814,17 +814,17 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <!-- 1. Données statiques -->
-<script src="config.js"></script>
+<script src="config.js?v=1"></script>
 <!-- 2. Variables d'état -->
-<script src="state.js"></script>
+<script src="state.js?v=1"></script>
 <!-- 3. Utilitaires (pas de dépendances Firebase) -->
-<script src="utils.js"></script>
+<script src="utils.js?v=2"></script>
 <!-- 4. Logique principale + Firebase listeners -->
-<script src="game.js"></script>
+<script src="game.js?v=2"></script>
 <!-- 5. Interface utilisateur -->
-<script src="ui.js"></script>
+<script src="ui.js?v=1"></script>
 <!-- 6. Combat -->
-<script src="combat.js"></script>
+<script src="combat.js?v=2"></script>
 <script>
 function safeStartIntro(event) {
   if (event) {

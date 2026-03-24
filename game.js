@@ -1256,7 +1256,12 @@ db.ref("diceRoll").on("child_added", snap => {
   const roll = snap.val()
   if (!roll || !roll.player || !roll.dice || !roll.result) return
   if (roll.time && roll.time < gameStartTime) return
-  showDiceAnimation(roll.player, roll.dice, roll.result)
+  // Validation : résultat doit être cohérent avec le dé
+  const dice   = parseInt(roll.dice)
+  const result = parseInt(roll.result)
+  if (!Number.isInteger(dice) || !Number.isInteger(result)) return
+  if (result < 1 || result > dice) return
+  showDiceAnimation(roll.player, dice, result)
 })
 
 // ─── storyImage slots ───
@@ -2410,7 +2415,8 @@ function showDiceAnimation(playerName, max, final) {
   const resultBox = document.getElementById("diceResult")
   resultBox.style.display = "none"; resultBox.offsetHeight; resultBox.style.display = "block"
   resultBox.classList.remove("crit", "fail", "mjRoll")
-  resultBox.innerHTML = "🎲 " + playerName + " lance un d" + max + "..."
+  const safeName = String(playerName).replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  resultBox.innerHTML = "🎲 " + safeName + " lance un d" + max + "..."
   resultBox.style.opacity = 1
   let current = 0
   setTimeout(() => {
@@ -2466,7 +2472,6 @@ function rollStat(stat) {
 
   function setGameState(state) {
     gameState = state
-  console.log("Game State →", state)
   if (state !== "GAME" && state !== "COMBAT" && typeof cleanupRuneChallengeUI === "function") cleanupRuneChallengeUI()
   switch (state) {
     case "MENU":
@@ -2990,6 +2995,3 @@ document.addEventListener("keydown", e => {
     showNotification("Choisissez un personnage 🎭")
   }
 })
-
-
-

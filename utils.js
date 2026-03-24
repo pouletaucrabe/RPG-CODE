@@ -653,6 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (input) {
     input.addEventListener("keydown", e => {
       if (e.key !== "Enter") return
+      if (!isGM) return
       const damage = parseInt(input.value)
       if (isNaN(damage) || damage <= 0) return
       db.ref("combat/mob").once("value", snapshot => {
