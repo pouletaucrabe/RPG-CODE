@@ -2787,6 +2787,19 @@ function openPNJTab(id, el) {
   el.classList.add("active")
 }
 
+function watchFreePoints(playerId) {
+  db.ref("characters/" + playerId + "/freePoints").on("value", snap => {
+    const pts = parseInt(snap.val()) || 0
+    if (pts > 0 && typeof showFreePointsPanel === "function") {
+      // N'afficher le panel que si ce joueur est bien le joueur local
+      const localId = getLocalPlayerId()
+      if (localId && localId === String(playerId).toLowerCase()) {
+        showFreePointsPanel(playerId, pts)
+      }
+    }
+  })
+}
+
 function choosePlayer(id) {
   if (isGM) {
     myToken = document.getElementById(id); window.myToken = myToken
