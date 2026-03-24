@@ -1314,36 +1314,96 @@ html, body {
 /* RÉSULTAT DÉ               */
 /* ========================= */
 
+/* ── Dé 3D ── */
 #diceResult {
   position: fixed; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 360px; height: 220px;
-  display: block;
-  background: url("images/d%C3%A9.png") center/contain no-repeat;
-  padding: 0; border-radius: 0;
-  font-family: var(--font-body); font-size: 28px; color: #2b1a10;
-  text-align: center; line-height: 1;
-  box-shadow: none;
-  opacity: 0; transition: opacity 0.5s;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  background: none; border: none; box-shadow: none; padding: 0;
+  opacity: 0; transition: opacity 0.4s;
   z-index: 9999999; pointer-events: none;
-  min-width: 0; max-width: none; white-space: nowrap;
-  filter: drop-shadow(0 10px 24px rgba(0,0,0,0.55));
-  transform-origin: center center;
+  width: auto; height: auto;
 }
 
-.diceNumber {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 72px;
-  margin: 0;
-  line-height: 1;
-  transform: translateY(10px);
+#diceResult .dice-player-label {
+  font-family: var(--font-body); font-size: 13px;
+  color: rgba(30,180,200,0.7); letter-spacing: 3px;
+  text-transform: uppercase; white-space: nowrap;
 }
-.crit { color: gold; text-shadow: 0 0 40px gold, 0 0 80px orange; }
-.fail { color: red; text-shadow: 0 0 40px red; }
+
+#diceResult .dice-3d-wrap {
+  perspective: 500px;
+  width: 110px; height: 110px;
+}
+
+#diceResult .dice-3d {
+  width: 110px; height: 110px;
+  position: relative; transform-style: preserve-3d;
+}
+
+#diceResult .dice-face {
+  position: absolute; width: 110px; height: 110px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(30,180,200,0.5);
+  box-shadow: inset 0 0 18px rgba(30,120,160,0.25);
+  background: linear-gradient(145deg, rgba(8,22,32,0.97), rgba(5,14,22,0.99));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-body); font-size: 40px; font-weight: bold;
+  color: rgba(30,200,220,0.9);
+  text-shadow: 0 0 10px rgba(30,180,200,0.6);
+  backface-visibility: hidden;
+}
+
+#diceResult .df1 { transform: rotateY(0deg)   translateZ(55px); }
+#diceResult .df2 { transform: rotateY(180deg) translateZ(55px); }
+#diceResult .df3 { transform: rotateY(90deg)  translateZ(55px); }
+#diceResult .df4 { transform: rotateY(-90deg) translateZ(55px); }
+#diceResult .df5 { transform: rotateX(90deg)  translateZ(55px); }
+#diceResult .df6 { transform: rotateX(-90deg) translateZ(55px); }
+
+#diceResult .dice-result-label {
+  font-family: var(--font-body); font-size: 22px; font-weight: bold;
+  color: rgba(30,200,220,0.9); letter-spacing: 4px;
+  text-shadow: 0 0 10px rgba(30,180,200,0.4);
+  min-height: 32px; white-space: nowrap;
+}
+
+#diceResult.crit .dice-face {
+  border-color: rgba(212,168,53,0.9);
+  color: #f5d060;
+  text-shadow: 0 0 20px gold, 0 0 40px rgba(255,180,0,0.5);
+  box-shadow: inset 0 0 28px rgba(212,168,53,0.3);
+}
+#diceResult.crit .dice-result-label {
+  color: #f5d060; text-shadow: 0 0 20px gold;
+}
+
+#diceResult.fail .dice-face {
+  border-color: rgba(180,40,40,0.9);
+  color: #ff5555;
+  text-shadow: 0 0 20px red, 0 0 40px rgba(200,0,0,0.5);
+  box-shadow: inset 0 0 28px rgba(180,0,0,0.3);
+}
+#diceResult.fail .dice-result-label {
+  color: #ff5555; text-shadow: 0 0 20px red;
+}
+
+#diceResult.mjRoll .dice-face {
+  border-color: rgba(212,168,53,0.7);
+  color: rgba(212,168,53,0.9);
+  text-shadow: 0 0 8px rgba(212,168,53,0.5);
+}
+
+@keyframes diceIdle {
+  0%   { transform: rotateX(20deg) rotateY(0deg); }
+  100% { transform: rotateX(20deg) rotateY(360deg); }
+}
+@keyframes diceRolling {
+  0%   { transform: rotateX(0deg)   rotateY(0deg)   rotateZ(0deg); }
+  100% { transform: rotateX(137deg) rotateY(247deg) rotateZ(83deg); }
+}
 
 /* ========================= */
 /* FICHE PERSONNAGE          */

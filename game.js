@@ -1389,6 +1389,27 @@ db.ref("game/map").on("value", snap => {
   }, 2200)
 })
 
+// ─── newGame — signal nouvelle partie ───
+db.ref("game/newGame").on("value", snap => {
+  const data = snap.val()
+  if (!data || !data.time) return
+  if (isGM) return  // le MJ gère lui-même
+  if (!gameStarted) return  // pas encore en jeu
+  // Réinitialiser l'état local et revenir à l'écran d'intro
+  gameStarted = false
+  window.isNewGame = false
+  combatActive = false
+  combatStarting = false
+  window.__combatOutcomeShowing = false
+  window.__pendingLocalDefeat = false
+  myToken = null
+  window.myToken = null
+  stopAllMusic()
+  setGameState("MENU")
+  startIntro()
+  showNotification("🆕 Nouvelle partie lancée par le MJ")
+})
+
 // ─── groupMadness — jauge folie du groupe ───
 db.ref("game/groupMadness").on("value", snap => {
   const value = Math.max(0, Math.min(100, parseInt(snap.val(), 10) || 0))
@@ -2350,28 +2371,111 @@ function deleteSave(saveName) {
 }
 
 function newGame() {
-  const music = document.getElementById("music")
-  if (music) { music.pause(); music.currentTime = 0 }
-  if (!confirm("Commencer une nouvelle partie ?")) return
-  gameStarted = false; window.isNewGame = true
-  const initChars = {}
-  ;["greg", "ju", "elo", "bibi"].forEach(pid => {
-    const s = getPlayerStatsAtLevel(pid, 1)
-    initChars[pid] = { lvl:1, xp:0, hp:s.hp, poids:s.poids, force:s.force, charme:s.charme, perspi:s.perspi, chance:s.chance, defense:s.defense, curse:0, corruption:0, inventaire:"", notes:"" }
-  })
-    db.ref("characters").set(initChars)
-    db.ref("tokens").set({ greg:{x:200,y:300}, ju:{x:300,y:300}, elo:{x:400,y:300}, bibi:{x:600,y:300} })
-    db.ref("game/map").set("taverne.jpg")
-    db.ref("game/groupMadness").set(0)
-    db.ref("game/worldMapFogTopLeftHidden").set(false)
+  if (!confirm("Commencer une nouvelle partie ? Tout sera réinitialisé.")) return
+
+  // Attendre que Firebase Auth soit prête avant d'écrire
+  const doReset = () => {
+    // Reset état local immédiat
+    gameStarted = false
+    window.isNewGame = true
+    window.__combatOutcomeShowing = false
+    window.__pendingLocalDefeat = false
+    window.__curseWheelTriggeredFor = null
+    combatActive = false
+    combatStarting = false
+    cemeteryEventDone = false
+    odinVisionShown = false
+    window.playerThuumData = {}
+    window.playerThuumAccessData = {}
+    window.mapLoreBookData = null
+    window.readLoreBooksData = {}
+    deadPlayers = {}
+    pendingLevelUp = {}
+    lastLevel = {}
+    lastHP = {}
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
-    db.ref("events/aurora").remove()
-    db.ref("diceRoll").remove()
-  db.ref("game/storyImage").set(null)
-  showNotification("🆕 Nouvelle partie créée")
-  setGameState("MENU")
-  startIntro()
+    stopAllMusic()
+
+    // Construire les données initiales
+    const initChars = {}
+    ;["greg", "ju", "elo", "bibi"].forEach(pid => {
+      const s = getPlayerStatsAtLevel(pid, 1)
+      initChars[pid] = {
+        lvl:1, xp:0, hp:s.hp, poids:s.poids,
+        force:s.force, charme:s.charme, perspi:s.perspi,
+        chance:s.chance, defense:s.defense,
+        curse:0, corruption:0, freePoints:0,
+        gold:0, inventaire:"", notes:""
+      }
+    })
+
+    const initTokens = {
+      greg: { x:320, y:340 },
+      ju:   { x:420, y:340 },
+      elo:  { x:520, y:340 },
+      bibi: { x:620, y:340 }
+    }
+
+    // Écrire les données critiques en premier (personnages + map)
+    // puis nettoyer le reste en arrière-plan
+    Promise.all([
+      db.ref("characters").set(initChars),
+      db.ref("tokens").set(initTokens),
+      db.ref("game/map").set("taverne.jpg"),
+      db.ref("game/groupMadness").set(0),
+      db.ref("game/worldMapFogTopLeftHidden").set(false),
+      db.ref("game/newGame").set({ time: Date.now() }),
+    ]).then(() => {
+      // Nettoyage en arrière-plan (non bloquant)
+      ;[
+        db.ref("elements").remove(),
+        db.ref("combat").remove(),
+        db.ref("diceRoll").remove(),
+        db.ref("curse").remove(),
+        db.ref("events").remove(),
+        db.ref("game/storyImage").remove(),
+        db.ref("game/storyImage2").remove(),
+        db.ref("game/storyImage3").remove(),
+        db.ref("game/shop").remove(),
+        db.ref("game/combatState").remove(),
+        db.ref("game/combatOutcome").remove(),
+        db.ref("game/playerDeath").remove(),
+        db.ref("game/playerRevive").remove(),
+        db.ref("game/playerAllyAccess").remove(),
+        db.ref("game/playerThuum").remove(),
+        db.ref("game/playerThuumAccess").remove(),
+        db.ref("game/thuumCast").remove(),
+        db.ref("game/thuumUnlockEvent").remove(),
+        db.ref("game/allyAction").remove(),
+        db.ref("game/odinVision").remove(),
+        db.ref("game/powerSound").remove(),
+        db.ref("game/bifrostFlash").remove(),
+        db.ref("game/cemeterySpell").remove(),
+        db.ref("game/runeChallenge").remove(),
+        db.ref("game/mapLoreBook").remove(),
+        db.ref("game/readLoreBooks").remove(),
+        db.ref("game/wantedPosters").remove(),
+        db.ref("game/wantedOpen").remove(),
+        db.ref("game/simonState").remove(),
+        db.ref("game/document").remove(),
+        db.ref("game/mobAttackEvent").remove(),
+        db.ref("game/highPNJName").remove(),
+      ].forEach(p => p.catch(() => {}))
+
+      showNotification("🆕 Nouvelle partie — Taverne de Rivebois")
+      addMJLog("🆕 Nouvelle partie lancée")
+      setGameState("MENU")
+      startIntro()
+    }).catch(() => {
+      // Même si certaines écritures échouent, lancer quand même
+      showNotification("🆕 Nouvelle partie — Taverne de Rivebois")
+      setGameState("MENU")
+      startIntro()
+    })
+  } // fin doReset
+
+  doReset()
 }
 
 function resetAllPlayerStats() {
@@ -2426,49 +2530,116 @@ function mobRoll(max) {
   db.ref("diceRoll").push({ player: "MOB", dice: max, result, time: Date.now(), sender: "MJ" })
 }
 
+const _DICE_FACE_ROTS = { 1:{rx:0,ry:0}, 2:{rx:90,ry:0}, 3:{rx:0,ry:-90}, 4:{rx:0,ry:90}, 5:{rx:-90,ry:0}, 6:{rx:0,ry:180} }
+
+function _buildDice3D(resultBox) {
+  resultBox.innerHTML = ""
+  const label = document.createElement("div")
+  label.className = "dice-player-label"
+  label.id = "dicePlayerLabel"
+  resultBox.appendChild(label)
+
+  const wrap = document.createElement("div")
+  wrap.className = "dice-3d-wrap"
+  const cube = document.createElement("div")
+  cube.className = "dice-3d"
+  cube.id = "dice3d"
+  const faceVals = [1, 6, 3, 4, 5, 2]
+  const faceClasses = ["df1","df2","df3","df4","df5","df6"]
+  faceClasses.forEach((cls, i) => {
+    const f = document.createElement("div")
+    f.className = "dice-face " + cls
+    f.textContent = faceVals[i]
+    cube.appendChild(f)
+  })
+  wrap.appendChild(cube)
+  resultBox.appendChild(wrap)
+
+  const resLabel = document.createElement("div")
+  resLabel.className = "dice-result-label"
+  resLabel.id = "diceResultLabel"
+  resultBox.appendChild(resLabel)
+  return { cube, label, resLabel }
+}
+
 function showDiceAnimation(playerName, max, final) {
   const resultBox = document.getElementById("diceResult")
-  resultBox.style.display = "none"; resultBox.offsetHeight; resultBox.style.display = "block"
   resultBox.classList.remove("crit", "fail", "mjRoll")
+  resultBox.style.display = "flex"
+  resultBox.style.transform = "translate(-50%, -50%)"
+  resultBox.offsetHeight
+
   const safeName = String(playerName).replace(/</g, "&lt;").replace(/>/g, "&gt;")
-  resultBox.innerHTML = "🎲 " + safeName + " lance un d" + max + "..."
+  const { cube, label, resLabel } = _buildDice3D(resultBox)
+
+  label.textContent = safeName + " — d" + max
+  resLabel.textContent = ""
   resultBox.style.opacity = 1
-  let current = 0
+
+  // Rotation rapide pendant 1.8s
+  let t = 0
+  cube.style.transition = "none"
+  const spin = setInterval(() => {
+    t += 0.15
+    cube.style.transform = "rotateX(" + (t*137) + "deg) rotateY(" + (t*247) + "deg) rotateZ(" + (t*83) + "deg)"
+  }, 16)
+
   setTimeout(() => {
-    const animation = setInterval(() => {
-      const random = Math.floor(Math.random() * max) + 1
-      resultBox.innerHTML = '<div class="diceNumber">' + random + '</div>'
-      resultBox.style.transform = "translate(-50%,-50%) rotate(" + (Math.random() * 20 - 10) + "deg) scale(" + (1 + Math.random() * 0.2) + ")"
-      if (++current >= 20) {
-        clearInterval(animation)
-        resultBox.style.transform = "translate(-50%,-50%) rotate(0deg) scale(1.2)"
-        resultBox.innerHTML = '<div class="diceNumber">' + final + '</div>'
-        addDiceLog(playerName, max, final)
-        if (playerName === "MJ") { resultBox.classList.add("mjRoll"); flashGold(); screenShake() }
-        if (final === max) {
-          resultBox.classList.add("crit"); playSound("critSound"); screenShake(); flashGold()
-          tryRuneEventOnDice()
-          if (playerName !== "MJ" && playerName !== "MOB") {
-            db.ref("characters/" + playerName + "/corruption").once("value", snap => {
-              db.ref("characters/" + playerName + "/corruption").set(Math.min(10, (parseInt(snap.val()) || 0) + 1))
-              showNotification("✨ " + playerName.toUpperCase() + " gagne 1 point de Pouvoir !")
-            })
-          }
+    clearInterval(spin)
+    // Aligner la face sur le résultat
+    const displayVal = ((final - 1) % 6) + 1
+    const rot = _DICE_FACE_ROTS[displayVal]
+    cube.style.transition = "transform 0.45s cubic-bezier(0.2,0.8,0.3,1.15)"
+    cube.style.transform = "rotateX(" + rot.rx + "deg) rotateY(" + rot.ry + "deg)"
+
+    setTimeout(() => {
+      resLabel.textContent = String(final)
+      addDiceLog(playerName, max, final)
+
+      if (playerName === "MJ") { resultBox.classList.add("mjRoll"); flashGold(); screenShake() }
+
+      if (final === max) {
+        resultBox.classList.add("crit")
+        resLabel.textContent = "✦ " + final + " ✦"
+        playSound("critSound"); screenShake(); flashGold()
+        tryRuneEventOnDice()
+        if (playerName !== "MJ" && playerName !== "MOB") {
+          db.ref("characters/" + playerName + "/corruption").once("value", snap => {
+            db.ref("characters/" + playerName + "/corruption").set(Math.min(10, (parseInt(snap.val()) || 0) + 1))
+            showNotification("✨ " + playerName.toUpperCase() + " gagne 1 point de Pouvoir !")
+          })
         }
-        if (final === 1) {
-          resultBox.classList.add("fail"); playSound("failSound"); screenShakeHard(); flashRed()
-          tryRuneEventOnDice()
-          if (playerName !== "MJ" && playerName !== "MOB") {
-            db.ref("characters/" + playerName + "/curse").once("value", snap => {
-              db.ref("characters/" + playerName + "/curse").set(Math.min(8, (parseInt(snap.val()) || 0) + 1))
-              showNotification("☠ " + playerName.toUpperCase() + " gagne 1 point de Malédiction !")
-            })
-          }
-        }
-        setTimeout(() => { resultBox.style.opacity = 0; resultBox.style.display = "none"; resultBox.style.transform = "translate(-50%,-50%)" }, 4000)
       }
-    }, 60)
-  }, 2500)
+
+      if (final === 1) {
+        resultBox.classList.add("fail")
+        playSound("failSound"); screenShakeHard(); flashRed()
+        tryRuneEventOnDice()
+        if (playerName !== "MJ" && playerName !== "MOB") {
+          db.ref("characters/" + playerName + "/curse").once("value", snap => {
+            db.ref("characters/" + playerName + "/curse").set(Math.min(8, (parseInt(snap.val()) || 0) + 1))
+            showNotification("☠ " + playerName.toUpperCase() + " gagne 1 point de Malédiction !")
+          })
+        }
+      }
+
+      // Idle après affichage
+      setTimeout(() => {
+        cube.style.transition = ""
+        cube.style.animation = "diceIdle 10s linear infinite"
+      }, 500)
+
+      // Disparition
+      setTimeout(() => {
+        resultBox.style.opacity = 0
+        setTimeout(() => {
+          resultBox.style.display = "none"
+          resultBox.classList.remove("crit","fail","mjRoll")
+          cube.style.animation = ""
+        }, 500)
+      }, 4000)
+    }, 300)
+  }, 1800)
 }
 
 function rollStat(stat) {
@@ -2661,6 +2832,10 @@ function showTavern() {
     setTimeout(() => { fade.style.opacity = 0 }, 500)
     setTimeout(() => { if (mapMusic[mapName]) crossfadeMusic(mapMusic[mapName]) }, 800)
     setTimeout(() => { if (mapNames[mapName]) showLocation(mapNames[mapName]) }, 2000)
+    // Forcer rechargement des stats et positions des tokens
+    setTimeout(() => {
+      ;["greg","ju","elo","bibi"].forEach(pid => updateTokenStats(pid))
+    }, 600)
   })
 }
 

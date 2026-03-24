@@ -200,6 +200,9 @@
       },
       "$other": {
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
+      },
+      "newGame": {
+        ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
       }
     },
     "saves": {
