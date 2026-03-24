@@ -420,6 +420,8 @@ function buildMobSubPanel(mobData, slot) {
   const hpFill = document.createElement("div"); hpFill.style.cssText = `width:${pct}%;height:100%;background:${pct>50?"#44ff44":pct>25?"#ffaa00":"#ff3333"};border-radius:3px;transition:width 0.3s;`; hpWrap.appendChild(hpFill); panel.appendChild(hpWrap)
 
   const tier = mobData.tier||"weak", atks = mobAttacks[tier]||mobAttacks.weak, mobLvl = mobData.lvl||1
+  const specialAtk = getMobSpecialAttack(mobData.name, tier)
+  const specialUsed = !!mobData.specialUsed
 
   if (isGM) {
     // Bouton aléatoire intelligent
@@ -437,7 +439,8 @@ function buildMobSubPanel(mobData, slot) {
     atks.forEach(atk => {
       const isCD = panel._lastAttack===atk.name
       const btn = document.createElement("div")
-      const min=Math.round(atk.dmgMin*(1+(mobLvl-1)*0.15)), max=Math.round(atk.dmgMax*(1+(mobLvl-1)*0.15))
+      const range = getMobDamageRange(atk, mobLvl, tier)
+      const min = range.min, max = range.max
       btn.style.cssText = `padding:6px 8px;margin-bottom:4px;background:rgba(120,10,10,${isCD?"0.2":"0.4"});border:1px solid rgba(180,40,40,${isCD?"0.2":"0.4"});border-radius:4px;cursor:${isCD?"not-allowed":"pointer"};opacity:${isCD?"0.5":"1"};`
       btn.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${isCD?"#666":"#ffcccc"};font-weight:bold;">${atk.name}${isCD?" ⏱":""}</span><span style="font-size:9px;color:#ff8888;margin-left:auto;">${min}-${max}</span></div>`
       if (!isCD) {
@@ -452,6 +455,24 @@ function buildMobSubPanel(mobData, slot) {
       panel.appendChild(btn)
     })
 
+    if (specialAtk) {
+      const specialRange = getMobDamageRange(specialAtk, mobLvl, tier)
+      const sMin = specialRange.min, sMax = specialRange.max
+      const sBtn = document.createElement("div")
+      sBtn.style.cssText = `padding:8px 10px;margin:8px 0 4px;background:${specialUsed?"rgba(60,30,30,0.35)":"linear-gradient(135deg,rgba(120,20,20,0.88),rgba(40,0,0,0.96))"};border:1px solid ${specialUsed?"rgba(140,80,80,0.3)":"rgba(255,180,110,0.55)"};border-radius:6px;cursor:${specialUsed?"not-allowed":"pointer"};opacity:${specialUsed?"0.55":"1"};box-shadow:${specialUsed?"none":"0 0 24px rgba(255,120,60,0.18)"};`
+      sBtn.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${specialAtk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${specialUsed?"#aa8888":"#ffd6a0"};font-weight:bold;letter-spacing:0.5px;">${specialAtk.name}${specialUsed?" — UNIQUE DÉJÀ UTILISÉE":""}</span><span style="font-size:9px;color:${specialUsed?"#9a6a6a":"#ffb37a"};margin-left:auto;">${sMin}-${sMax}</span></div><div style="font-size:9px;color:${specialUsed?"#8a6a6a":"#ffb988"};margin-top:4px;line-height:1.35;">${specialAtk.flavor || "Attaque signature à usage unique."}</div>`
+      if (!specialUsed) {
+        sBtn.onmouseenter=()=>sBtn.style.filter="brightness(1.08)"
+        sBtn.onmouseleave=()=>sBtn.style.filter=""
+        sBtn.onclick=()=>{
+          const target = specialAtk.effect === "all" ? "all" : (_smartTarget(specialAtk) || panel._currentTarget)
+          panel._currentTarget = target === "all" ? null : target
+          launchMobAttackFromSlot(specialAtk, mobData, panel, target, slot)
+        }
+      }
+      panel.appendChild(sBtn)
+    }
+
     // Sélection manuelle de cible (override)
     const targetRow = document.createElement("div"); targetRow.style.cssText = "display:flex;gap:3px;margin-top:6px;flex-wrap:wrap;border-top:1px solid rgba(180,40,40,0.2);padding-top:6px;"
     const label = document.createElement("div"); label.style.cssText = "width:100%;font-family:Cinzel,serif;font-size:9px;color:#5a3a3a;margin-bottom:3px;"; label.innerText = "Forcer la cible :"
@@ -465,32 +486,59 @@ function buildMobSubPanel(mobData, slot) {
   } else {
     // Vue lecture seule pour les joueurs
     atks.forEach(atk => {
-      const min=Math.round(atk.dmgMin*(1+(mobLvl-1)*0.15)), max=Math.round(atk.dmgMax*(1+(mobLvl-1)*0.15))
+      const range = getMobDamageRange(atk, mobLvl, tier)
+      const min = range.min, max = range.max
       const row = document.createElement("div"); row.style.cssText = "padding:5px 8px;margin-bottom:3px;background:rgba(60,5,5,0.5);border:1px solid rgba(120,20,20,0.3);border-radius:3px;opacity:0.85;"
       row.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:13px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:#ffaaaa;">${atk.name}</span><span style="font-size:9px;color:#884444;margin-left:auto;">${min}-${max}</span></div>`
       panel.appendChild(row)
     })
+    if (specialAtk) {
+      const specialRange = getMobDamageRange(specialAtk, mobLvl, tier)
+      const sMin = specialRange.min, sMax = specialRange.max
+      const sRow = document.createElement("div")
+      sRow.style.cssText = `padding:6px 8px;margin-top:6px;background:${specialUsed?"rgba(55,35,35,0.45)":"rgba(96,28,12,0.5)"};border:1px solid ${specialUsed?"rgba(140,80,80,0.28)":"rgba(255,180,110,0.32)"};border-radius:4px;opacity:0.92;`
+      sRow.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:13px;">${specialAtk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${specialUsed?"#b48b8b":"#ffd3a0"};">${specialAtk.name}</span><span style="font-size:9px;color:${specialUsed?"#8e6767":"#c9855f"};margin-left:auto;">${specialUsed ? "UNIQUE ✓" : (sMin + "-" + sMax)}</span></div>`
+      panel.appendChild(sRow)
+    }
   }
 
   return panel
 }
 
-function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget) {
+function applyMobDamageToPlayer(pid, dmg, attack, mobData, slot) {
+  db.ref("characters/" + pid + "/hp").once("value", s => {
+    db.ref("characters/" + pid + "/hp").set(Math.max(0, (s.val() || 0) - dmg))
+    if (attack.effect === "curse") {
+      db.ref("characters/" + pid + "/curse").once("value", cs => {
+        db.ref("characters/" + pid + "/curse").set(Math.min(8, (cs.val() || 0) + 1))
+      })
+    }
+    if (attack.special && attack.healSelfRatio && slot) {
+      const heal = Math.max(1, Math.round(dmg * attack.healSelfRatio))
+      db.ref("combat/" + slot).once("value", mobSnap => {
+        const mob = mobSnap.val()
+        if (!mob) return
+        db.ref("combat/" + slot + "/hp").set(Math.min(mob.maxHP || mob.hp || 0, (mob.hp || 0) + heal))
+      })
+    }
+  })
+}
+
+function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget, slot) {
   const target = forcedTarget || panel._currentTarget
   if (!target && attack.effect !== "all") { showNotification("⚠ Choisissez une cible !"); return }
+  if (attack.special && mobData.specialUsed) { showNotification("⚠ Attaque spéciale déjà utilisée"); return }
   panel._lastAttack = attack.name
   animateMobDice(() => {
-    const dmg = getMobDamage(attack, mobData.lvl||1)
+    const dmg = getMobDamage(attack, mobData.lvl||1, mobData.tier||"weak")
+    if (attack.special && slot) db.ref("combat/" + slot + "/specialUsed").set(true)
     if (attack.effect === "all" || target === "all") {
-      ;["greg","ju","elo","bibi"].forEach(pid => { db.ref("characters/"+pid+"/hp").once("value", s => { db.ref("characters/"+pid+"/hp").set(Math.max(0,(s.val()||0)-dmg)) }) })
-      db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now() })
+      ;["greg","ju","elo","bibi"].forEach(pid => applyMobDamageToPlayer(pid, dmg, attack, mobData, slot))
+      db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "" })
     } else {
-      db.ref("characters/"+target+"/hp").once("value", s => {
-        db.ref("characters/"+target+"/hp").set(Math.max(0,(s.val()||0)-dmg))
-        if (attack.effect==="curse") { db.ref("characters/"+target+"/curse").once("value",cs=>{ db.ref("characters/"+target+"/curse").set(Math.min(8,(cs.val()||0)+1)) }) }
-        db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now() })
-        showNotification("💥 "+attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
-      })
+      applyMobDamageToPlayer(target, dmg, attack, mobData, slot)
+      db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "" })
+      showNotification("💥 "+attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
     }
     setTimeout(() => renderAllMobPanels(), 200)
   })

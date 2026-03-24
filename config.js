@@ -179,10 +179,97 @@ const mobAttacks = {
   ]
 }
 
-function getMobDamage(attack, mobLvl) {
-  const factor = 1 + (mobLvl - 1) * 0.15
-  const min = Math.round(attack.dmgMin * factor)
-  const max = Math.round(attack.dmgMax * factor)
+const mobSpecialAnimations = {
+  bloodmoon: { accent:"#d14b6a", glow:"rgba(209,75,106,0.55)", bg:"radial-gradient(circle at center,rgba(90,0,20,0.92) 0%,rgba(20,0,8,0.98) 70%)" },
+  howl:      { accent:"#89d1ff", glow:"rgba(90,170,255,0.52)", bg:"radial-gradient(circle at center,rgba(10,30,50,0.92) 0%,rgba(3,8,18,0.98) 72%)" },
+  spectral:  { accent:"#c8f6ff", glow:"rgba(130,240,255,0.5)", bg:"radial-gradient(circle at center,rgba(8,42,46,0.94) 0%,rgba(2,10,12,0.98) 74%)" },
+  venom:     { accent:"#8cff75", glow:"rgba(120,255,90,0.48)", bg:"radial-gradient(circle at center,rgba(18,56,8,0.92) 0%,rgba(6,14,4,0.98) 72%)" },
+  arcane:    { accent:"#d7a8ff", glow:"rgba(181,120,255,0.55)", bg:"radial-gradient(circle at center,rgba(44,18,70,0.94) 0%,rgba(10,4,18,0.98) 72%)" },
+  fire:      { accent:"#ff9b57", glow:"rgba(255,120,50,0.58)", bg:"radial-gradient(circle at center,rgba(82,20,0,0.94) 0%,rgba(18,4,0,0.98) 74%)" },
+  storm:     { accent:"#9ad6ff", glow:"rgba(110,190,255,0.54)", bg:"radial-gradient(circle at center,rgba(16,34,76,0.94) 0%,rgba(4,8,18,0.98) 72%)" },
+  stone:     { accent:"#d0c2a6", glow:"rgba(180,160,120,0.45)", bg:"radial-gradient(circle at center,rgba(48,38,22,0.94) 0%,rgba(14,10,6,0.98) 72%)" },
+  abyss:     { accent:"#6ce2d9", glow:"rgba(50,220,210,0.5)", bg:"radial-gradient(circle at center,rgba(0,44,56,0.94) 0%,rgba(0,8,12,0.99) 74%)" },
+  divine:    { accent:"#ffe08a", glow:"rgba(255,214,120,0.52)", bg:"radial-gradient(circle at center,rgba(90,62,12,0.94) 0%,rgba(20,12,2,0.98) 72%)" },
+  royal:     { accent:"#ffcf7f", glow:"rgba(255,170,70,0.55)", bg:"radial-gradient(circle at center,rgba(80,28,8,0.94) 0%,rgba(20,4,0,0.98) 74%)" },
+  tavern:    { accent:"#ffd9a0", glow:"rgba(255,210,150,0.45)", bg:"radial-gradient(circle at center,rgba(90,48,12,0.94) 0%,rgba(20,10,2,0.98) 74%)" }
+}
+
+const mobSpecialAttacks = {
+  gobelins: { name:"Vol de mollets", icon:"🗡", dmgMin:7, dmgMax:12, effect:null, animation:"tavern", flavor:"Les gobelins se jettent en escadrille sur les tibias." },
+  loup: { name:"Hurlement de meute", icon:"🐺", dmgMin:8, dmgMax:14, effect:null, animation:"howl", flavor:"Un hurlement glacial annonce la morsure coordonnée." },
+  draugr: { name:"WHAAAAAA", icon:"🪦", dmgMin:10, dmgMax:17, effect:"curse", animation:"spectral", flavor:"Le draugr hurle comme si la tombe venait de lui voler sa caution." },
+  fantome: { name:"Traversée du linceul", icon:"👻", dmgMin:8, dmgMax:13, effect:null, animation:"spectral", flavor:"Le froid passe à travers l'armure et les excuses." },
+  vampire: { name:"Bella, where the hall have you been loca", icon:"🩸", dmgMin:12, dmgMax:20, effect:"curse", animation:"bloodmoon", flavor:"Le vampire scintille d'un charisme absolument interdit par la morale." },
+  witch: { name:"Défier la gravité", icon:"🧪", dmgMin:11, dmgMax:18, effect:"curse", animation:"arcane", flavor:"La sorcière décide que la physique est un avis, pas une règle." },
+  garde: { name:"J'ai pris une flèche dans le genou", icon:"🛡", dmgMin:10, dmgMax:16, effect:null, animation:"stone", flavor:"Le garde raconte encore son histoire, mais avec beaucoup plus d'impact." },
+  bandit: { name:"Embuscade sale", icon:"🪓", dmgMin:8, dmgMax:15, effect:null, animation:"tavern", flavor:"Un coup bas, mal annoncé, mais très appliqué." },
+  ogre: { name:"It's all ogre now", icon:"🌳", dmgMin:14, dmgMax:22, effect:null, animation:"stone", flavor:"L'ogre prononce sa catchphrase et tout le monde regrette d'être venu." },
+  dragon: { name:"Fournaise royale", icon:"🐉", dmgMin:16, dmgMax:26, effect:"all", animation:"fire", flavor:"Un cône de flammes transforme l'air en punition." },
+  liquorice: { name:"Réglisse cosmique", icon:"🍬", dmgMin:12, dmgMax:18, effect:null, animation:"arcane", flavor:"Une douceur démoniaque dont le goût reste une semaine dans l'âme." },
+  valkyrie: { name:"Sentence d'Asgard", icon:"🪽", dmgMin:14, dmgMax:22, effect:null, animation:"divine", flavor:"La lance descend comme un verdict déjà signé." },
+  golem: { name:"Écrasement tectonique", icon:"🪨", dmgMin:15, dmgMax:24, effect:null, animation:"stone", flavor:"Le sol oublie sa fonction de sol." },
+  pretre: { name:"Mon cierge est allumé, la cire prête à couler", icon:"📿", dmgMin:16, dmgMax:24, effect:"curse", animation:"divine", flavor:"Le sermon dérape immédiatement vers quelque chose de très peu canonique." },
+  fenrir: { name:"Mâchoire du crépuscule", icon:"🌘", dmgMin:16, dmgMax:25, effect:null, animation:"howl", flavor:"Fenrir choisit une cible comme on choisit la fin du monde." },
+  zombie: { name:"Marche des morceaux", icon:"🧟", dmgMin:13, dmgMax:20, effect:null, animation:"venom", flavor:"Chaque membre participe, même sans coordination centrale." },
+  zombie2: { name:"Morsure recyclée", icon:"☣", dmgMin:13, dmgMax:19, effect:"curse", animation:"venom", flavor:"Rien n'est frais, tout est offensant." },
+  troll: { name:"Pont cassé", icon:"🪵", dmgMin:12, dmgMax:18, effect:null, animation:"stone", flavor:"Le troll frappe comme si la route lui appartenait." },
+  cyclope: { name:"Regard du mal calibré", icon:"👁", dmgMin:13, dmgMax:20, effect:null, animation:"stone", flavor:"Un seul œil, mais une très mauvaise intention." },
+  serpentgeant: { name:"Constriction abyssale", icon:"🐍", dmgMin:15, dmgMax:24, effect:null, animation:"abyss", flavor:"Le serpent décide que respirer est devenu optionnel." },
+  balraug: { name:"You shall not pass", icon:"🔥", dmgMin:25, dmgMax:38, effect:"all", animation:"fire", flavor:"Le Balraug bloque le passage avec une autorité tout à fait litigieuse." },
+  jormungand: { name:"Marée du monde", icon:"🌊", dmgMin:24, dmgMax:36, effect:"all", animation:"abyss", flavor:"La mer intérieure de Jormungand déborde sur tout le groupe." },
+  kraken: { name:"Tentacule d'inventaire", icon:"🐙", dmgMin:23, dmgMax:35, effect:"all", animation:"abyss", flavor:"Le Kraken fouille vos poches avec une implication gênante." },
+  nhiddog: { name:"Griffe des racines", icon:"🕳", dmgMin:21, dmgMax:33, effect:"all", animation:"abyss", flavor:"Les racines du monde mordent à travers lui." },
+  hydre: { name:"Conseil de têtes", icon:"🐍", dmgMin:24, dmgMax:38, effect:"all", animation:"venom", flavor:"Personne n'est d'accord, sauf sur le fait de vous dévorer." },
+  basilic: { name:"Œil qui fige", icon:"🗿", dmgMin:22, dmgMax:34, effect:null, animation:"venom", flavor:"Le regard pèse comme une pierre vivante." },
+  roi: { name:"Impôt terminal", icon:"👑", dmgMin:26, dmgMax:40, effect:"all", animation:"royal", flavor:"Le roi prélève directement en points de vie." },
+  odin: { name:"Décret du borgne", icon:"🜂", dmgMin:28, dmgMax:42, effect:"all", animation:"divine", flavor:"Une sentence divine, cosmique, et très peu négociable." },
+  thor: { name:"Procès-verbal de Mjolnir", icon:"⚡", dmgMin:27, dmgMax:41, effect:"all", animation:"storm", flavor:"Le tonnerre signe son nom sur tout le groupe." },
+  freya: { name:"Grâce qui blesse", icon:"🌺", dmgMin:24, dmgMax:36, effect:null, animation:"divine", flavor:"Une beauté si parfaite qu'elle devient offensive." },
+  heimdall: { name:"Alarme du pont", icon:"🌈", dmgMin:24, dmgMax:37, effect:"all", animation:"storm", flavor:"Heimdall sonne la fin avant même qu'elle commence." },
+  tavernier: { name:"Tournée générale de baffes", icon:"🍺", dmgMin:7, dmgMax:12, effect:null, animation:"tavern", flavor:"Le tavernier sert chaud, vite, et avec l'avant-bras." },
+  soulard: { name:"Chanson de fin de tonneau", icon:"🍷", dmgMin:6, dmgMax:10, effect:null, animation:"tavern", flavor:"Le rythme est faux mais le coup porte." },
+  serveuse: { name:"Plateau orbital", icon:"🍽", dmgMin:7, dmgMax:11, effect:null, animation:"tavern", flavor:"Un service express directement à la mâchoire." },
+  marchand: { name:"Offre non remboursable", icon:"💰", dmgMin:8, dmgMax:13, effect:null, animation:"royal", flavor:"Le marchand facture désormais à l'unité de douleur." },
+  marchand2: { name:"Promotion létale", icon:"🪙", dmgMin:8, dmgMax:13, effect:null, animation:"royal", flavor:"Deux achetés, trois bleus offerts." },
+  forgeron: { name:"Enclume du destin", icon:"🔨", dmgMin:12, dmgMax:19, effect:null, animation:"fire", flavor:"Chaque frappe résonne jusque dans la colonne vertébrale." },
+  forgeron1: { name:"Reprise à chaud", icon:"⚒", dmgMin:11, dmgMax:18, effect:null, animation:"fire", flavor:"Le métal n'est pas le seul à plier." },
+  maire: { name:"Discours d'urgence", icon:"📜", dmgMin:14, dmgMax:22, effect:null, animation:"royal", flavor:"Une allocution si longue qu'elle devient contondante." },
+  generalmelenchon: { name:"MAIS QUI ELLE EST CELLE LA", icon:"📣", dmgMin:18, dmgMax:27, effect:"all", animation:"royal", flavor:"Le général interpelle la réalité elle-même et la réalité prend des dégâts." }
+}
+
+function _getFallbackMobSpecialAttack(mobName, mobTier) {
+  const label = String(mobName || "créature").toUpperCase()
+  if (mobTier === "boss") return { name:"Cataclysme de " + label, icon:"☄", dmgMin:22, dmgMax:36, effect:"all", animation:"abyss", flavor:"Le boss décide que la nuance n'est plus nécessaire." }
+  if (mobTier === "high") return { name:"Signature maudite", icon:"✦", dmgMin:14, dmgMax:24, effect:"curse", animation:"arcane", flavor:"Une technique personnelle visiblement interdite dans plusieurs royaumes." }
+  if (mobTier === "medium") return { name:"Montée en pression", icon:"💢", dmgMin:10, dmgMax:17, effect:null, animation:"stone", flavor:"Le combat prend soudain un ton bien moins raisonnable." }
+  return { name:"Sale surprise", icon:"🗡", dmgMin:7, dmgMax:12, effect:null, animation:"tavern", flavor:"Petit gabarit, mauvaises idées." }
+}
+
+function getMobSpecialAttack(mobName, mobTier) {
+  const key = String(mobName || "").toLowerCase()
+  const attack = mobSpecialAttacks[key] || _getFallbackMobSpecialAttack(mobName, mobTier)
+  return attack ? { ...attack, special:true, oncePerCombat:true } : null
+}
+
+function getMobAnimationStyle(animationKey) {
+  return mobSpecialAnimations[animationKey] || mobSpecialAnimations.arcane
+}
+
+function getMobDamageRange(attack, mobLvl, mobTier = "weak") {
+  const levelFactor = 1 + Math.max(0, mobLvl - 1) * 0.21
+  const tierFactor = { weak:1.1, medium:1.18, high:1.3, boss:1.45 }[mobTier] || 1.12
+  const specialFactor = attack && attack.special ? 1.2 : 1
+  const factor = levelFactor * tierFactor * specialFactor
+  return {
+    min: Math.round(attack.dmgMin * factor),
+    max: Math.round(attack.dmgMax * factor)
+  }
+}
+
+function getMobDamage(attack, mobLvl, mobTier = "weak") {
+  const range = getMobDamageRange(attack, mobLvl, mobTier)
+  const min = range.min
+  const max = range.max
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 

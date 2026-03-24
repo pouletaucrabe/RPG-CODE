@@ -286,6 +286,14 @@ function updateCamera() {
   document.getElementById("camera").style.transform = `scale(${cameraZoom}) translate(${cameraX}px, ${cameraY}px)`
 }
 
+function syncCameraZoomToPlayers() {
+  if (!isGM || !db) return
+  const normalized = Number(Math.max(minZoom, Math.min(2, cameraZoom)).toFixed(3))
+  if (window.__lastPublishedCameraZoom === normalized) return
+  window.__lastPublishedCameraZoom = normalized
+  db.ref("game/cameraZoom").set(normalized).catch(() => {})
+}
+
 /* ========================= */
 /* AUDIO                     */
 /* ========================= */
