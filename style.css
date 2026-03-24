@@ -1051,7 +1051,11 @@ html, body {
 /* SÉLECTION JOUEUR          */
 /* ========================= */
 
-#playerSelect { position: fixed; top: 80px; right: 20px; z-index: 999999; display: none; }
+#playerSelect {
+  position: fixed; top: 80px; right: 20px;
+  z-index: 999999; display: none;
+  background: none !important;
+}
 
 #playerToggle {
   width: 54px; height: 54px; border-radius: 50%; font-size: 22px;
@@ -2936,10 +2940,13 @@ body {
   border: none !important;
   box-shadow: 0 0 30px rgba(0,0,0,0.9) !important;
   box-sizing: border-box !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
 }
 
 #playerMenu.open {
   max-height: 640px !important;
+  overflow-y: auto !important;
 }
 
 #playerMenu::before {

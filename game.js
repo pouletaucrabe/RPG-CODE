@@ -1887,17 +1887,10 @@ function updateTokenStats(id) {
     const corruption = data.corruption || 0
     const lvl        = data.lvl || 1
 
-    // Calcul du poids inventaire
-    let weight = 0
-    if (data.inventaire) {
-      data.inventaire.split("\n").forEach(line => {
-        const wm = line.match(/\(([^)]+)\)/); if (!wm) return
-        const value = parseFloat(wm[1].replace(/[kg\s]/gi, "").replace(",", "."))
-        if (isNaN(value)) return
-        const qm = line.match(/x(\d+)/i)
-        weight += value * (qm ? parseInt(qm[1]) : 1)
-      })
-    }
+    // Calcul du poids inventaire — fonction partagée avec la fiche
+    const weight = data.inventaire && typeof _parseInventoryWeight === "function"
+      ? _parseInventoryWeight(data.inventaire)
+      : 0
 
     const token     = document.getElementById(id)
     const maxWeight = data.poids || 100
@@ -2513,8 +2506,9 @@ function rollStat(stat) {
       document.getElementById("intro").style.display       = "none"
       break
     case "GAME":
-      document.getElementById("camera").style.display      = "block"
-      document.getElementById("playerSelect").style.display = "block"
+      document.getElementById("camera").style.display = "block"
+      // Ne montrer le menu de sélection que si le joueur n'a pas encore choisi
+      if (!myToken) document.getElementById("playerSelect").style.display = "block"
       setTimeout(updateThuumButton, 500)
       break
       case "COMBAT":
@@ -2647,10 +2641,14 @@ function showTavern() {
   setGameState("GAME")
   const fade = document.getElementById("fadeScreen"); const map = document.getElementById("map")
   fadeOut()
-  document.getElementById("camera").style.display       = "block"
-  document.getElementById("playerSelect").style.display = "block"
-  document.getElementById("diceBar").style.display      = "flex"
-  document.getElementById("diceLog").style.display      = "block"
+  document.getElementById("camera").style.display  = "block"
+  document.getElementById("diceBar").style.display  = "flex"
+  document.getElementById("diceLog").style.display  = "block"
+  // Ne montrer le menu de sélection que si le joueur n'a pas encore choisi
+  if (!myToken) {
+    document.getElementById("playerSelect").style.display = "block"
+    setTimeout(openPlayerMenuOnStart, 100)
+  }
   // Lire la vraie map depuis Firebase plutôt que forcer la taverne
   db.ref("game/map").once("value", snap => {
     const mapName = snap.val() || "taverne.jpg"
@@ -2730,16 +2728,23 @@ function requestGM() {
 }
 
 function activateGM(fromFirebaseRole = false) {
-    if (isGM) return
-    isGM = true
-    document.getElementById("gmBar").style.display     = "flex"
-    document.getElementById("mjRollBtn").style.display = "inline-block"
-    document.getElementById("mjLog").style.display     = "block"
-    document.getElementById("gmSaveBar").style.display = "block"
-      ensureMadnessGMButton()
-      updateThuumButton()
-    showNotification(fromFirebaseRole ? "🎲 Mode MJ activé (Firebase)" : "🎲 Mode MJ activé")
-    }
+  if (isGM) return
+  isGM = true
+  document.getElementById("gmBar").style.display     = "flex"
+  document.getElementById("mjRollBtn").style.display = "inline-block"
+  document.getElementById("mjLog").style.display     = "block"
+  document.getElementById("gmSaveBar").style.display = "block"
+  ensureMadnessGMButton()
+  updateThuumButton()
+  showNotification(fromFirebaseRole ? "🎲 Mode MJ activé (Firebase)" : "🎲 Mode MJ activé")
+  // Fermer et masquer complètement le menu de sélection
+  const select = document.getElementById("playerSelect")
+  if (select) {
+    select.style.transition = "opacity 0.4s ease"
+    select.style.opacity = "0"
+    setTimeout(() => { select.style.display = "none" }, 400)
+  }
+}
 
 function toggleGMSection(id) {
   const section = document.getElementById(id); if (!section) return
@@ -2834,46 +2839,21 @@ function choosePlayer(id) {
 }
 
 function _collapsePlayerMenu(id) {
-  const toggle = document.getElementById("playerToggle")
-  const menu   = document.getElementById("playerMenu")
   const select = document.getElementById("playerSelect")
-  if (!toggle || !select) return
-  const tokenImage = "images/" + id + ".png"
-
-  // Fermer le menu
-  if (menu) { menu.classList.remove("open"); menu.style.display = "none" }
-  select.classList.add("collapsed")
-
-  // Réduire le bouton toggle — style direct, pas de classe
-  toggle.style.width           = "36px"
-  toggle.style.height          = "36px"
-  toggle.style.fontSize        = "0px"
-  toggle.style.backgroundImage = `url('${tokenImage}')`
-  toggle.style.backgroundSize  = "cover"
-  toggle.style.backgroundPosition = "center"
-  toggle.style.background      = `url('${tokenImage}') center/cover no-repeat`
-  toggle.style.boxShadow       = "0 0 0 2px #1e5a66, 0 0 0 3px #d4a835"
-  toggle.innerText = ""
-  toggle.title     = id.toUpperCase()
-
-  // Repositionner en haut à droite tout petit
-  select.style.top   = "8px"
-  select.style.right = "8px"
-
-  // Rouvrir le menu au clic si besoin
-  toggle.onclick = () => {
-    if (menu.style.display === "none") {
-      menu.style.display = "block"
-      menu.classList.add("open")
-    } else {
-      menu.classList.remove("open")
-      menu.style.display = "none"
-    }
-  }
+  if (!select) return
+  // Disparition complète après choix du personnage
+  select.style.transition = "opacity 0.4s ease"
+  select.style.opacity = "0"
+  setTimeout(() => { select.style.display = "none" }, 400)
 }
 
 function togglePlayerMenu() {
   document.getElementById("playerMenu").classList.toggle("open")
+}
+
+function openPlayerMenuOnStart() {
+  const menu = document.getElementById("playerMenu")
+  if (menu && !myToken) menu.classList.add("open")
 }
 
 /* ========================= */

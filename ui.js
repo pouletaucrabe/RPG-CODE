@@ -86,23 +86,43 @@ function updateHPBar() {
   document.getElementById("hpBar").style.width = Math.max(0, Math.min(100, hp)) + "%"
 }
 
-function updateWeightBar() {
-  if (!currentSheetPlayer) return
-  const text = document.getElementById("inventaire").value
+function _parseInventoryWeight(text) {
   let total = 0
   text.split("\n").forEach(line => {
     const wm = line.match(/\(([^)]+)\)/); if (!wm) return
-    const w = parseFloat(wm[1].replace(",",".")); if (isNaN(w)) return
-    const qm = line.match(/x(\d+)/i); total += w * (qm ? parseInt(qm[1]) : 1)
+    // Retirer "kg" et espaces, remplacer virgule par point
+    const cleaned = wm[1].replace(/[kg\s]/gi, "").replace(",", ".")
+    const w = parseFloat(cleaned); if (isNaN(w)) return
+    const qm = line.match(/x(\d+)/i)
+    total += w * (qm ? parseInt(qm[1]) : 1)
   })
-  // Lire le max depuis Firebase (poids calculé selon le niveau)
-  db.ref("characters/" + currentSheetPlayer + "/poids").once("value", snap => {
-    const max = snap.val() || (currentSheetPlayer === "bibi" ? 40 : 100)
+  return Math.round(total * 10) / 10  // arrondi à 1 décimale
+}
+
+function updateWeightBar() {
+  if (!currentSheetPlayer) return
+  const text = document.getElementById("inventaire").value
+  const total = _parseInventoryWeight(text)
+  // Utiliser le max déjà chargé en mémoire, fallback Firebase si absent
+  const cachedMax = window._playerMaxPoids && window._playerMaxPoids[currentSheetPlayer]
+  const applyMax = max => {
     document.getElementById("weight").value    = total
     document.getElementById("maxWeight").value = max
-    const pct = Math.min(100, (total/max)*100), bar = document.getElementById("weightBar")
-    bar.style.width = pct + "%"; bar.style.background = pct < 70 ? "lime" : pct < 100 ? "orange" : "red"
-  })
+    const pct = Math.min(100, (total / max) * 100)
+    const bar = document.getElementById("weightBar")
+    bar.style.width = pct + "%"
+    bar.style.background = pct < 70 ? "lime" : pct < 100 ? "orange" : "red"
+  }
+  if (cachedMax) {
+    applyMax(cachedMax)
+  } else {
+    db.ref("characters/" + currentSheetPlayer + "/poids").once("value", snap => {
+      const max = snap.val() || 100
+      if (!window._playerMaxPoids) window._playerMaxPoids = {}
+      window._playerMaxPoids[currentSheetPlayer] = max
+      applyMax(max)
+    })
+  }
 }
 
 /* ========================= */
@@ -1165,29 +1185,14 @@ function selectWantedTier(val, lbl) { const btn=document.getElementById("wantedT
 /* SAUVEGARDE UI             */
 /* ========================= */
 
-function _buildSavePanel(saves) {
-  const old=document.getElementById("savePanel"); if(old) old.remove()
-  const keys=Object.keys(saves)
+function showSaveMenu() {
+  if(!isGM) return; const old=document.getElementById("savePanel"); if(old) old.remove()
+  const saves=parseLocalStorageJSON("rpg_saves", {}), keys=Object.keys(saves)
   const panel=document.createElement("div"); panel.id="savePanel"; panel.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:2px solid gold;border-radius:12px;padding:24px;z-index:999999999;font-family:Cinzel;color:#f5e6c8;min-width:340px;box-shadow:0 0 40px black;"; document.body.appendChild(panel)
   const t=document.createElement("div"); t.style.cssText="text-align:center;color:gold;font-size:18px;margin-bottom:16px;"; t.innerText="Sauvegardes"; panel.appendChild(t)
   if(!keys.length){ const e=document.createElement("div"); e.style.cssText="text-align:center;opacity:0.5;margin-bottom:12px;font-size:13px;"; e.innerText="Aucune sauvegarde"; panel.appendChild(e) }
   keys.forEach(sn=>{ const d=String(saves[sn]?._saveDate||""); const row=document.createElement("div"); row.style.cssText="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;"; const lbl=document.createElement("div"); lbl.style.cssText="flex:1;font-size:13px;line-height:1.4;"; const title=document.createElement("div"); title.innerText=sn; const meta=document.createElement("small"); meta.style.opacity="0.5"; meta.innerText=d; lbl.appendChild(title); lbl.appendChild(meta); const bl=document.createElement("button"); bl.innerText="Charger"; bl.style.cssText="background:linear-gradient(#7a5533,#4b321c);color:#f5e6c8;border:1px solid #caa46b;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:Cinzel;font-size:12px;"; bl.addEventListener("click",()=>loadSave(sn)); const bd=document.createElement("button"); bd.innerText="X"; bd.style.cssText="background:#3a0000;color:#ff6060;border:1px solid #660000;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px;"; bd.addEventListener("click",()=>deleteSave(sn)); row.appendChild(lbl); row.appendChild(bl); row.appendChild(bd); panel.appendChild(row) })
   const footer=document.createElement("div"); footer.style.cssText="display:flex;gap:8px;margin-top:16px;justify-content:center;"; const bn=document.createElement("button"); bn.innerText="Nouvelle"; bn.style.cssText="background:linear-gradient(#2a7a2a,#1a4a1a);color:gold;border:2px solid gold;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:Cinzel;"; bn.addEventListener("click",()=>{ panel.remove(); saveGame() }); const bc=document.createElement("button"); bc.innerText="Fermer"; bc.style.cssText="background:#222;color:#f5e6c8;border:1px solid #555;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:Cinzel;"; bc.addEventListener("click",()=>panel.remove()); footer.appendChild(bn); footer.appendChild(bc); panel.appendChild(footer)
-}
-
-function showSaveMenu() {
-  if(!isGM) return
-  // Lire Firebase en priorité, fusionner avec localStorage
-  db.ref("saves").once("value", snap => {
-    const firebaseSaves = snap.val() || {}
-    const localSaves = parseLocalStorageJSON("rpg_saves", {})
-    // Fusionner : Firebase a priorité sur localStorage
-    const merged = Object.assign({}, localSaves, firebaseSaves)
-    _buildSavePanel(merged)
-  }).catch(() => {
-    // Fallback localStorage si Firebase échoue
-    _buildSavePanel(parseLocalStorageJSON("rpg_saves", {}))
-  })
 }
 
 /* ========================= */
