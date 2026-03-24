@@ -290,6 +290,20 @@ function updateCamera() {
 /* AUDIO                     */
 /* ========================= */
 
+function getUserAudioVolume() {
+  const raw = window.__userAudioVolume
+  const parsed = typeof raw === "number" ? raw : parseFloat(raw)
+  if (Number.isFinite(parsed)) return Math.max(0, Math.min(1, parsed))
+  return 0.8
+}
+
+function setUserAudioVolume(volume) {
+  const normalized = Math.max(0, Math.min(1, parseFloat(volume)))
+  window.__userAudioVolume = Number.isFinite(normalized) ? normalized : 0.8
+  try { localStorage.setItem("rpg_volume", String(window.__userAudioVolume)) } catch (e) {}
+  return window.__userAudioVolume
+}
+
 function crossfadeMusic(newMusic) {
   if (
     auroraActive &&
@@ -304,12 +318,13 @@ function crossfadeMusic(newMusic) {
   if (!musicA || !musicB) return
 
   const normalizedMusic = /^(https?:|data:|blob:|\/|audio\/)/i.test(newMusic) ? newMusic : "audio/" + newMusic
+  const targetVolume = getUserAudioVolume()
 
   const active = currentMusic === "A" ? musicA : musicB
   const activeSrc = active.src ? decodeURIComponent(active.src.replace(/.*\//, "").replace(/%20/g," ")) : ""
   const newSrc = normalizedMusic.replace(/.*\//, "").replace(/%20/g," ")
 
-  if (activeSrc === newSrc && !active.paused && active.volume > 0.3) return
+  if (activeSrc === newSrc && !active.paused && active.volume > Math.max(0.2, targetVolume * 0.4)) return
 
   if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
   _musicTransitioning = false
@@ -354,7 +369,7 @@ function crossfadeMusic(newMusic) {
               next._fading = false
               next.play().catch(() => {})
               const fi = setInterval(() => {
-                if (next.volume < 0.8) next.volume = Math.min(0.8, next.volume + 0.05)
+                if (next.volume < targetVolume) next.volume = Math.min(targetVolume, next.volume + 0.05)
                 else clearInterval(fi)
               }, 100)
             }
@@ -363,8 +378,8 @@ function crossfadeMusic(newMusic) {
       })
 
       musicFadeInterval = setInterval(() => {
-        if (next.volume < 0.8) {
-          next.volume = Math.min(0.8, next.volume + 0.05)
+        if (next.volume < targetVolume) {
+          next.volume = Math.min(targetVolume, next.volume + 0.05)
         } else {
           clearInterval(musicFadeInterval)
           musicFadeInterval = null
@@ -629,8 +644,17 @@ function scanAssets() {
 document.addEventListener("DOMContentLoaded", () => {
   const slider = document.getElementById("volumeSlider")
   if (slider) {
+    let initialVolume = 0.8
+    try {
+      const storedVolume = parseFloat(localStorage.getItem("rpg_volume"))
+      if (Number.isFinite(storedVolume)) initialVolume = Math.max(0, Math.min(1, storedVolume))
+    } catch (e) {}
+    slider.value = String(initialVolume)
+    setUserAudioVolume(initialVolume)
+    document.querySelectorAll("audio").forEach(s => { s.volume = initialVolume })
+
     slider.addEventListener("input", () => {
-      const volume = parseFloat(slider.value)
+      const volume = setUserAudioVolume(slider.value)
       document.querySelectorAll("audio").forEach(s => { s.volume = volume })
     })
   }

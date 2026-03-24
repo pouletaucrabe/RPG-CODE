@@ -2850,8 +2850,9 @@ function startIntro() {
     start.style.visibility = "hidden"
     showIntroLayer()
     const music = document.getElementById("music"); music.volume = 0; music.play().catch(() => {})
+    const targetVolume = (typeof getUserAudioVolume === "function") ? getUserAudioVolume() : 0.8
     let v = 0
-    const fade = setInterval(() => { if (v < 0.8) { v += 0.05; music.volume = v } else clearInterval(fade) }, 200)
+    const fade = setInterval(() => { if (v < targetVolume) { v = Math.min(targetVolume, v + 0.05); music.volume = v } else clearInterval(fade) }, 200)
   }, 2000)
 }
 
@@ -2903,7 +2904,6 @@ function activateGM(fromFirebaseRole = false) {
   if (isGM) return
   isGM = true
   document.getElementById("gmBar").style.display     = "flex"
-  document.getElementById("mjRollBtn").style.display = "inline-block"
   document.getElementById("mjLog").style.display     = "block"
   document.getElementById("gmSaveBar").style.display = "block"
   ensureMadnessGMButton()
