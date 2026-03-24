@@ -2184,16 +2184,22 @@ function saveGame() {
       }
       pending--
       if (pending === 0) {
+        // Sauvegarde Firebase (source principale)
+        db.ref("saves/" + saveName).set(data).then(() => {
+          showNotification("💾 Sauvegardé : " + saveName)
+          addMJLog("💾 Sauvegarde : " + saveName)
+        }).catch(e => {
+          showNotification("⚠ Erreur sauvegarde Firebase")
+          console.error("Save error Firebase:", e)
+        })
+        // Sauvegarde localStorage (copie de secours locale)
         try {
           const saves = parseLocalStorageJSON("rpg_saves", {})
           saves[saveName] = data
           localStorage.setItem("rpg_saves", JSON.stringify(saves))
           localStorage.setItem("rpg_save",  JSON.stringify(data))
-          showNotification("💾 Sauvegardé : " + saveName)
-          addMJLog("💾 Sauvegarde : " + saveName)
         } catch(e) {
-          showNotification("⚠ Sauvegarde trop volumineuse !")
-          console.error("Save error:", e)
+          console.warn("localStorage save failed:", e)
         }
       }
     })
@@ -2256,12 +2262,18 @@ function _applyLoadData(data, callback) {
 }
 
 function loadGame() {
-  const save = localStorage.getItem("rpg_save")
-  if (!save) { showNotification("Aucune sauvegarde"); return }
-  let data
-  try { data = JSON.parse(save) } catch(e) { showNotification("Sauvegarde corrompue"); return }
-  if (!data.characters && !data.tokens) { showNotification("Sauvegarde vide"); return }
-  _applyLoadData(data, () => {
+  // Chercher la dernière sauvegarde dans Firebase, fallback localStorage
+  db.ref("saves").orderByChild("_saveDate").limitToLast(1).once("value", snap => {
+    let data = null
+    snap.forEach(child => { data = child.val() })
+    if (!data) {
+      // Fallback localStorage
+      const raw = localStorage.getItem("rpg_save")
+      if (!raw) { showNotification("Aucune sauvegarde"); return }
+      try { data = JSON.parse(raw) } catch(e) { showNotification("Sauvegarde corrompue"); return }
+    }
+    if (!data.characters && !data.tokens) { showNotification("Sauvegarde vide"); return }
+    _applyLoadData(data, () => {
     combatActive = false
     combatStarting = false
     resetMadnessPresentation()
@@ -2288,14 +2300,20 @@ function loadGame() {
     updateMadnessVisibility()
     updateThuumButton()
     showNotification("✅ Partie chargée")
-  })
+    }) // fin _applyLoadData
+  }) // fin Firebase once
 }
 
 function loadSave(saveName) {
-  const saves = parseLocalStorageJSON("rpg_saves", {})
-  const data  = saves[saveName]
-  if (!data) { showNotification("Sauvegarde introuvable"); return }
-  _applyLoadData(data, () => {
+  // Chercher dans Firebase en priorité, fallback localStorage
+  db.ref("saves/" + saveName).once("value", snap => {
+    let data = snap.val()
+    if (!data) {
+      const saves = parseLocalStorageJSON("rpg_saves", {})
+      data = saves[saveName]
+    }
+    if (!data) { showNotification("Sauvegarde introuvable"); return }
+    _applyLoadData(data, () => {
     combatActive = false
     combatStarting = false
     resetMadnessPresentation()
@@ -2323,11 +2341,15 @@ function loadSave(saveName) {
     const panel = document.getElementById("savePanel"); if (panel) panel.remove()
     showNotification("✅ Partie chargée : " + saveName)
     addMJLog("📂 Chargement : " + saveName)
-  })
+    }) // fin _applyLoadData
+  }) // fin Firebase once
 }
 
 function deleteSave(saveName) {
   if (!confirm("Supprimer cette sauvegarde ?")) return
+  // Supprimer dans Firebase
+  db.ref("saves/" + saveName).remove().catch(e => console.warn("Delete Firebase save error:", e))
+  // Supprimer dans localStorage
   const saves = parseLocalStorageJSON("rpg_saves", {})
   delete saves[saveName]
   localStorage.setItem("rpg_saves", JSON.stringify(saves))

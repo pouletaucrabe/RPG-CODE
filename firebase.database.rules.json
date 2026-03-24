@@ -2,7 +2,6 @@
   "rules": {
     ".read": "auth != null",
     ".write": false,
-
     "roles": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('roles').child(auth.uid).val() === 'gm')",
@@ -10,7 +9,6 @@
         ".validate": "newData.val() === 'gm' || newData.val() === 'player'"
       }
     },
-
     "profiles": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('roles').child(auth.uid).val() === 'gm')",
@@ -20,61 +18,92 @@
         }
       }
     },
-
     "characters": {
       ".read": "auth != null",
       "$playerId": {
         ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === $playerId)",
         ".validate": "newData.hasChildren()",
-        "lvl": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 99" },
-        "xp": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999" },
-        "force": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "charme": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "perspi": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "chance": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "defense": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "hp": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "poids": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "curse": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 8" },
-        "corruption": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
-        "freePoints": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999" },
-        "gold": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999" },
-        "inventaire": { ".validate": "newData.isString() && newData.val().length <= 10000" },
-        "notes": { ".validate": "newData.isString() && newData.val().length <= 10000" },
-        "$other": { ".validate": true }
+        "lvl": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 99"
+        },
+        "xp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999"
+        },
+        "force": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "charme": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "perspi": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "chance": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "defense": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "hp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "poids": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "curse": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 8"
+        },
+        "corruption": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10"
+        },
+        "freePoints": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "gold": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999"
+        },
+        "inventaire": {
+          ".validate": "newData.isString() && newData.val().length <= 10000"
+        },
+        "notes": {
+          ".validate": "newData.isString() && newData.val().length <= 10000"
+        },
+        "$other": {
+          ".validate": true
+        }
       }
     },
-
     "tokens": {
       ".read": "auth != null",
       "$playerId": {
         ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === $playerId)",
-        "x": { ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000" },
-        "y": { ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000" },
-        "$other": { ".validate": true }
+        "x": {
+          ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000"
+        },
+        "y": {
+          ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000"
+        },
+        "$other": {
+          ".validate": true
+        }
       }
     },
-
     "elements": {
       ".read": "auth != null",
       ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
     },
-
     "combat": {
       ".read": "auth != null",
       ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
     },
-
     "events": {
       ".read": "auth != null",
       ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
     },
-
     "curse": {
       ".read": "auth != null",
       ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
     },
-
     "diceRoll": {
       ".read": "auth != null",
       "$entry": {
@@ -82,26 +111,21 @@
         ".validate": "newData.hasChildren(['player', 'dice', 'result', 'time', 'sender'])"
       }
     },
-
     "game": {
       ".read": "auth != null",
-
       "playerThuum": {
         "$playerId": {
           ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === $playerId)"
         }
       },
-
       "playerThuumAccess": {
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
       },
-
       "readLoreBooks": {
         "$bookId": {
           ".write": "auth != null"
         }
       },
-
       "combatState": {
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
       },
@@ -177,6 +201,10 @@
       "$other": {
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
       }
+    },
+    "saves": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
+      ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
     }
   }
 }
