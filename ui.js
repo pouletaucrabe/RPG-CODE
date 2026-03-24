@@ -726,17 +726,27 @@ function showHighPNJScroll(name) {
 /* SHOP                      */
 /* ========================= */
 
-function openShop(type) { if(!isGM) return; getPartyLevel(p=>{ db.ref("game/shop").set({ open:true, type:type||"marche", partyLvl:p, time:Date.now() }); document.querySelectorAll(".gmSection").forEach(s=>s.style.display="none") }) }
-function closeShop() { db.ref("game/shop").remove() }
+function openShop(type) {
+  if(!isGM) return
+  getPartyLevel(p=>{
+    const shopType = type || "marche"
+    const existing = document.getElementById("shopOverlay")
+    if (existing) existing.remove()
+    renderShop(p, shopType)
+    db.ref("game/shop").set({ open:true, type:shopType, partyLvl:p, time:Date.now() })
+    document.querySelectorAll(".gmSection").forEach(s=>s.style.display="none")
+  })
+}
+function closeShop() {
+  const existing = document.getElementById("shopOverlay")
+  if (existing) existing.remove()
+  db.ref("game/shop").remove()
+}
 
 function renderShop(partyLvl, shopType) {
   shopType=shopType||"marche"
   const activeItems=shopType==="armurerie"?shopItemsArmurerie:shopItems, shopTitle=shopType==="armurerie"?"⚔ Armurerie":"🛒 Marché"
-  db.ref("game/runeChallenge").once("value",snapRune=>{
-    const rd=snapRune.val(); let rc=null
-    if(rd&&rd.active&&Math.random()<0.30){ const rev=rd.revealedLetters||[], ml=[...new Set("ALUERDSBVTINOPQCM".split("").filter(c=>c.trim()))], unrev=ml.filter(l=>!rev.includes(l)); if(unrev.length){ const let2=unrev[Math.floor(Math.random()*unrev.length)]; rc={letter:let2,rune:runeAlphabet[let2]||"?"} } }
-    _buildShop(partyLvl,rc,activeItems,shopTitle)
-  })
+  _buildShop(partyLvl,null,activeItems,shopTitle)
 }
 
 function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {

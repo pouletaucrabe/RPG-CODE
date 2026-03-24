@@ -1452,9 +1452,6 @@ db.ref("game/shop").on("value", snap => {
       ? ("open:" + ((data && data.time) || now))
       : ("close:" + (window.__lastOpenedShopTime || "none"))
     if (signature !== window.__lastShopEventSignature && (window.__lastShopSoundState !== isOpen || (now - window.__lastShopSoundAt) > 700)) {
-      const snd = new Audio("audio/clic.mp3")
-      snd.volume = 0.8
-      snd.play().catch(() => {})
       window.__lastShopSoundState = isOpen
       window.__lastShopSoundAt = now
       window.__lastShopEventSignature = signature
@@ -1465,7 +1462,7 @@ db.ref("game/shop").on("value", snap => {
   const existing = document.getElementById("shopOverlay")
   if (existing) existing.remove()
   if (!data || !data.open) return
-  if (gameState !== "GAME" && gameState !== "COMBAT") return
+  if (!gameStarted || gameState === GAME_STATE.MENU) return
   renderShop(data.partyLvl, data.type || "marche")
 })
 

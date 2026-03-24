@@ -20,6 +20,7 @@
     },
     "characters": {
       ".read": "auth != null",
+      ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
       "$playerId": {
         ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === $playerId)",
         ".validate": "newData.hasChildren()",
@@ -75,6 +76,7 @@
     },
     "tokens": {
       ".read": "auth != null",
+      ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
       "$playerId": {
         ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === $playerId)",
         "x": {
@@ -114,6 +116,7 @@
     "game": {
       ".read": "auth != null",
       "playerThuum": {
+        ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
         "$playerId": {
           ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === $playerId)"
         }
@@ -122,6 +125,7 @@
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
       },
       "readLoreBooks": {
+        ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
         "$bookId": {
           ".write": "auth != null"
         }
