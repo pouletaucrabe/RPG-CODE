@@ -2647,15 +2647,23 @@ function showTavern() {
   setGameState("GAME")
   const fade = document.getElementById("fadeScreen"); const map = document.getElementById("map")
   fadeOut()
-  document.getElementById("camera").style.display      = "block"
+  document.getElementById("camera").style.display       = "block"
   document.getElementById("playerSelect").style.display = "block"
   document.getElementById("diceBar").style.display      = "flex"
   document.getElementById("diceLog").style.display      = "block"
-  if (isGM) maybeSpawnMapLoreBook("taverne.jpg")
-  map.style.backgroundImage = "url('images/taverne.jpg')"; currentMap = "taverne.jpg"
-  calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
-  setTimeout(() => { fade.style.opacity = 0 }, 500)
-  setTimeout(() => { if (mapMusic["taverne.jpg"]) crossfadeMusic(mapMusic["taverne.jpg"]) }, 800)
+  // Lire la vraie map depuis Firebase plutôt que forcer la taverne
+  db.ref("game/map").once("value", snap => {
+    const mapName = snap.val() || "taverne.jpg"
+    map.style.backgroundImage = "url('images/" + mapName + "')"
+    if (mapName === "MAPMONDE.jpg") { map.style.backgroundSize = "contain"; map.style.backgroundColor = "#0a0a1a" }
+    else                            { map.style.backgroundSize = "cover";   map.style.backgroundColor = "" }
+    currentMap = mapName
+    calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
+    if (isGM) maybeSpawnMapLoreBook(mapName)
+    setTimeout(() => { fade.style.opacity = 0 }, 500)
+    setTimeout(() => { if (mapMusic[mapName]) crossfadeMusic(mapMusic[mapName]) }, 800)
+    setTimeout(() => { if (mapNames[mapName]) showLocation(mapNames[mapName]) }, 2000)
+  })
 }
 
 function startIntro() {
