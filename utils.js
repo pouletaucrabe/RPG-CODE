@@ -312,6 +312,39 @@ function setUserAudioVolume(volume) {
   return window.__userAudioVolume
 }
 
+function getScaledAudioVolume(volume = 1) {
+  const base = Number.isFinite(parseFloat(volume)) ? Math.max(0, Math.min(1, parseFloat(volume))) : 1
+  return Math.max(0, Math.min(1, base * getUserAudioVolume()))
+}
+
+function setManagedAudioBaseVolume(audio, volume = 1) {
+  if (!audio) return audio
+  audio.__baseVolume = Number.isFinite(parseFloat(volume)) ? Math.max(0, Math.min(1, parseFloat(volume))) : 1
+  audio.volume = getScaledAudioVolume(audio.__baseVolume)
+  if (!window.__managedAudioInstances) window.__managedAudioInstances = new Set()
+  window.__managedAudioInstances.add(audio)
+  return audio
+}
+
+function syncManagedAudioVolumes() {
+  document.querySelectorAll("audio").forEach(s => {
+    const base = Number.isFinite(parseFloat(s.__baseVolume)) ? parseFloat(s.__baseVolume) : s.volume
+    s.__baseVolume = base
+    s.volume = getScaledAudioVolume(base)
+  })
+  if (!window.__managedAudioInstances) return
+  Array.from(window.__managedAudioInstances).forEach(audio => {
+    if (!audio) return
+    if (audio.ended) {
+      window.__managedAudioInstances.delete(audio)
+      return
+    }
+    const base = Number.isFinite(parseFloat(audio.__baseVolume)) ? parseFloat(audio.__baseVolume) : audio.volume
+    audio.__baseVolume = base
+    audio.volume = getScaledAudioVolume(base)
+  })
+}
+
 function crossfadeMusic(newMusic) {
   if (
     auroraActive &&
@@ -448,7 +481,8 @@ function playSound(id, volume = 0.8) {
   const snd = document.getElementById(id)
   if (!snd) return
   snd.currentTime = 0
-  snd.volume = volume
+  snd.__baseVolume = volume
+  snd.volume = getScaledAudioVolume(volume)
   snd.play().catch(() => {})
 }
 
@@ -508,7 +542,7 @@ function tryBark() {
   if (Math.floor(Math.random() * 10) !== 0) return
   lastBarkTime = now
   const bark = document.getElementById("bark")
-  if (bark) { bark.currentTime = 0; bark.volume = 0.35; bark.play().catch(() => {}) }
+  if (bark) { bark.currentTime = 0; bark.__baseVolume = 0.35; bark.volume = getScaledAudioVolume(0.35); bark.play().catch(() => {}) }
   const barks = ["Wouf !", "Rrr !", "Snif !", "Miii !"]
   showBibiSpeech(barks[Math.floor(Math.random() * barks.length)])
 }
@@ -659,11 +693,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {}
     slider.value = String(initialVolume)
     setUserAudioVolume(initialVolume)
-    document.querySelectorAll("audio").forEach(s => { s.volume = initialVolume })
+    syncManagedAudioVolumes()
 
     slider.addEventListener("input", () => {
-      const volume = setUserAudioVolume(slider.value)
-      document.querySelectorAll("audio").forEach(s => { s.volume = volume })
+      setUserAudioVolume(slider.value)
+      syncManagedAudioVolumes()
     })
   }
 

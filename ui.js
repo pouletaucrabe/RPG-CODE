@@ -419,8 +419,16 @@ function buildMobSubPanel(mobData, slot) {
   const hpWrap = document.createElement("div"); hpWrap.style.cssText = "width:100%;height:6px;background:rgba(80,0,0,0.5);border-radius:3px;margin-bottom:8px;"
   const hpFill = document.createElement("div"); hpFill.style.cssText = `width:${pct}%;height:100%;background:${pct>50?"#44ff44":pct>25?"#ffaa00":"#ff3333"};border-radius:3px;transition:width 0.3s;`; hpWrap.appendChild(hpFill); panel.appendChild(hpWrap)
 
-  const tier = mobData.tier||"weak", atks = mobAttacks[tier]||mobAttacks.weak, mobLvl = mobData.lvl||1
-  const specialAtk = getMobSpecialAttack(mobData.name, tier)
+  const tier = mobData.tier||"weak", atks = typeof getMobAttacksForMob === "function" ? getMobAttacksForMob(mobData.name, tier) : (mobAttacks[tier]||mobAttacks.weak), mobLvl = mobData.lvl||1
+  const getRange = (attack, lvl, mobTier) => {
+    if (typeof getMobDamageRange === "function") return getMobDamageRange(attack, lvl, mobTier)
+    const factor = 1 + Math.max(0, (lvl || 1) - 1) * 0.15
+    return {
+      min: Math.round((attack?.dmgMin || 0) * factor),
+      max: Math.round((attack?.dmgMax || 0) * factor)
+    }
+  }
+  const specialAtk = typeof getMobSpecialAttack === "function" ? getMobSpecialAttack(mobData.name, tier) : null
   const specialUsed = !!mobData.specialUsed
 
   if (isGM) {
@@ -439,7 +447,7 @@ function buildMobSubPanel(mobData, slot) {
     atks.forEach(atk => {
       const isCD = panel._lastAttack===atk.name
       const btn = document.createElement("div")
-      const range = getMobDamageRange(atk, mobLvl, tier)
+      const range = getRange(atk, mobLvl, tier)
       const min = range.min, max = range.max
       btn.style.cssText = `padding:6px 8px;margin-bottom:4px;background:rgba(120,10,10,${isCD?"0.2":"0.4"});border:1px solid rgba(180,40,40,${isCD?"0.2":"0.4"});border-radius:4px;cursor:${isCD?"not-allowed":"pointer"};opacity:${isCD?"0.5":"1"};`
       btn.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${isCD?"#666":"#ffcccc"};font-weight:bold;">${atk.name}${isCD?" ⏱":""}</span><span style="font-size:9px;color:#ff8888;margin-left:auto;">${min}-${max}</span></div>`
@@ -456,7 +464,7 @@ function buildMobSubPanel(mobData, slot) {
     })
 
     if (specialAtk) {
-      const specialRange = getMobDamageRange(specialAtk, mobLvl, tier)
+      const specialRange = getRange(specialAtk, mobLvl, tier)
       const sMin = specialRange.min, sMax = specialRange.max
       const sBtn = document.createElement("div")
       sBtn.style.cssText = `padding:8px 10px;margin:8px 0 4px;background:${specialUsed?"rgba(60,30,30,0.35)":"linear-gradient(135deg,rgba(120,20,20,0.88),rgba(40,0,0,0.96))"};border:1px solid ${specialUsed?"rgba(140,80,80,0.3)":"rgba(255,180,110,0.55)"};border-radius:6px;cursor:${specialUsed?"not-allowed":"pointer"};opacity:${specialUsed?"0.55":"1"};box-shadow:${specialUsed?"none":"0 0 24px rgba(255,120,60,0.18)"};`
@@ -486,14 +494,14 @@ function buildMobSubPanel(mobData, slot) {
   } else {
     // Vue lecture seule pour les joueurs
     atks.forEach(atk => {
-      const range = getMobDamageRange(atk, mobLvl, tier)
+      const range = getRange(atk, mobLvl, tier)
       const min = range.min, max = range.max
       const row = document.createElement("div"); row.style.cssText = "padding:5px 8px;margin-bottom:3px;background:rgba(60,5,5,0.5);border:1px solid rgba(120,20,20,0.3);border-radius:3px;opacity:0.85;"
       row.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:13px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:#ffaaaa;">${atk.name}</span><span style="font-size:9px;color:#884444;margin-left:auto;">${min}-${max}</span></div>`
       panel.appendChild(row)
     })
     if (specialAtk) {
-      const specialRange = getMobDamageRange(specialAtk, mobLvl, tier)
+      const specialRange = getRange(specialAtk, mobLvl, tier)
       const sMin = specialRange.min, sMax = specialRange.max
       const sRow = document.createElement("div")
       sRow.style.cssText = `padding:6px 8px;margin-top:6px;background:${specialUsed?"rgba(55,35,35,0.45)":"rgba(96,28,12,0.5)"};border:1px solid ${specialUsed?"rgba(140,80,80,0.28)":"rgba(255,180,110,0.32)"};border-radius:4px;opacity:0.92;`
@@ -531,13 +539,18 @@ function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget, slot) {
   panel._lastAttack = attack.name
   animateMobDice(() => {
     const dmg = getMobDamage(attack, mobData.lvl||1, mobData.tier||"weak")
+    const mobLabel = (mobData.name || "MOB").toUpperCase()
+    const targetLabel = (attack.effect === "all" || target === "all") ? "TOUS" : String(target || "").toUpperCase()
+    const specialTag = attack.special ? " ✦ SPÉCIALE" : ""
     if (attack.special && slot) db.ref("combat/" + slot + "/specialUsed").set(true)
     if (attack.effect === "all" || target === "all") {
       ;["greg","ju","elo","bibi"].forEach(pid => applyMobDamageToPlayer(pid, dmg, attack, mobData, slot))
       db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "" })
+      addMJLog(`${attack.icon} ${mobLabel} — ${attack.name}${specialTag} → TOUS : ${dmg} dégâts`)
     } else {
       applyMobDamageToPlayer(target, dmg, attack, mobData, slot)
       db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "" })
+      addMJLog(`${attack.icon} ${mobLabel} — ${attack.name}${specialTag} → ${targetLabel} : ${dmg} dégâts`)
       showNotification("💥 "+attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
     }
     setTimeout(() => renderAllMobPanels(), 200)
@@ -1096,8 +1109,8 @@ function stopBifrostFlashSound() {
 }
 function doBifrostFlash() {
   stopBifrostFlashSound()
-  fadeMusicOut(()=>{}); const tremb=new Audio("audio/tremblement.mp3"); tremb.volume=0.8; tremb.play().catch(()=>{}); setTimeout(()=>{ let iv=setInterval(()=>{ if(tremb.volume>0.04) tremb.volume-=0.05; else{ tremb.pause(); clearInterval(iv) } },100) },4500)
-  const snd=new Audio("audio/bifrost.mp3"); snd.volume=1.0; window.__bifrostFlashSound = snd; snd.play().catch(()=>{})
+  fadeMusicOut(()=>{}); const tremb=new Audio("audio/tremblement.mp3"); let trembBase=0.8; setManagedAudioBaseVolume(tremb,trembBase); tremb.play().catch(()=>{}); setTimeout(()=>{ let iv=setInterval(()=>{ if(trembBase>0.04) { trembBase-=0.05; setManagedAudioBaseVolume(tremb,trembBase) } else{ tremb.pause(); clearInterval(iv) } },100) },4500)
+  const snd=new Audio("audio/bifrost.mp3"); setManagedAudioBaseVolume(snd,1.0); window.__bifrostFlashSound = snd; snd.play().catch(()=>{})
   const fl=[{c:"rgba(200,230,255,0.4)",d:80},{c:"rgba(255,255,255,0.5)",d:120},{c:"rgba(100,180,255,0.9)",d:200},{c:"rgba(255,255,255,1.0)",d:400}]
   let delay=0; fl.forEach(f=>{ setTimeout(()=>{ const flash=document.createElement("div"); flash.style.cssText=`position:fixed;top:0;left:0;width:100%;height:100%;background:${f.c};pointer-events:none;z-index:99999998;`; document.body.appendChild(flash); setTimeout(()=>{ flash.style.transition=`opacity ${f.d*1.5}ms ease`; flash.style.opacity="0"; setTimeout(()=>flash.remove(),f.d*2) },f.d*0.3) },delay); delay+=f.d+60 })
   screenShake(); setTimeout(()=>screenShakeHard(),300); setTimeout(()=>screenShakeHard(),700); setTimeout(()=>flashGold(),delay-200); setTimeout(()=>{ if(isGM) changeMap("bifrost.jpg") },delay+400)
@@ -1264,7 +1277,7 @@ function triggerCemeteryEvent() {
   if(cemeteryEventDone) return; cemeteryEventDone=true
   const g=document.createElement("div"); g.id="glipheOverlay"; g.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:99999990;opacity:0;transition:opacity 1s ease;"; const img=document.createElement("img"); img.src="images/gliphe.png"; img.style.cssText="max-height:70vh;max-width:70vw;object-fit:contain;filter:drop-shadow(0 0 30px purple);"; g.appendChild(img); document.body.appendChild(g); setTimeout(()=>g.style.opacity="1",50)
   db.ref("game/cemeterySpell").set({ active:true, time:Date.now() })
-  const spell=new Audio("audio/spell.mp3"); spell.volume=0.9; spell.play().catch(()=>{}); const tremb=new Audio("audio/tremblement.mp3"); tremb.volume=0.7; tremb.play().catch(()=>{})
+  const spell=new Audio("audio/spell.mp3"); setManagedAudioBaseVolume(spell,0.9); spell.play().catch(()=>{}); const tremb=new Audio("audio/tremblement.mp3"); setManagedAudioBaseVolume(tremb,0.7); tremb.play().catch(()=>{})
   screenShakeHard(); setTimeout(()=>screenShakeHard(),400); setTimeout(()=>screenShake(),900)
   const launch = () => {
     g.style.opacity = "0"
@@ -1596,7 +1609,7 @@ function _allyInvocationCinematic(pnj, action, targetId) {
     document.body.appendChild(cinScreen)
 
     // Son impact — fade out après 2s
-    const impact = new Audio("audio/impact.mp3"); impact.volume = 0.85; impact.play().catch(()=>{})
+    const impact = new Audio("audio/impact.mp3"); setManagedAudioBaseVolume(impact, 0.85); impact.play().catch(()=>{})
     setTimeout(()=>{ let iv=setInterval(()=>{ if(impact.volume>0.05) impact.volume=Math.max(0,impact.volume-0.06); else{ impact.pause(); clearInterval(iv) } },100) }, 2000)
 
     setTimeout(()=>{
@@ -1636,7 +1649,7 @@ function _rollAllyDice(pnj, action, targetId) {
       el.style.fontSize = "140px"
 
       // Son diceinv.mp3
-      const diceInv = new Audio("audio/diceinv.mp3"); diceInv.volume = 0.85; diceInv.play().catch(()=>{})
+      const diceInv = new Audio("audio/diceinv.mp3"); setManagedAudioBaseVolume(diceInv, 0.85); diceInv.play().catch(()=>{})
       setTimeout(()=>{ let iv=setInterval(()=>{ if(diceInv.volume>0.05) diceInv.volume=Math.max(0,diceInv.volume-0.05); else{ diceInv.pause(); clearInterval(iv) } },100) }, 3000)
 
       // Son crit/fail UNIQUEMENT selon résultat, après 400ms
@@ -1960,7 +1973,7 @@ function toggleGoldInput() {
   const input   = document.getElementById("goldInput")
   const display = document.getElementById("goldDisplay")
   if (!input || !display) return
-  const snd = new Audio("audio/coin.mp3"); snd.volume = 0.7; snd.play().catch(()=>{})
+  const snd = new Audio("audio/coin.mp3"); setManagedAudioBaseVolume(snd, 0.7); snd.play().catch(()=>{})
   setTimeout(()=>{ let iv=setInterval(()=>{ if(snd.volume>0.05) snd.volume=Math.max(0,snd.volume-0.04); else{ snd.pause(); clearInterval(iv) } },100) }, 2000)
   const open = input.style.display !== "none"
   if (open) {

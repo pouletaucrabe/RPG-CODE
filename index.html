@@ -56,11 +56,12 @@
     <div id="playerMenu">
       <button onclick="requestGM()">🎲 MJ</button>
       <button onclick="requestPlayerAuth()">🔑 Connexion</button>
+      <div id="playerAuthStatus" class="menuLabel" style="display:none;"></div>
       <div class="menuLabel">Choose :</div>
-      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('greg')">Greg</button>
-      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('ju')">Yu</button>
-      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('elo')">Elo</button>
-      <button onmousedown="event.stopPropagation()" onclick="choosePlayer('bibi')">Bibi</button>
+      <button class="playerChoiceBtn" data-player-choice="greg" onmousedown="event.stopPropagation()" onclick="choosePlayer('greg')">Greg</button>
+      <button class="playerChoiceBtn" data-player-choice="ju" onmousedown="event.stopPropagation()" onclick="choosePlayer('ju')">Yu</button>
+      <button class="playerChoiceBtn" data-player-choice="elo" onmousedown="event.stopPropagation()" onclick="choosePlayer('elo')">Elo</button>
+      <button class="playerChoiceBtn" data-player-choice="bibi" onmousedown="event.stopPropagation()" onclick="choosePlayer('bibi')">Bibi</button>
     </div>
   </div>
 </div>

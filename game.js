@@ -62,6 +62,7 @@ function syncFirebaseAccessForUser(uid) {
   const profileCb = snap => {
     const playerId = snap.val()
     window.__authPlayerId = typeof playerId === "string" ? playerId : null
+    updatePlayerAuthMenuState()
     if (window.__authPlayerId) setTimeout(() => { tryAutoSelectAuthenticatedPlayer() }, 60)
   }
 
@@ -265,6 +266,33 @@ function tryAutoSelectAuthenticatedPlayer() {
   if (!token) return false
   choosePlayer(window.__authPlayerId)
   return true
+}
+
+function updatePlayerAuthMenuState() {
+  const status = document.getElementById("playerAuthStatus")
+  const choiceLabel = document.querySelector("#playerMenu .menuLabel:not(#playerAuthStatus)")
+  const choiceButtons = Array.from(document.querySelectorAll("#playerMenu .playerChoiceBtn"))
+  const authButton = document.querySelector("#playerMenu button[onclick=\"requestPlayerAuth()\"]")
+  const authPlayer = window.__authPlayerId
+
+  if (status) {
+    if (authPlayer) {
+      status.style.display = "block"
+      status.innerText = "Connecté en tant que " + authPlayer.toUpperCase()
+    } else {
+      status.style.display = "none"
+      status.innerText = ""
+    }
+  }
+
+  if (authButton) authButton.innerText = authPlayer ? "🔑 Reconnexion" : "🔑 Connexion"
+  if (choiceLabel) choiceLabel.style.display = authPlayer ? "none" : "block"
+
+  choiceButtons.forEach(btn => {
+    const isAssigned = authPlayer && btn.dataset.playerChoice === authPlayer
+    btn.style.display = authPlayer ? (isAssigned ? "block" : "none") : "block"
+    btn.disabled = !!(authPlayer && !isAssigned)
+  })
 }
 
 function closePlayerAuthModal() {
@@ -833,7 +861,7 @@ function revealWorldMapFogTopLeft() {
   fog.style.filter = "brightness(1.4) drop-shadow(0 0 26px rgba(255,220,160,0.55))"
   fog.style.transform = "scale(1.03)"
   const revealSnd = new Audio("audio/pow.mp3")
-  revealSnd.volume = 0.85
+  setManagedAudioBaseVolume(revealSnd, 0.85)
   revealSnd.play().catch(() => {})
   screenShakeHard()
   setTimeout(() => screenShake(), 180)
@@ -1841,11 +1869,23 @@ db.ref("game/powerSound").on("value", snap => {
   const pInfo = playerPowerSounds[data.player]
   if (!pInfo) return
   const snd = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath(pInfo.file) : (/^(https?:|data:|blob:|\/|audio\/)/i.test(String(pInfo.file || "")) ? String(pInfo.file || "") : "audio/" + pInfo.file))
-  snd.volume = 0; snd.play().catch(() => {})
-  const inIv = setInterval(() => { if (snd.volume < 0.85) snd.volume = Math.min(0.85, snd.volume + 0.06); else clearInterval(inIv) }, 80)
+  let sndBase = 0
+  setManagedAudioBaseVolume(snd, sndBase)
+  snd.play().catch(() => {})
+  const inIv = setInterval(() => {
+    if (sndBase < 0.85) {
+      sndBase = Math.min(0.85, sndBase + 0.06)
+      setManagedAudioBaseVolume(snd, sndBase)
+    } else clearInterval(inIv)
+  }, 80)
   if (pInfo.fadeAt) {
     setTimeout(() => {
-      const outIv = setInterval(() => { if (snd.volume > 0.01) snd.volume = Math.max(0, snd.volume - 0.06); else { snd.pause(); clearInterval(outIv) } }, 80)
+      const outIv = setInterval(() => {
+        if (sndBase > 0.01) {
+          sndBase = Math.max(0, sndBase - 0.06)
+          setManagedAudioBaseVolume(snd, sndBase)
+        } else { snd.pause(); clearInterval(outIv) }
+      }, 80)
     }, pInfo.fadeAt)
   }
   db.ref("game/powerSound").remove()
@@ -1901,6 +1941,127 @@ function showMobSpecialAttackEvent(data) {
   screenShakeHard()
   screenShakeHard()
   playSound("critSound", 0.75)
+}
+
+function showMobSpecialAttackEvent(data) {
+  const style = typeof getMobAnimationStyle === "function" ? getMobAnimationStyle(data.animation) : { accent:"#ff9966", glow:"rgba(255,120,60,0.55)", bg:"radial-gradient(circle at center,rgba(70,15,0,0.94) 0%,rgba(10,0,0,0.98) 72%)" }
+  const presentation = typeof getMobSpecialPresentation === "function" ? getMobSpecialPresentation(data.mobName) : null
+  const scene = String((presentation && presentation.scene) || "").toLowerCase()
+  const overlay = document.createElement("div")
+  overlay.className = "mobSpecialOverlay" + (scene ? " mobSpecialOverlay--" + scene : "")
+  overlay.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999999999;background:" + style.bg + ";opacity:0;transition:opacity 0.22s ease;"
+
+  const stage = document.createElement("div")
+  stage.className = "mobSpecialStage"
+  overlay.appendChild(stage)
+
+  const ring = document.createElement("div")
+  ring.className = "mobSpecialRing" + (scene ? " mobSpecialRing--" + scene : "")
+  ring.style.cssText = "position:absolute;width:min(70vw,520px);height:min(70vw,520px);border-radius:50%;border:2px solid " + style.accent + ";box-shadow:0 0 60px " + style.glow + ", inset 0 0 50px rgba(255,255,255,0.05);animation:mobSpecialPulse 0.9s ease-in-out infinite alternate;"
+  overlay.appendChild(ring)
+
+  const box = document.createElement("div")
+  box.className = "mobSpecialBox" + (scene ? " mobSpecialBox--" + scene : "")
+  box.style.cssText = "position:relative;z-index:1;width:min(760px,88vw);padding:36px 34px;border:1px solid " + style.accent + ";border-radius:18px;background:linear-gradient(180deg,rgba(8,8,10,0.78),rgba(0,0,0,0.9));box-shadow:0 0 80px " + style.glow + ";text-align:center;overflow:hidden;"
+  overlay.appendChild(box)
+
+  if (presentation && presentation.image) {
+    const heroImage = document.createElement("img")
+    heroImage.className = "mobSpecialImage" + (scene ? " mobSpecialImage--" + scene : "")
+    heroImage.src = typeof resolveImagePath === "function" ? resolveImagePath(presentation.image) : "images/" + presentation.image
+    heroImage.alt = ""
+    box.appendChild(heroImage)
+  }
+
+  if (presentation && Array.isArray(presentation.particles)) {
+    presentation.particles.forEach((particle, idx) => {
+      const glyph = document.createElement("div")
+      glyph.className = "mobSpecialGlyph" + (scene ? " mobSpecialGlyph--" + scene : "")
+      glyph.style.left = (18 + idx * 24) + "%"
+      glyph.style.animationDelay = (idx * 0.16) + "s"
+      glyph.innerText = particle
+      stage.appendChild(glyph)
+    })
+  }
+
+  if (scene === "witch") {
+    const runeLeft = document.createElement("div")
+    runeLeft.className = "mobSpecialRune mobSpecialRune--left"
+    runeLeft.innerText = "✦"
+    stage.appendChild(runeLeft)
+    const runeRight = document.createElement("div")
+    runeRight.className = "mobSpecialRune mobSpecialRune--right"
+    runeRight.innerText = "✧"
+    stage.appendChild(runeRight)
+  }
+
+  if (scene === "melenchon") {
+    const banner = document.createElement("div")
+    banner.className = "mobSpecialBanner"
+    banner.innerText = "TRIBUNE"
+    stage.appendChild(banner)
+  }
+
+  if (scene === "balraug") {
+    const fissure = document.createElement("div")
+    fissure.className = "mobSpecialFissure"
+    stage.appendChild(fissure)
+  }
+
+  const icon = document.createElement("div")
+  icon.style.cssText = "position:relative;z-index:2;font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
+  icon.innerText = String(data.icon || "✦")
+  box.appendChild(icon)
+
+  const mobName = document.createElement("div")
+  mobName.style.cssText = "position:relative;z-index:2;font-family:Cinzel,serif;font-size:12px;letter-spacing:4px;color:" + style.accent + ";margin-bottom:10px;"
+  mobName.innerText = String(data.mobName || "")
+  box.appendChild(mobName)
+
+  const title = document.createElement("div")
+  title.style.cssText = "position:relative;z-index:2;font-family:'Cinzel Decorative',serif;font-size:clamp(26px,3.8vw,42px);color:#fff3df;text-shadow:0 0 22px " + style.accent + ";margin-bottom:14px;"
+  title.innerText = String(data.attackName || "")
+  box.appendChild(title)
+
+  if (presentation && presentation.kicker) {
+    const kicker = document.createElement("div")
+    kicker.className = "mobSpecialKicker"
+    kicker.style.color = style.accent
+    kicker.innerText = String(presentation.kicker)
+    box.appendChild(kicker)
+  }
+
+  if (data.flavor) {
+    const flavor = document.createElement("div")
+    flavor.style.cssText = "position:relative;z-index:2;font-family:'IM Fell English',serif;font-size:clamp(18px,2.5vw,28px);line-height:1.45;color:#ffd7c2;max-width:620px;margin:0 auto 18px auto;"
+    flavor.innerText = String(data.flavor)
+    box.appendChild(flavor)
+  }
+
+  const damage = document.createElement("div")
+  damage.style.cssText = "position:relative;z-index:2;font-family:Cinzel,serif;font-size:30px;font-weight:bold;color:" + style.accent + ";text-shadow:0 0 18px " + style.accent + ";"
+  damage.innerText = "→ " + String(data.target || "") + "  •  -" + clampInteger(data.dmg, 0, 9999) + " HP"
+  box.appendChild(damage)
+
+  let sceneAudio = null
+  if (presentation && presentation.sound) {
+    sceneAudio = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath(presentation.sound) : "audio/" + presentation.sound)
+    setManagedAudioBaseVolume(sceneAudio, 0.82)
+    sceneAudio.play().catch(() => {})
+  }
+
+  document.body.appendChild(overlay)
+  setTimeout(() => { overlay.style.opacity = "1" }, 20)
+  setTimeout(() => {
+    overlay.style.opacity = "0"
+    setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 450)
+    db.ref("game/mobAttackEvent").remove()
+  }, 3200)
+  screenShakeHard()
+  if (!scene || ["draugr", "ogre", "melenchon", "balraug"].includes(scene)) screenShakeHard()
+  const impactSfx = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("pow.mp3") : "audio/pow.mp3")
+  setManagedAudioBaseVolume(impactSfx, 0.72)
+  impactSfx.play().catch(() => {})
 }
 
 // ─── mobAttackEvent ───
@@ -2002,7 +2163,7 @@ function ensureCemeteryGlyphIntro() {
     g.appendChild(im)
     document.body.appendChild(g)
     const s2 = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("spell.mp3") : "audio/spell.mp3")
-    s2.volume = 0.9
+    setManagedAudioBaseVolume(s2, 0.9)
     s2.play().catch(() => {})
   }
   setTimeout(() => { g.style.opacity = "1" }, 50)
@@ -2054,7 +2215,7 @@ db.ref("game/playerDeath").on("value", snap => {
     }
   }
   showNotification("💀 " + pid.toUpperCase() + " est tombé !")
-  const snd = new Audio("audio/defaite.mp3"); snd.volume = 0.6; snd.play().catch(() => {})
+  const snd = new Audio("audio/defaite.mp3"); setManagedAudioBaseVolume(snd, 0.6); snd.play().catch(() => {})
   screenShakeHard()
   if (!isGM && getLocalPlayerId() === String(pid || "").toLowerCase()) triggerLocalDefeat("playerDeath")
   if (isGM) {
@@ -3420,6 +3581,7 @@ function togglePlayerMenu() {
 
 function openPlayerMenuOnStart() {
   const menu = document.getElementById("playerMenu")
+  updatePlayerAuthMenuState()
   if (menu && !myToken) menu.classList.add("open")
 }
 
