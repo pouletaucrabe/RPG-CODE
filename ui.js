@@ -1160,7 +1160,7 @@ function renderMapElement(data) {
   if(data.isRune){ const rs=document.createElement("div"); rs.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#c8a050;text-shadow:0 0 15px gold;background:rgba(30,15,5,0.85);border:2px solid rgba(200,160,80,0.6);border-radius:50%;animation:tokenRingPulse 2s ease-in-out infinite;pointer-events:none;"; rs.innerText="ᚱ"; el.appendChild(rs) }
   else{ const img=document.createElement("img"); img.src="images/"+safeImage; img.style.cssText="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.8));pointer-events:none;"; el.appendChild(img) }
   if(isGM){ const rb=document.createElement("div"); rb.style.cssText="position:absolute;top:-8px;right:-8px;width:20px;height:20px;background:#cc0000;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;cursor:pointer;box-shadow:0 0 6px black;z-index:10;"; rb.innerText="✕"; rb.onclick=e=>{ e.stopPropagation(); cleanupMapElementDragHandlers(data.id); db.ref("elements/"+data.id).remove() }; el.appendChild(rb) }
-  if(data.clickable){ el.onclick=()=>{ if(data.isRune&&data.runeHint){ unlockRuneHint(data.runeHint); flashGold(); el.style.filter="drop-shadow(0 0 20px gold) brightness(2)"; setTimeout(()=>el.style.filter="",600); cleanupMapElementDragHandlers(data.id); db.ref("elements/"+data.id).remove() } else if(data.wantedData) showWantedOverlay(data.wantedData); else if(!isGM){ const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999999;cursor:pointer;"; const bi=document.createElement("img"); bi.src="images/"+safeImage; bi.style.cssText="max-width:80vw;max-height:80vh;object-fit:contain;"; ov.appendChild(bi); ov.onclick=()=>ov.remove(); document.body.appendChild(ov) } } }
+  if(data.clickable){ el.onclick=()=>{ if(data.isRune&&data.runeHint){ unlockRuneHint(data.runeHint); flashGold(); el.style.filter="drop-shadow(0 0 20px gold) brightness(2)"; setTimeout(()=>el.style.filter="",600); cleanupMapElementDragHandlers(data.id); db.ref("elements/"+data.id).remove() } else if(data.wantedData) { if (isGM) publishWantedOverlay(data.wantedData); else showWantedOverlay(data.wantedData) } else if(!isGM){ const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999999;cursor:pointer;"; const bi=document.createElement("img"); bi.src="images/"+safeImage; bi.style.cssText="max-width:80vw;max-height:80vh;object-fit:contain;"; ov.appendChild(bi); ov.onclick=()=>ov.remove(); document.body.appendChild(ov) } } }
   if(isGM){ let dg=false,ox=0,oy=0; const onMove=e=>{ if(!dg) return; data.x=e.clientX-ox; data.y=e.clientY-oy; el.style.left=data.x+"px"; el.style.top=data.y+"px" }; const onUp=()=>{ if(!dg) return; dg=false; el.style.cursor="grab"; db.ref("elements/"+data.id+"/x").set(data.x); db.ref("elements/"+data.id+"/y").set(data.y) }; el.addEventListener("mousedown",e=>{ if(e.target===el.querySelector("div")) return; dg=true; ox=e.clientX-data.x; oy=e.clientY-data.y; el.style.cursor="grabbing"; e.stopPropagation() }); if(!window.__mapElementDragHandlers) window.__mapElementDragHandlers={}; window.__mapElementDragHandlers[data.id]={ onMove, onUp }; document.addEventListener("mousemove",onMove); document.addEventListener("mouseup",onUp) }
   document.body.appendChild(el); setTimeout(()=>el.style.opacity="1",20)
 }
@@ -1180,6 +1180,30 @@ function normalizeWantedPosterData(data) {
   return { mob, tier, reward, id }
 }
 
+function ensureWantedPosterElement(data) {
+  const normalized = normalizeWantedPosterData(data)
+  if (!normalized) return
+  db.ref("elements/" + normalized.id).once("value", snap => {
+    if (snap.val()) return
+    db.ref("elements/" + normalized.id).set({
+      type:"image",
+      image:"wanted.png",
+      x:Math.floor(Math.random()*600+200),
+      y:Math.floor(Math.random()*400+200),
+      id:normalized.id,
+      clickable:true,
+      wantedData:normalized
+    }).catch(() => {})
+  })
+}
+
+function publishWantedOverlay(data) {
+  const normalized = normalizeWantedPosterData(data)
+  if (!normalized) return
+  ensureWantedPosterElement(normalized)
+  db.ref("game/wantedOpen").set({ poster:normalized, time:Date.now() })
+}
+
 function createWantedPoster() {
   const normalized = normalizeWantedPosterData({
     mob: document.getElementById("wantedMobBtn")?.dataset.value || "",
@@ -1190,8 +1214,8 @@ function createWantedPoster() {
   if (!normalized) { showNotification("Affiche invalide"); return }
   document.getElementById("wantedEditor").style.display="none"
   db.ref("game/wantedPosters/" + normalized.id).set(normalized)
-  db.ref("elements/" + normalized.id).set({ type:"image", image:"wanted.png", x:Math.floor(Math.random()*600+200), y:Math.floor(Math.random()*400+200), id:normalized.id, clickable:true, wantedData:normalized })
-  db.ref("game/wantedOpen").set({ poster:normalized, time:Date.now() })
+  ensureWantedPosterElement(normalized)
+  publishWantedOverlay(normalized)
 }
 
 function renderWantedPoster(data) {
@@ -1221,12 +1245,12 @@ function renderWantedPoster(data) {
   const open=document.createElement("button")
   open.style.cssText="padding:2px 8px;font-size:10px;background:rgba(90,70,20,0.5);color:#ffd68a;border:1px solid rgba(170,130,40,0.45);border-radius:3px;cursor:pointer;"
   open.innerText="Ouvrir"
-  open.onclick=()=>showWantedOverlay(normalized)
+  open.onclick=()=>{ if (isGM) publishWantedOverlay(normalized); else showWantedOverlay(normalized) }
   card.appendChild(open)
   const del=document.createElement("button")
   del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"
   del.innerText="✕"
-  del.onclick=()=>{ db.ref("game/wantedPosters/" + normalized.id).remove(); db.ref("elements/" + normalized.id).remove(); card.remove() }
+  del.onclick=()=>{ db.ref("game/wantedPosters/" + normalized.id).remove(); db.ref("elements/" + normalized.id).remove(); db.ref("game/wantedOpen").once("value", snap => { const openData = snap.val(); if (openData?.poster?.id === normalized.id) db.ref("game/wantedOpen").remove() }); card.remove() }
   card.appendChild(del)
   list.appendChild(card)
 }
@@ -1234,8 +1258,11 @@ function renderWantedPoster(data) {
 function showWantedOverlay(data) {
   const normalized = normalizeWantedPosterData(data)
   if (!normalized) return
+  const existing = document.getElementById("wantedOverlay")
+  if (existing) existing.remove()
   const safeMobImage = sanitizeAssetName(normalized.mob + ".png")
   const ov=document.createElement("div")
+  ov.id = "wantedOverlay"
   ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:99999999;cursor:pointer;"
   ov.onclick=()=>ov.remove()
   const p=document.createElement("div")

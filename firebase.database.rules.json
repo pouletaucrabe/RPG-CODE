@@ -158,7 +158,15 @@
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
       },
       "mapLoreBook": {
-        ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
+        ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
+        "claimedBy": {
+          ".write": "auth != null && root.child('profiles').child(auth.uid).child('playerId').isString()",
+          ".validate": "newData.isString() && !data.exists() && newData.val() === root.child('profiles').child(auth.uid).child('playerId').val() && parent.child('active').val() === true"
+        },
+        "claimedAt": {
+          ".write": "auth != null && root.child('profiles').child(auth.uid).child('playerId').isString() && parent.child('claimedBy').val() === root.child('profiles').child(auth.uid).child('playerId').val()",
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        }
       },
       "highPNJName": {
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"

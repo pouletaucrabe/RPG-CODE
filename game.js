@@ -566,6 +566,7 @@ function updateMapLoreBookVisibility() {
   const shouldShow = !!(
     data &&
     data.active &&
+    !data.claimedBy &&
     data.map === currentMap &&
     gameState === "GAME" &&
     !combatActive
@@ -707,20 +708,24 @@ function tryOpenMapLoreBook() {
   const localPlayerId = getLocalPlayerId()
   if (isGM || !localPlayerId || !window.mapLoreBookData || !window.mapLoreBookData.active) return
   const localBook = window.mapLoreBookData
-  db.ref("game/mapLoreBook").transaction(current => {
-    if (!current || !current.active || current.id !== localBook.id || current.map !== currentMap) return current
-    current.active = false
-    current.claimedBy = localPlayerId
-    current.claimedAt = Date.now()
-    return current
-  }, (error, committed, snapshot) => {
-    const bookData = snapshot && snapshot.val ? snapshot.val() : null
-    if (error || !committed || !bookData || String(bookData.claimedBy).toLowerCase() !== localPlayerId) return
+  if (String(localBook.claimedBy || "").toLowerCase()) return
+  db.ref("game/mapLoreBook/claimedBy").transaction(current => {
+    if (current) return
+    return localPlayerId
+  }, (error, committed) => {
+    if (error || !committed) {
+      if (error) console.warn("Lore book claim failed:", error)
+      return
+    }
+    const claimedAt = Date.now()
+    db.ref("game/mapLoreBook/claimedAt").set(claimedAt).catch(() => {})
+    const bookData = { ...localBook, claimedBy: localPlayerId, claimedAt, active: false }
+    window.mapLoreBookData = bookData
+    updateMapLoreBookVisibility()
     const entry = MAP_LORE_BOOK_ENTRIES[bookData.id]
     showMapLoreBookOverlay(bookData)
     applyMapLoreBookReward(entry, localPlayerId)
     db.ref("game/readLoreBooks/" + bookData.id).set(true)
-    db.ref("game/mapLoreBook").remove()
   }, false)
 }
 
@@ -1694,6 +1699,7 @@ db.ref("characters").on("child_changed", watchCharacter)
 db.ref("game/map").on("value", snap => {
   const mapName = snap.val()
   if (!mapName) return
+  window.__latestMapValue = mapName
   if (gameState !== GAME_STATE.GAME && gameState !== GAME_STATE.COMBAT) return
 
   const map  = document.getElementById("map")
@@ -1740,7 +1746,7 @@ db.ref("game/map").on("value", snap => {
           }
         }
         stopAllMusic()
-        setTimeout(() => crossfadeMusic(mapMusic[mapName]), 200)
+        ensureMapMusicPlayback(mapName, 200)
       }
     }
   }, 800)
@@ -2318,13 +2324,31 @@ db.ref("elements").on("child_removed", snap => {
   if (el) { el.style.transition = "opacity 0.4s"; el.style.opacity = "0"; setTimeout(() => el.remove(), 400) }
 })
 
+function syncMapElementsFromDB() {
+  if (gameState !== "GAME" && gameState !== "COMBAT") return
+  document.querySelectorAll("[id^='elem_']").forEach(el => el.remove())
+  db.ref("elements").once("value", snap => {
+    const data = snap.val()
+    if (!data) return
+    Object.values(data).forEach(item => {
+      if (item) renderMapElement(item)
+    })
+  })
+}
+
 // ─── wantedPosters ───
 db.ref("game/wantedPosters").on("value", snap => {
   const list = document.getElementById("wantedList")
-  if (!list || !isGM) return
-  list.innerHTML = ""
-  const data = snap.val(); if (!data) return
-  Object.values(data).forEach(p => renderWantedPoster(p))
+  const data = snap.val() || null
+  if (list && isGM) {
+    list.innerHTML = ""
+    if (data) Object.values(data).forEach(p => renderWantedPoster(p))
+  }
+  if (isGM && data) {
+    Object.values(data).forEach(p => {
+      if (p) ensureWantedPosterElement(p)
+    })
+  }
 })
 
 // ─── wantedOpen ───
@@ -2332,9 +2356,6 @@ db.ref("game/wantedOpen").on("value", snap => {
   const data = snap.val()
   if (!data || !data.poster) return
   showWantedOverlay(data.poster)
-  if (isGM) {
-    setTimeout(() => db.ref("game/wantedOpen").remove(), 1200)
-  }
 })
 
 // ─── simonState ───
@@ -2420,11 +2441,6 @@ db.ref("game/mapAudio").on("value", snap => {
     _musicTransitioning = false; _pendingMusic = null
     if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
     stopAllMusic()
-    if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
-    myToken = null
-    window.myToken = null
-    currentSheetPlayer = null
-    if (window._playerMaxPoids) window._playerMaxPoids = {}
     setTimeout(() => {
       crossfadeMusic("" + data.file + ".mp3")
       _state._pendingMapAudio = false
@@ -2664,6 +2680,76 @@ function getPartyLevel(callback) {
       total += parseInt(snap.val()) || 1
       if (++count === players.length) callback(Math.round(total / players.length))
     })
+  })
+}
+
+function ensureMapMusicPlayback(mapName, delay = 0) {
+  setTimeout(() => {
+    if (!mapName || !mapMusic[mapName]) return
+    crossfadeMusic(mapMusic[mapName])
+    setTimeout(() => {
+      const active = currentMusic === "A" ? document.getElementById("musicA") : document.getElementById("musicB")
+      const hasPlayback = !!(active && !active.paused && active.src && active.volume > 0.01)
+      if (!hasPlayback) {
+        crossfadeMusic(mapMusic[mapName])
+        setTimeout(() => {
+          const retryActive = currentMusic === "A" ? document.getElementById("musicA") : document.getElementById("musicB")
+          const retryOk = !!(retryActive && !retryActive.paused && retryActive.src && retryActive.volume > 0.01)
+          if (retryOk) return
+          const direct = document.getElementById("musicA")
+          if (!direct) return
+          const src = /^(https?:|data:|blob:|\/|audio\/)/i.test(mapMusic[mapName]) ? mapMusic[mapName] : "audio/" + mapMusic[mapName]
+          stopAllMusic()
+          direct.src = src
+          direct.loop = true
+          direct.currentTime = 0
+          direct.volume = (typeof getUserAudioVolume === "function") ? getUserAudioVolume() : 0.8
+          direct.play().catch(() => {})
+          currentMusic = "A"
+        }, 700)
+      }
+    }, 1200)
+  }, delay)
+}
+
+function playInitialMapMusic(mapName) {
+  if (!mapName || !mapMusic[mapName]) return
+  const direct = document.getElementById("musicA")
+  if (!direct) return
+  const src = /^(https?:|data:|blob:|\/|audio\/)/i.test(mapMusic[mapName]) ? mapMusic[mapName] : "audio/" + mapMusic[mapName]
+  stopAllMusic()
+  direct.src = src
+  direct.loop = true
+  direct.currentTime = 0
+  direct.volume = (typeof getUserAudioVolume === "function") ? getUserAudioVolume() : 0.8
+  direct.play().catch(() => {})
+  currentMusic = "A"
+}
+
+function primeMapMusicChannels() {
+  ;["musicA", "musicB"].forEach(id => {
+    const el = document.getElementById(id)
+    if (!el) return
+    try {
+      el.muted = true
+      el.volume = 0
+      const maybePromise = el.play()
+      if (maybePromise && typeof maybePromise.then === "function") {
+        maybePromise.then(() => {
+          try { el.pause() } catch (_) {}
+          try { el.currentTime = 0 } catch (_) {}
+          el.muted = false
+        }).catch(() => {
+          el.muted = false
+        })
+      } else {
+        try { el.pause() } catch (_) {}
+        try { el.currentTime = 0 } catch (_) {}
+        el.muted = false
+      }
+    } catch (_) {
+      el.muted = false
+    }
   })
 }
 
@@ -2948,6 +3034,84 @@ function newGame() {
 
   // Attendre que Firebase Auth soit prête avant d'écrire
   const doReset = () => {
+    const verifyResetReadback = () => {
+      const checks = [
+        { label: "game/map", promise: db.ref("game/map").once("value") },
+        { label: "game/groupMadness", promise: db.ref("game/groupMadness").once("value") },
+        { label: "game/worldMapFogTopLeftHidden", promise: db.ref("game/worldMapFogTopLeftHidden").once("value") }
+      ]
+      ;["greg", "ju", "elo", "bibi"].forEach(pid => {
+        checks.push({ label: "characters/" + pid, promise: db.ref("characters/" + pid).once("value") })
+        checks.push({ label: "tokens/" + pid, promise: db.ref("tokens/" + pid).once("value") })
+      })
+
+      return Promise.allSettled(checks.map(entry => entry.promise)).then(results => {
+        const failed = []
+        results.forEach((result, idx) => {
+          const label = checks[idx].label
+          if (result.status !== "fulfilled") {
+            failed.push(label)
+            return
+          }
+          const value = result.value && typeof result.value.val === "function" ? result.value.val() : null
+          if (label === "game/map" && value !== "taverne.jpg") failed.push(label)
+          else if (label === "game/groupMadness" && (parseInt(value, 10) || 0) !== 0) failed.push(label)
+          else if (label === "game/worldMapFogTopLeftHidden" && value !== false) failed.push(label)
+          else if (label.startsWith("characters/")) {
+            const pid = label.split("/")[1]
+            const expected = initChars[pid]
+            if (!value || !expected) { failed.push(label); return }
+            const same =
+              parseInt(value.lvl, 10) === expected.lvl &&
+              parseInt(value.xp, 10) === expected.xp &&
+              parseInt(value.hp, 10) === expected.hp &&
+              parseInt(value.poids, 10) === expected.poids &&
+              parseInt(value.force, 10) === expected.force &&
+              parseInt(value.charme, 10) === expected.charme &&
+              parseInt(value.perspi, 10) === expected.perspi &&
+              parseInt(value.chance, 10) === expected.chance &&
+              parseInt(value.defense, 10) === expected.defense &&
+              parseInt(value.curse, 10) === expected.curse &&
+              parseInt(value.corruption, 10) === expected.corruption &&
+              parseInt(value.freePoints, 10) === expected.freePoints &&
+              parseInt(value.gold, 10) === expected.gold &&
+              String(value.inventaire || "") === expected.inventaire &&
+              String(value.notes || "") === expected.notes
+            if (!same) failed.push(label)
+          } else if (label.startsWith("tokens/")) {
+            const pid = label.split("/")[1]
+            const expected = initTokens[pid]
+            if (!value || !expected || parseInt(value.x, 10) !== expected.x || parseInt(value.y, 10) !== expected.y) {
+              failed.push(label)
+            }
+          }
+        })
+        return failed
+      })
+    }
+
+    const finalizeNewGameLocally = () => {
+      if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
+      myToken = null
+      window.myToken = null
+      currentSheetPlayer = null
+      if (window._playerMaxPoids) window._playerMaxPoids = {}
+      currentMap = "taverne.jpg"
+      cameraZoom = minZoom || cameraZoom
+      cameraX = 0
+      cameraY = 0
+      const map = document.getElementById("map")
+      if (map) {
+        map.style.backgroundImage = "url('images/taverne.jpg')"
+        map.style.backgroundSize = "cover"
+        map.style.backgroundColor = ""
+      }
+      updateCamera()
+      ;["greg","ju","elo","bibi"].forEach(pid => updateTokenStats(pid))
+      updateMadnessVisibility()
+      updateThuumButton()
+    }
+
     // Reset état local immédiat
     gameStarted = false
     window.isNewGame = true
@@ -3019,46 +3183,57 @@ function newGame() {
         return
       }
 
-      // Nettoyage en arrière-plan (non bloquant)
-      ;[
-        db.ref("elements").remove(),
-        db.ref("combat").remove(),
-        db.ref("diceRoll").remove(),
-        db.ref("curse").remove(),
-        db.ref("events").remove(),
-        db.ref("game/storyImage").remove(),
-        db.ref("game/storyImage2").remove(),
-        db.ref("game/storyImage3").remove(),
-        db.ref("game/shop").remove(),
-        db.ref("game/combatState").remove(),
-        db.ref("game/combatOutcome").remove(),
-        db.ref("game/playerDeath").remove(),
-        db.ref("game/playerRevive").remove(),
-        db.ref("game/playerAllyAccess").remove(),
-        db.ref("game/playerThuum").remove(),
-        db.ref("game/playerThuumAccess").remove(),
-        db.ref("game/thuumCast").remove(),
-        db.ref("game/thuumUnlockEvent").remove(),
-        db.ref("game/allyAction").remove(),
-        db.ref("game/odinVision").remove(),
-        db.ref("game/powerSound").remove(),
-        db.ref("game/bifrostFlash").remove(),
-        db.ref("game/cemeterySpell").remove(),
-        db.ref("game/runeChallenge").remove(),
-        db.ref("game/mapLoreBook").remove(),
-        db.ref("game/readLoreBooks").remove(),
-        db.ref("game/wantedPosters").remove(),
-        db.ref("game/wantedOpen").remove(),
-        db.ref("game/simonState").remove(),
-        db.ref("game/document").remove(),
-        db.ref("game/mobAttackEvent").remove(),
-        db.ref("game/highPNJName").remove(),
-      ].forEach(p => p.catch(() => {}))
+      verifyResetReadback().then(readbackFailed => {
+        if (readbackFailed.length) {
+          console.error("newGame reset readback mismatch", readbackFailed)
+          showNotification("⚠ Vérification reset échouée: " + readbackFailed.join(", "))
+          setGameState("MENU")
+          startIntro()
+          return
+        }
 
-      showNotification("🆕 Nouvelle partie — Taverne de Rivebois")
-      addMJLog("🆕 Nouvelle partie lancée")
-      setGameState("MENU")
-      startIntro()
+        // Nettoyage en arrière-plan (non bloquant)
+        ;[
+          db.ref("elements").remove(),
+          db.ref("combat").remove(),
+          db.ref("diceRoll").remove(),
+          db.ref("curse").remove(),
+          db.ref("events").remove(),
+          db.ref("game/storyImage").remove(),
+          db.ref("game/storyImage2").remove(),
+          db.ref("game/storyImage3").remove(),
+          db.ref("game/shop").remove(),
+          db.ref("game/combatState").remove(),
+          db.ref("game/combatOutcome").remove(),
+          db.ref("game/playerDeath").remove(),
+          db.ref("game/playerRevive").remove(),
+          db.ref("game/playerAllyAccess").remove(),
+          db.ref("game/playerThuum").remove(),
+          db.ref("game/playerThuumAccess").remove(),
+          db.ref("game/thuumCast").remove(),
+          db.ref("game/thuumUnlockEvent").remove(),
+          db.ref("game/allyAction").remove(),
+          db.ref("game/odinVision").remove(),
+          db.ref("game/powerSound").remove(),
+          db.ref("game/bifrostFlash").remove(),
+          db.ref("game/cemeterySpell").remove(),
+          db.ref("game/runeChallenge").remove(),
+          db.ref("game/mapLoreBook").remove(),
+          db.ref("game/readLoreBooks").remove(),
+          db.ref("game/wantedPosters").remove(),
+          db.ref("game/wantedOpen").remove(),
+          db.ref("game/simonState").remove(),
+          db.ref("game/document").remove(),
+          db.ref("game/mobAttackEvent").remove(),
+          db.ref("game/highPNJName").remove(),
+        ].forEach(p => p.catch(() => {}))
+
+        finalizeNewGameLocally()
+        showNotification("🆕 Nouvelle partie — Taverne de Rivebois")
+        addMJLog("🆕 Nouvelle partie lancée")
+        setGameState("MENU")
+        startIntro()
+      })
     })
   } // fin doReset
 
@@ -3329,7 +3504,7 @@ function startGame() {
       db.ref("game/worldMapFogTopLeftHidden").set(false)
       db.ref("game/mapLoreBook").remove(); db.ref("game/readLoreBooks").remove()
       db.ref("events/aurora").remove()
-      db.ref("elements").remove(); db.ref("game/shop").remove()
+      db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
   cemeteryEventDone = false
@@ -3374,6 +3549,8 @@ function startGame() {
   document.body.focus()
   if (gameStarted) return
   gameStarted = true
+  primeMapMusicChannels()
+  playInitialMapMusic(window.__latestMapValue || "taverne.jpg")
   hideIntroLayers()
   setGameState(GAME_STATE.INTRO)
   const fade = document.getElementById("fadeScreen"); fade.style.opacity = 1
@@ -3418,8 +3595,11 @@ function showTavern() {
     calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
     if (isGM) syncCameraZoomToPlayers()
     if (isGM) maybeSpawnMapLoreBook(mapName)
+    syncMapElementsFromDB()
+    playInitialMapMusic(mapName)
+    ensureMapMusicPlayback(mapName, 0)
     setTimeout(() => { fade.style.opacity = 0 }, 500)
-    setTimeout(() => { if (mapMusic[mapName]) crossfadeMusic(mapMusic[mapName]) }, 800)
+    ensureMapMusicPlayback(mapName, 800)
     setTimeout(() => { if (mapNames[mapName]) showLocation(mapNames[mapName]) }, 2000)
     // Forcer rechargement des stats et positions des tokens
     setTimeout(() => {
