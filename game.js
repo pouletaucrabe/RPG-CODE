@@ -1867,6 +1867,8 @@ db.ref("events/aurora").on("value", snap => {
   if (!data || !data.active) {
     if (auroraActive || document.getElementById("auroraOverlay")) {
       showAuroraEndSequence()
+    } else if (typeof stopAuroraMusic === "function") {
+      stopAuroraMusic(false)
     }
     return
   }
@@ -2162,6 +2164,7 @@ function cleanupRuneChallengeUI() {
 // ─── runeChallenge ───
 db.ref("game/runeChallenge").on("value", snap => {
   const data = snap.val()
+  const previous = window.activeRuneChallengeData || null
   window.activeRuneChallengeData = data || null
   if (!data || !data.active) {
     cleanupRuneChallengeUI()
@@ -2172,9 +2175,17 @@ db.ref("game/runeChallenge").on("value", snap => {
   if (gameState !== "GAME" && gameState !== "COMBAT") return
   updateRuneMenuBtn(true)
   const overlay = document.getElementById("runeChallengeOverlay")
-  if (overlay) overlay.remove()
-  renderRuneChallenge(data)
-  if (isGM && !_state.runeJustOpened) _state.runeJustOpened = true
+  const shouldOpenFresh =
+    !previous ||
+    !previous.active ||
+    previous.time !== data.time
+  if (overlay) {
+    overlay.remove()
+    renderRuneChallenge(data)
+  } else if (shouldOpenFresh) {
+    renderRuneChallenge(data)
+  }
+  if (isGM && shouldOpenFresh && !_state.runeJustOpened) _state.runeJustOpened = true
   updateThuumButton()
 })
 
@@ -2336,6 +2347,22 @@ function syncMapElementsFromDB() {
   })
 }
 
+function syncWantedStateFromDB() {
+  db.ref("game/wantedPosters").once("value", snap => {
+    const data = snap.val() || null
+    const list = document.getElementById("wantedList")
+    if (list && isGM) {
+      list.innerHTML = ""
+      if (data) Object.values(data).forEach(p => renderWantedPoster(p))
+    }
+    if (isGM && data) {
+      Object.values(data).forEach(p => {
+        if (p) ensureWantedPosterElement(p)
+      })
+    }
+  })
+}
+
 // ─── wantedPosters ───
 db.ref("game/wantedPosters").on("value", snap => {
   const list = document.getElementById("wantedList")
@@ -2354,6 +2381,14 @@ db.ref("game/wantedPosters").on("value", snap => {
 // ─── wantedOpen ───
 db.ref("game/wantedOpen").on("value", snap => {
   const data = snap.val()
+  const signature = data?.poster?.id && data?.time ? (data.poster.id + ":" + data.time) : (data?.poster?.id || null)
+  if (!window.__wantedOpenInitDone) {
+    window.__wantedOpenInitDone = true
+    window.__wantedOpenLastSignature = signature
+    return
+  }
+  if (!signature || signature === window.__wantedOpenLastSignature) return
+  window.__wantedOpenLastSignature = signature
   if (!data || !data.poster) return
   showWantedOverlay(data.poster)
 })
@@ -2836,6 +2871,7 @@ function saveGame() {
     "elements",
     "game/map",
     "game/wantedPosters",
+    "game/wantedOpen",
     "game/runeChallenge",
     "game/mapLoreBook",
     "game/readLoreBooks",
@@ -2897,6 +2933,8 @@ function _applyLoadData(data, callback) {
   if (data.game?.map)           ops.push(db.ref("game/map").set(data.game.map))
   if (data.game?.wantedPosters) ops.push(db.ref("game/wantedPosters").set(data.game.wantedPosters))
   else                          ops.push(db.ref("game/wantedPosters").remove())
+  if (data.game?.wantedOpen)    ops.push(db.ref("game/wantedOpen").set(data.game.wantedOpen))
+  else                          ops.push(db.ref("game/wantedOpen").remove())
   if (data.game?.runeChallenge) ops.push(db.ref("game/runeChallenge").set(data.game.runeChallenge))
   else                          ops.push(db.ref("game/runeChallenge").remove())
   if (data.game?.mapLoreBook)   ops.push(db.ref("game/mapLoreBook").set(data.game.mapLoreBook))
@@ -3600,6 +3638,7 @@ function showTavern() {
     if (isGM) syncCameraZoomToPlayers()
     if (isGM) maybeSpawnMapLoreBook(mapName)
     syncMapElementsFromDB()
+    syncWantedStateFromDB()
     playInitialMapMusic(mapName)
     ensureMapMusicPlayback(mapName, 0)
     setTimeout(() => { fade.style.opacity = 0 }, 500)
@@ -3698,6 +3737,7 @@ function activateGM(fromFirebaseRole = false) {
     select.style.opacity = "0"
     setTimeout(() => { select.style.display = "none" }, 400)
   }
+  setTimeout(syncWantedStateFromDB, 60)
 }
 
 function toggleGMSection(id) {
@@ -3929,7 +3969,7 @@ document.addEventListener("keydown", e => {
   if (key === "escape") {
     const docOverlay = document.getElementById("documentOverlay"); if (docOverlay && isGM) { hideDocument(); return }
     const loreOverlay = document.getElementById("mapLoreBookOverlay"); if (loreOverlay) { closeMapLoreBookOverlay(); return }
-    const runeOverlay = document.getElementById("runeChallengeOverlay"); if (runeOverlay) { runeOverlay.remove(); _state.runeJustOpened = false; return }
+    const runeOverlay = document.getElementById("runeChallengeOverlay"); if (runeOverlay) { if (typeof closeRuneChallenge === "function") closeRuneChallenge(); else { runeOverlay.remove(); _state.runeJustOpened = false } return }
     const sheet = document.getElementById("characterSheet"); if (sheet && sheet.style.display !== "none" && sheet.style.display !== "") { closeCharacterSheet(); return }
     const shopOverlay = document.getElementById("shopOverlay"); if (shopOverlay && isGM) { closeShop(); return }
     const powersPanel = document.getElementById("playerThuumPanel"); if (powersPanel && powersPanel.style.display === "block") { closePlayerPowersPanel(); return }

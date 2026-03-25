@@ -821,6 +821,14 @@ function closeShop() {
 
 function renderShop(partyLvl, shopType) {
   shopType=shopType||"marche"
+  if (!window.__shopRenderSoundLock) window.__shopRenderSoundLock = 0
+  const now = Date.now()
+  if (now - window.__shopRenderSoundLock > 500) {
+    window.__shopRenderSoundLock = now
+    const shopSfx = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("shop.mp3") : "audio/shop.mp3")
+    setManagedAudioBaseVolume(shopSfx, 0.82, "effects")
+    shopSfx.play().catch(() => {})
+  }
   const activeItems=shopType==="armurerie"?shopItemsArmurerie:shopItems, shopTitle=shopType==="armurerie"?"⚔ Armurerie":"🛒 Marché"
   _buildShop(partyLvl,null,activeItems,shopTitle)
 }
@@ -853,17 +861,33 @@ function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {
 
 function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"᛫":c==="."?"᛬":c==="'"?"'":c) }).join("") }
 function openRuneChallenge() { if(!isGM) return; _state.runeJustOpened=false; db.ref("game/runeChallenge").set({ active:true, unlockedHints:[], time:Date.now() }); document.querySelectorAll(".gmSection").forEach(s=>s.style.display="none") }
+function decodeRuneProgress(text, rev) {
+  const revealed = rev || []
+  return String(text || "").split("").map(c => {
+    const up = c.toUpperCase()
+    if (/[A-ZÀÂÇÉÈÊËÎÏÔÙÛÜŸÆŒ]/i.test(c)) return revealed.includes(up) ? c : "·"
+    if (c === " " || c === "," || c === "." || c === "'") return c
+    return c
+  }).join("")
+}
 function closeRuneChallenge() { db.ref("game/runeChallenge").remove(); const ov=document.getElementById("runeChallengeOverlay"); if(ov) ov.remove(); const btn=document.getElementById("playerCodeBtn"); if(btn) btn.remove() }
 function toggleRuneOverlay(data) { const ov=document.getElementById("runeChallengeOverlay"); if(ov) ov.remove(); else renderRuneChallenge(data) }
 function updateRuneMenuBtn(active) { const l=document.getElementById("runeLaunchBtn"),c=document.getElementById("runeContinueBtn"); if(!l) return; if(active){ l.style.display="none"; if(c) c.style.display="block" } else { l.style.display="block"; if(c) c.style.display="none"; _state.runeJustOpened=false } }
 
 function renderRuneChallenge(data) {
-  const uh=data.unlockedHints||[], rev=data.revealedLetters||[], enc=encodeToRunes(secretMessage,rev)
+  const uh=data.unlockedHints||[], rev=data.revealedLetters||[], enc=encodeToRunes(secretMessage,rev), dec=decodeRuneProgress(secretMessage,rev)
   const ov=document.createElement("div"); ov.id="runeChallengeOverlay"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,5,2,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999990;opacity:0;transition:opacity 0.6s ease;overflow-y:auto;padding:20px 0;"
   const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;color:#c8a050;letter-spacing:6px;margin-bottom:6px;text-shadow:0 0 20px gold;"; t.innerText="ᚱᚢᚾᛖᛊ ᛞᛖ ᛚ'ᚨᚾᚲᛁᛖᚾ"; ov.appendChild(t)
   const st=document.createElement("div"); st.style.cssText="font-family:'IM Fell English',serif;font-size:14px;color:#8a6830;margin-bottom:24px;letter-spacing:2px;"; st.innerText="Déchiffrez le message des anciens..."; ov.appendChild(st)
   const mb=document.createElement("div"); mb.style.cssText="background:url('images/roc.png') center/100% 100% no-repeat;padding:50px 70px;max-width:700px;width:90vw;text-align:center;margin-bottom:24px;border-radius:4px;"
   const rt=document.createElement("div"); rt.style.cssText="font-size:32px;color:#ffe8a0;line-height:2.2;letter-spacing:6px;font-family:serif;word-break:break-word;font-weight:bold;"; rt.innerText=enc; mb.appendChild(rt); ov.appendChild(mb)
+  const dbx=document.createElement("div"); dbx.style.cssText="max-width:720px;width:90vw;text-align:center;margin:-6px 0 20px;"
+  const dtitle=document.createElement("div"); dtitle.style.cssText="font-family:Cinzel,serif;font-size:11px;color:#8a6830;letter-spacing:3px;margin-bottom:8px;"; dtitle.innerText="— TRADUCTION EN COURS —"
+  const dline=document.createElement("div"); dline.style.cssText="font-family:'Cinzel',serif;font-size:24px;color:#f5e6c8;line-height:1.8;letter-spacing:4px;word-break:break-word;text-shadow:0 0 10px rgba(0,0,0,0.8);"
+  dline.innerText=dec
+  dbx.appendChild(dtitle)
+  dbx.appendChild(dline)
+  ov.appendChild(dbx)
   if(uh.length){ const hb=document.createElement("div"); hb.style.cssText="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:700px;margin-bottom:16px;"; uh.forEach(hid=>{ const h=runeHints.find(x=>x.id===hid); if(!h) return; const card=document.createElement("div"); card.style.cssText="background:rgba(200,160,80,0.12);border:1px solid rgba(200,160,80,0.4);border-radius:6px;padding:8px 16px;font-family:serif;font-size:16px;color:#c8a050;letter-spacing:2px;"; card.innerHTML=`<div style="font-size:10px;color:#8a6830;font-family:Cinzel;margin-bottom:4px;">${h.desc}</div>${h.runes}`; hb.appendChild(card) }); ov.appendChild(hb) }
   if(rev.length){ const rb=document.createElement("div"); rb.style.cssText="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:700px;margin-bottom:16px;"; const revT=document.createElement("div"); revT.style.cssText="width:100%;text-align:center;font-family:Cinzel;font-size:11px;color:#8a6830;letter-spacing:2px;margin-bottom:4px;"; revT.innerText="— LETTRES RÉVÉLÉES —"; rb.appendChild(revT); rev.forEach(l=>{ const r=runeAlphabet[l]||"?"; const p=document.createElement("div"); p.style.cssText="background:rgba(200,160,80,0.2);border:1px solid gold;border-radius:20px;padding:4px 12px;font-size:18px;color:#f5e6c8;"; p.innerHTML=`<span style="font-family:serif;">${r}</span> <span style="font-family:Cinzel;font-size:12px;color:#c8a050;">${l}</span>`; rb.appendChild(p) }); ov.appendChild(rb) }
   if(isGM){ const as=document.createElement("div"); as.style.cssText="display:flex;flex-direction:column;align-items:center;gap:10px;width:90vw;max-width:600px;"; const ai=document.createElement("input"); ai.placeholder="Tapez votre réponse ici..."; ai.style.cssText="width:100%;padding:12px 20px;font-family:'Cinzel',serif;font-size:14px;background:rgba(200,160,80,0.1);border:1px solid rgba(200,160,80,0.4);border-radius:4px;color:#f5e6c8;text-align:center;outline:none;"; const sb=document.createElement("button"); sb.innerText="⚔ Valider la réponse"; sb.style.cssText="padding:10px 30px;font-family:'Cinzel',serif;font-size:14px;background:linear-gradient(#7a5520,#3a2508);color:#c8a050;border:1px solid #c8a050;border-radius:4px;cursor:pointer;"; sb.onclick=()=>{ const ans=ai.value.toLowerCase().replace(/[^a-zéèàâêôîûçœ ]/g,"").replace(/\s+/g," ").trim(), tgt=secretAnswer.replace(/[^a-zéèàâêôîûçœ ]/g,"").replace(/\s+/g," ").trim(); if(ans===tgt) showRuneVictory(); else{ ai.style.borderColor="red"; setTimeout(()=>ai.style.borderColor="rgba(200,160,80,0.4)",1000); screenShakeHard() } }; as.appendChild(ai); as.appendChild(sb); ov.appendChild(as)
@@ -1184,7 +1208,34 @@ function ensureWantedPosterElement(data) {
   const normalized = normalizeWantedPosterData(data)
   if (!normalized) return
   db.ref("elements/" + normalized.id).once("value", snap => {
-    if (snap.val()) return
+    const existing = snap.val()
+    if (existing) {
+      const nextData = {
+        ...existing,
+        id: normalized.id,
+        type: "image",
+        image: "wanted.png",
+        clickable: true,
+        wantedData: normalized
+      }
+      if (
+        existing.type !== nextData.type ||
+        existing.image !== nextData.image ||
+        existing.clickable !== nextData.clickable ||
+        JSON.stringify(existing.wantedData || null) !== JSON.stringify(nextData.wantedData)
+      ) {
+        db.ref("elements/" + normalized.id).update({
+          type: nextData.type,
+          image: nextData.image,
+          clickable: nextData.clickable,
+          wantedData: nextData.wantedData
+        }).catch(() => {})
+      }
+      if ((gameState === "GAME" || gameState === "COMBAT") && !document.getElementById("elem_" + normalized.id)) {
+        renderMapElement(nextData)
+      }
+      return
+    }
     db.ref("elements/" + normalized.id).set({
       type:"image",
       image:"wanted.png",

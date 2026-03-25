@@ -473,13 +473,19 @@ function crossfadeMusic(newMusic) {
 
 function stopAllMusic() {
   if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
+  if (typeof clearAuroraTimers === "function") clearAuroraTimers()
+  if (typeof stopAuroraMusic === "function") stopAuroraMusic(false)
   const mA = document.getElementById("musicA")
   const mB = document.getElementById("musicB")
   if (mA) { mA.pause(); mA.volume = 0 }
   if (mB) { mB.pause(); mB.volume = 0 }
   ;["sortPrisonMusic", "auroraMusic", "forsureMusic"].forEach(id => {
     const el = document.getElementById(id)
-    if (el && !el.paused) { el.pause(); el.volume = 0 }
+    if (el) {
+      try { el.pause() } catch (_) {}
+      el.currentTime = 0
+      el.volume = 0
+    }
   })
   _musicTransitioning = false
   _pendingMusic = null
