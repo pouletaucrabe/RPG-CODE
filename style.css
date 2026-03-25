@@ -617,6 +617,10 @@ html, body {
   cursor: pointer;
 }
 
+#elemWanted {
+  background: none;
+}
+
 .map-simple-btn {
   width: 100%;
   text-align: left;

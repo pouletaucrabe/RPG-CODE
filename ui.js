@@ -637,6 +637,7 @@ function openPNJ(image, options) {
   const preferredSlot = opts.slot || currentPNJSlot || 1
   const forceSlot = !!opts.forceSlot
   const displayName = opts.name || getPNJDisplayName(image)
+  document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" })
 
   Promise.all([
     db.ref("game/storyImage").once("value"),
@@ -650,12 +651,20 @@ function openPNJ(image, options) {
     }
 
     const targetSlot = resolvePNJTargetSlot(slots, preferredSlot, forceSlot)
+    const targetRef = getPNJSlotRef(targetSlot)
 
     storyType = "pnj"
-    db.ref(getPNJSlotRef(targetSlot)).set(image)
+    if (slots[targetSlot] === image) {
+      if (targetSlot === 1) showStoryImage(image)
+      else {
+        db.ref(targetRef).remove().then(() => db.ref(targetRef).set(image)).catch(() => {})
+      }
+    } else {
+      db.ref(targetRef).set(image)
+    }
     if (!pnjSlotOrder.includes(targetSlot)) pnjSlotOrder.push(targetSlot)
 
-    if (opts.scrollName && displayName) {
+    if (displayName) {
       db.ref("game/highPNJName").set({ name: displayName, time: Date.now() })
     }
   })
@@ -674,7 +683,19 @@ function updatePNJPositions() {
   else if(count===3){ nt(b2);b2.style.left="0";b2.style.right="auto";b2.style.transform=""; nt(b1);b1.style.left="50%";b1.style.right="auto";b1.style.transform="translateX(-50%)"; nt(b3);b3.style.right="0";b3.style.left="auto";b3.style.transform="" }
 }
 
-function closePNJBySlot(slot) { const r={1:"game/storyImage",2:"game/storyImage2",3:"game/storyImage3"}; db.ref(r[slot]).remove(); pnjSlotOrder=pnjSlotOrder.filter(s=>s!==slot) }
+function hideHighPNJScrollImmediate() {
+  const scroll=document.getElementById("highPNJScroll")
+  if (scroll) {
+    scroll.style.opacity="0"
+    setTimeout(()=>{ if(scroll.parentNode) scroll.remove() },180)
+  }
+}
+
+function closePNJBySlot(slot) {
+  const r={1:"game/storyImage",2:"game/storyImage2",3:"game/storyImage3"}
+  db.ref(r[slot]).remove()
+  pnjSlotOrder=pnjSlotOrder.filter(s=>s!==slot)
+}
 function closeLastPNJ() { if(!pnjSlotOrder.length) return false; closePNJBySlot(pnjSlotOrder[pnjSlotOrder.length-1]); return true }
 
 const PNJ_NAMES = {
@@ -1204,6 +1225,27 @@ function normalizeWantedPosterData(data) {
   return { mob, tier, reward, id }
 }
 
+function removeWantedPosterElement(id) {
+  const safeId = String(id || "")
+  if (!safeId) return
+  cleanupMapElementDragHandlers(safeId)
+  const el = document.getElementById("elem_" + safeId)
+  if (el) el.remove()
+  db.ref("elements/" + safeId).remove().catch(() => {})
+}
+
+function cleanupLegacyWantedElements() {
+  if (!isGM) return
+  db.ref("elements").once("value", snap => {
+    const data = snap.val()
+    if (!data) return
+    Object.entries(data).forEach(([id, item]) => {
+      if (!item) return
+      if (item.wantedData || String(id).startsWith("wanted_")) removeWantedPosterElement(id)
+    })
+  })
+}
+
 function ensureWantedPosterElement(data) {
   const normalized = normalizeWantedPosterData(data)
   if (!normalized) return
@@ -1251,7 +1293,6 @@ function ensureWantedPosterElement(data) {
 function publishWantedOverlay(data) {
   const normalized = normalizeWantedPosterData(data)
   if (!normalized) return
-  ensureWantedPosterElement(normalized)
   db.ref("game/wantedOpen").set({ poster:normalized, time:Date.now() })
 }
 
@@ -1265,7 +1306,7 @@ function createWantedPoster() {
   if (!normalized) { showNotification("Affiche invalide"); return }
   document.getElementById("wantedEditor").style.display="none"
   db.ref("game/wantedPosters/" + normalized.id).set(normalized)
-  ensureWantedPosterElement(normalized)
+  removeWantedPosterElement(normalized.id)
   publishWantedOverlay(normalized)
 }
 
@@ -1295,13 +1336,13 @@ function renderWantedPoster(data) {
   card.appendChild(info)
   const open=document.createElement("button")
   open.style.cssText="padding:2px 8px;font-size:10px;background:rgba(90,70,20,0.5);color:#ffd68a;border:1px solid rgba(170,130,40,0.45);border-radius:3px;cursor:pointer;"
-  open.innerText="Ouvrir"
+  open.innerText="Mettre en avant"
   open.onclick=()=>{ if (isGM) publishWantedOverlay(normalized); else showWantedOverlay(normalized) }
   card.appendChild(open)
   const del=document.createElement("button")
   del.style.cssText="padding:2px 8px;font-size:10px;background:rgba(80,20,0,0.5);color:#ff8888;border:1px solid rgba(150,40,0,0.4);border-radius:3px;cursor:pointer;"
   del.innerText="✕"
-  del.onclick=()=>{ db.ref("game/wantedPosters/" + normalized.id).remove(); db.ref("elements/" + normalized.id).remove(); db.ref("game/wantedOpen").once("value", snap => { const openData = snap.val(); if (openData?.poster?.id === normalized.id) db.ref("game/wantedOpen").remove() }); card.remove() }
+  del.onclick=()=>{ db.ref("game/wantedPosters/" + normalized.id).remove(); removeWantedPosterElement(normalized.id); db.ref("game/wantedOpen").once("value", snap => { const openData = snap.val(); if (openData?.poster?.id === normalized.id) db.ref("game/wantedOpen").remove() }); card.remove() }
   card.appendChild(del)
   list.appendChild(card)
 }
@@ -1339,6 +1380,104 @@ function showWantedOverlay(data) {
   p.appendChild(inner)
   ov.appendChild(p)
   document.body.appendChild(ov)
+}
+
+function renderWantedBoardCard(data) {
+  const normalized = normalizeWantedPosterData(data)
+  if (!normalized) return null
+  const safeMobImage = sanitizeAssetName(normalized.mob + ".png")
+  const card=document.createElement("button")
+  card.type="button"
+  card.style.cssText="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:190px;min-height:268px;padding:26px 18px 18px;background:url('images/wanted.png') center/100% 100% no-repeat;border:none;color:#5a3410;cursor:pointer;font-family:Cinzel,serif;filter:drop-shadow(0 8px 14px rgba(0,0,0,0.45));transition:transform 0.15s ease,filter 0.15s ease;"
+  const pin=document.createElement("div")
+  pin.style.cssText="position:absolute;top:10px;left:50%;transform:translateX(-50%) rotate(-8deg);width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f4e3bf 0%,#a67c34 45%,#5a3c12 100%);box-shadow:0 2px 5px rgba(0,0,0,0.45);"
+  const img=document.createElement("img")
+  img.src="images/" + safeMobImage
+  img.style.cssText="width:82px;height:82px;object-fit:contain;margin-top:18px;border:3px solid rgba(100,60,10,0.55);border-radius:4px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.28));"
+  img.onerror=()=>img.style.opacity="0.35"
+  const subtitle=document.createElement("div")
+  subtitle.style.cssText="font-family:'Cinzel Decorative',Cinzel,serif;font-size:13px;letter-spacing:3px;color:#7b4208;text-align:center;margin-top:10px;"
+  subtitle.innerText="WANTED"
+  const title=document.createElement("div")
+  title.style.cssText="font-size:15px;letter-spacing:1px;color:#4f2f12;text-align:center;font-weight:bold;line-height:1.3;margin-top:8px;"
+  title.innerText=normalized.mob.toUpperCase()
+  const meta=document.createElement("div")
+  meta.style.cssText="font-size:12px;color:#6b4720;text-align:center;line-height:1.6;margin-top:10px;"
+  meta.innerText="Prime : " + normalized.reward + " po"
+  const tier=document.createElement("div")
+  tier.style.cssText="font-size:10px;color:#8a5a24;text-align:center;letter-spacing:1px;margin-top:2px;"
+  tier.innerText=String(normalized.tier || "").toUpperCase()
+  card.appendChild(pin)
+  card.appendChild(img)
+  card.appendChild(subtitle)
+  card.appendChild(title)
+  card.appendChild(meta)
+  card.appendChild(tier)
+  card.onmouseenter=()=>{ card.style.transform="translateY(-3px) rotate(-1deg)"; card.style.filter="drop-shadow(0 12px 18px rgba(0,0,0,0.5))" }
+  card.onmouseleave=()=>{ card.style.transform=""; card.style.filter="drop-shadow(0 8px 14px rgba(0,0,0,0.45))" }
+  card.onclick=()=>showWantedOverlay(normalized)
+  return card
+}
+
+function buildWantedBoardContent(container, posters) {
+  container.innerHTML=""
+  const title=document.createElement("div")
+  title.style.cssText="text-align:center;font-family:'Cinzel Decorative',Cinzel,serif;font-size:24px;letter-spacing:4px;color:#f1d08a;margin-bottom:8px;"
+  title.innerText="TABLEAU DES PRIMES"
+  const subtitle=document.createElement("div")
+  subtitle.style.cssText="text-align:center;font-family:'IM Fell English',serif;font-size:16px;color:#d9be84;margin-bottom:18px;"
+  subtitle.innerText="Cliquez sur une affiche pour la consulter"
+  container.appendChild(title)
+  container.appendChild(subtitle)
+  const grid=document.createElement("div")
+  grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,190px));justify-content:center;gap:22px 18px;padding:8px 6px 4px;"
+  if (posters.length) {
+    posters.forEach(poster => {
+      const card = renderWantedBoardCard(poster)
+      if (card) grid.appendChild(card)
+    })
+  } else {
+    const empty=document.createElement("div")
+    empty.style.cssText="grid-column:1/-1;text-align:center;padding:18px;font-family:Cinzel,serif;font-size:14px;color:#caa46b;border:1px solid rgba(160,110,40,0.25);border-radius:8px;background:rgba(25,15,6,0.6);"
+    empty.innerText="Aucune affiche active pour le moment"
+    grid.appendChild(empty)
+  }
+  container.appendChild(grid)
+}
+
+function openWantedBoard() {
+  const existing=document.getElementById("wantedBoardOverlay")
+  if (existing) { existing.remove(); return }
+  const bell = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("cloche.mp3") : "audio/cloche.mp3")
+  setManagedAudioBaseVolume(bell, 0.78, "effects")
+  bell.play().catch(() => {})
+  const overlay=document.createElement("div")
+  overlay.id="wantedBoardOverlay"
+  overlay.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.84);display:flex;align-items:center;justify-content:center;z-index:99999998;"
+  overlay.onclick=e=>{ if(e.target===overlay) overlay.remove() }
+  const panel=document.createElement("div")
+  panel.style.cssText="width:min(960px,92vw);max-height:84vh;overflow-y:auto;padding:26px 24px 22px;background:url('images/wood.png') center/contain no-repeat;border:none;border-radius:0;box-shadow:none;"
+  panel.onclick=e=>e.stopPropagation()
+  const close=document.createElement("button")
+  close.type="button"
+  close.style.cssText="display:block;margin:0 0 14px auto;padding:6px 12px;background:rgba(80,20,0,0.55);color:#ffb0a0;border:1px solid rgba(180,60,20,0.45);border-radius:6px;cursor:pointer;font-family:Cinzel,serif;"
+  close.innerText="Fermer"
+  close.onclick=()=>overlay.remove()
+  panel.appendChild(close)
+  const content=document.createElement("div")
+  content.id="wantedBoardContent"
+  panel.appendChild(content)
+  overlay.appendChild(panel)
+  document.body.appendChild(overlay)
+  const posters=Object.values(window.__wantedPostersData||{}).filter(Boolean)
+  buildWantedBoardContent(content, posters)
+  if (!posters.length) {
+    db.ref("game/wantedPosters").once("value", snap => {
+      const data=snap.val()||{}
+      window.__wantedPostersData=data
+      buildWantedBoardContent(content, Object.values(data).filter(Boolean))
+    })
+  }
 }
 function toggleWantedDropdown(el) { const dd=document.getElementById("wantedMobDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; if(!dd.dataset.built){ dd.dataset.built="1"; const em=document.createElement("div"); em.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,120,60);cursor:pointer;"; em.innerText="— Choisir un mob —"; em.onmousedown=e=>{ e.stopPropagation(); selectWantedMob("","— Choisir un mob —") }; dd.appendChild(em); WANTED_MOBS.forEach(m=>{ const it=document.createElement("div"); it.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,120);cursor:pointer;"; it.innerText=m.charAt(0).toUpperCase()+m.slice(1); it.onmousedown=e=>{ e.stopPropagation(); selectWantedMob(m,it.innerText) }; it.onmouseenter=()=>it.style.background="rgb(60,35,5)"; it.onmouseleave=()=>it.style.background=""; dd.appendChild(it) }) }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
 function selectWantedMob(val, lbl) { const btn=document.getElementById("wantedMobBtn"); if(btn){ btn.innerText=lbl; btn.dataset.value=val }; const dd=document.getElementById("wantedMobDropdown"); if(dd) dd.style.display="none" }

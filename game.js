@@ -2350,16 +2350,13 @@ function syncMapElementsFromDB() {
 function syncWantedStateFromDB() {
   db.ref("game/wantedPosters").once("value", snap => {
     const data = snap.val() || null
+    window.__wantedPostersData = data || {}
     const list = document.getElementById("wantedList")
     if (list && isGM) {
       list.innerHTML = ""
       if (data) Object.values(data).forEach(p => renderWantedPoster(p))
     }
-    if (isGM && data) {
-      Object.values(data).forEach(p => {
-        if (p) ensureWantedPosterElement(p)
-      })
-    }
+    if (isGM && typeof cleanupLegacyWantedElements === "function") cleanupLegacyWantedElements()
   })
 }
 
@@ -2367,15 +2364,16 @@ function syncWantedStateFromDB() {
 db.ref("game/wantedPosters").on("value", snap => {
   const list = document.getElementById("wantedList")
   const data = snap.val() || null
+  window.__wantedPostersData = data || {}
   if (list && isGM) {
     list.innerHTML = ""
     if (data) Object.values(data).forEach(p => renderWantedPoster(p))
   }
-  if (isGM && data) {
-    Object.values(data).forEach(p => {
-      if (p) ensureWantedPosterElement(p)
-    })
+  const boardContent = document.getElementById("wantedBoardContent")
+  if (boardContent && typeof buildWantedBoardContent === "function") {
+    buildWantedBoardContent(boardContent, Object.values(window.__wantedPostersData).filter(Boolean))
   }
+  if (isGM && typeof cleanupLegacyWantedElements === "function") cleanupLegacyWantedElements()
 })
 
 // ─── wantedOpen ───
@@ -2921,58 +2919,106 @@ function saveGame() {
 
 function _applyLoadData(data, callback) {
   const ops = []
+  const pushOp = (label, promise) => { ops.push({ label, promise }) }
+  const normalizeLoadedCharacterData = (playerId, raw) => {
+    const level = clampInteger(raw?.lvl, 1, 99)
+    const defaults = getPlayerStatsAtLevel(playerId, level) || getPlayerStatsAtLevel(playerId, 1) || {}
+    return {
+      lvl: level,
+      xp: clampInteger(raw?.xp, 0, 999999),
+      hp: clampInteger(raw?.hp, 0, 999),
+      poids: clampInteger(raw?.poids, 0, 999),
+      force: clampInteger(raw?.force, 0, 999),
+      charme: clampInteger(raw?.charme, 0, 999),
+      perspi: clampInteger(raw?.perspi, 0, 999),
+      chance: clampInteger(raw?.chance, 0, 999),
+      defense: clampInteger(raw?.defense, 0, 999),
+      curse: clampInteger(raw?.curse, 0, 8),
+      corruption: clampInteger(raw?.corruption, 0, 10),
+      freePoints: clampInteger(raw?.freePoints, 0, 999),
+      gold: clampInteger(raw?.gold, 0, 999999),
+      inventaire: String(raw?.inventaire ?? ""),
+      notes: String(raw?.notes ?? ""),
+      cursedEffect: raw?.cursedEffect == null ? null : String(raw.cursedEffect),
+      ...Object.fromEntries(
+        Object.entries(defaults)
+          .filter(([key]) => !["lvl","xp","curse","corruption","freePoints","gold","inventaire","notes"].includes(key))
+          .filter(([key]) => raw?.[key] == null)
+      )
+    }
+  }
+  const normalizeLoadedTokenData = raw => ({
+    x: clampInteger(raw?.x, -5000, 5000),
+    y: clampInteger(raw?.y, -5000, 5000)
+  })
 
   window.__combatOutcomeShowing = false
   window.__pendingLocalDefeat = false
 
   // Écriture directe sur chaque ref — pas de update() depuis la racine avec des slashes
-  if (data.characters)          ops.push(db.ref("characters").set(data.characters))
-  if (data.tokens)              ops.push(db.ref("tokens").set(data.tokens))
-  if (data.elements)            ops.push(db.ref("elements").set(data.elements))
-  else                          ops.push(db.ref("elements").remove())
-  if (data.game?.map)           ops.push(db.ref("game/map").set(data.game.map))
-  if (data.game?.wantedPosters) ops.push(db.ref("game/wantedPosters").set(data.game.wantedPosters))
-  else                          ops.push(db.ref("game/wantedPosters").remove())
-  if (data.game?.wantedOpen)    ops.push(db.ref("game/wantedOpen").set(data.game.wantedOpen))
-  else                          ops.push(db.ref("game/wantedOpen").remove())
-  if (data.game?.runeChallenge) ops.push(db.ref("game/runeChallenge").set(data.game.runeChallenge))
-  else                          ops.push(db.ref("game/runeChallenge").remove())
-  if (data.game?.mapLoreBook)   ops.push(db.ref("game/mapLoreBook").set(data.game.mapLoreBook))
-  else                          ops.push(db.ref("game/mapLoreBook").remove())
-  if (data.game?.readLoreBooks) ops.push(db.ref("game/readLoreBooks").set(data.game.readLoreBooks))
-  else                          ops.push(db.ref("game/readLoreBooks").remove())
-  if (data.game?.storyImage)    ops.push(db.ref("game/storyImage").set(data.game.storyImage))
-  else                          ops.push(db.ref("game/storyImage").remove())
-  if (data.game?.storyImage2)   ops.push(db.ref("game/storyImage2").set(data.game.storyImage2))
-  else                          ops.push(db.ref("game/storyImage2").remove())
-  if (data.game?.storyImage3)   ops.push(db.ref("game/storyImage3").set(data.game.storyImage3))
-  else                          ops.push(db.ref("game/storyImage3").remove())
-  ops.push(db.ref("events/aurora").remove())
+  if (data.characters) {
+    Object.entries(data.characters).forEach(([pid, value]) => {
+      pushOp("characters/" + pid, db.ref("characters/" + pid).set(normalizeLoadedCharacterData(pid, value)))
+    })
+  }
+  if (data.tokens) {
+    Object.entries(data.tokens).forEach(([pid, value]) => {
+      pushOp("tokens/" + pid, db.ref("tokens/" + pid).set(normalizeLoadedTokenData(value)))
+    })
+  }
+  if (data.elements)            pushOp("elements", db.ref("elements").set(data.elements))
+  else                          pushOp("elements", db.ref("elements").remove())
+  if (data.game?.map)           pushOp("game/map", db.ref("game/map").set(data.game.map))
+  if (data.game?.wantedPosters) pushOp("game/wantedPosters", db.ref("game/wantedPosters").set(data.game.wantedPosters))
+  else                          pushOp("game/wantedPosters", db.ref("game/wantedPosters").remove())
+  if (data.game?.wantedOpen)    pushOp("game/wantedOpen", db.ref("game/wantedOpen").set(data.game.wantedOpen))
+  else                          pushOp("game/wantedOpen", db.ref("game/wantedOpen").remove())
+  if (data.game?.runeChallenge) pushOp("game/runeChallenge", db.ref("game/runeChallenge").set(data.game.runeChallenge))
+  else                          pushOp("game/runeChallenge", db.ref("game/runeChallenge").remove())
+  if (data.game?.mapLoreBook)   pushOp("game/mapLoreBook", db.ref("game/mapLoreBook").set(data.game.mapLoreBook))
+  else                          pushOp("game/mapLoreBook", db.ref("game/mapLoreBook").remove())
+  if (data.game?.readLoreBooks) pushOp("game/readLoreBooks", db.ref("game/readLoreBooks").set(data.game.readLoreBooks))
+  else                          pushOp("game/readLoreBooks", db.ref("game/readLoreBooks").remove())
+  if (data.game?.storyImage)    pushOp("game/storyImage", db.ref("game/storyImage").set(data.game.storyImage))
+  else                          pushOp("game/storyImage", db.ref("game/storyImage").remove())
+  if (data.game?.storyImage2)   pushOp("game/storyImage2", db.ref("game/storyImage2").set(data.game.storyImage2))
+  else                          pushOp("game/storyImage2", db.ref("game/storyImage2").remove())
+  if (data.game?.storyImage3)   pushOp("game/storyImage3", db.ref("game/storyImage3").set(data.game.storyImage3))
+  else                          pushOp("game/storyImage3", db.ref("game/storyImage3").remove())
+  pushOp("events/aurora", db.ref("events/aurora").remove())
 
   // Nettoyage
-  ops.push(db.ref("combat").remove())
-  ops.push(db.ref("game/shop").remove())
-  ops.push(db.ref("game/cemeterySpell").remove())
-  ops.push(db.ref("curse/wheel").remove())
-  ops.push(db.ref("game/bifrostFlash").remove())
-  ops.push(db.ref("game/mobAttackEvent").remove())
-  ops.push(db.ref("game/combatState").remove())
-  ops.push(db.ref("game/combatOutcome").remove())
-  ops.push(db.ref("game/playerDeath").remove())
-  ops.push(db.ref("game/playerRevive").remove())
-  ops.push(db.ref("game/playerAllyAccess").remove())
-  ops.push(db.ref("game/playerThuum").remove())
-  ops.push(db.ref("game/playerThuumAccess").remove())
-  ops.push(db.ref("game/thuumCast").remove())
-  ops.push(db.ref("game/thuumUnlockEvent").remove())
-  ops.push(db.ref("game/allyAction").remove())
-  ops.push(db.ref("game/odinVision").remove())
-  ops.push(db.ref("game/powerSound").remove())
-  ops.push(db.ref("game/document").remove())
+  pushOp("combat", db.ref("combat").remove())
+  pushOp("game/shop", db.ref("game/shop").remove())
+  pushOp("game/cemeterySpell", db.ref("game/cemeterySpell").remove())
+  pushOp("curse/wheel", db.ref("curse/wheel").remove())
+  pushOp("game/bifrostFlash", db.ref("game/bifrostFlash").remove())
+  pushOp("game/mobAttackEvent", db.ref("game/mobAttackEvent").remove())
+  pushOp("game/combatState", db.ref("game/combatState").remove())
+  pushOp("game/combatOutcome", db.ref("game/combatOutcome").remove())
+  pushOp("game/playerDeath", db.ref("game/playerDeath").remove())
+  pushOp("game/playerRevive", db.ref("game/playerRevive").remove())
+  pushOp("game/playerAllyAccess", db.ref("game/playerAllyAccess").remove())
+  pushOp("game/playerThuum", db.ref("game/playerThuum").remove())
+  pushOp("game/playerThuumAccess", db.ref("game/playerThuumAccess").remove())
+  pushOp("game/thuumCast", db.ref("game/thuumCast").remove())
+  pushOp("game/thuumUnlockEvent", db.ref("game/thuumUnlockEvent").remove())
+  pushOp("game/allyAction", db.ref("game/allyAction").remove())
+  pushOp("game/odinVision", db.ref("game/odinVision").remove())
+  pushOp("game/powerSound", db.ref("game/powerSound").remove())
+  pushOp("game/document", db.ref("game/document").remove())
 
-  Promise.all(ops).then(callback).catch(e => {
-    console.error("Load error:", e)
-    showNotification("⚠ Erreur au chargement")
+  Promise.allSettled(ops.map(op => op.promise)).then(results => {
+    const failed = results
+      .map((result, idx) => ({ result, label: ops[idx].label }))
+      .filter(entry => entry.result.status === "rejected")
+
+    if (failed.length) {
+      console.error("Load error:", failed)
+      showNotification("⚠ Erreur chargement: " + failed.map(f => f.label).join(", "))
+      return
+    }
+    callback()
   })
 }
 
@@ -3972,13 +4018,20 @@ document.addEventListener("keydown", e => {
     const runeOverlay = document.getElementById("runeChallengeOverlay"); if (runeOverlay) { if (typeof closeRuneChallenge === "function") closeRuneChallenge(); else { runeOverlay.remove(); _state.runeJustOpened = false } return }
     const sheet = document.getElementById("characterSheet"); if (sheet && sheet.style.display !== "none" && sheet.style.display !== "") { closeCharacterSheet(); return }
     const shopOverlay = document.getElementById("shopOverlay"); if (shopOverlay && isGM) { closeShop(); return }
+    const wantedBoard = document.getElementById("wantedBoardOverlay"); if (wantedBoard) { wantedBoard.remove(); return }
+    const wantedOverlay = document.getElementById("wantedOverlay"); if (wantedOverlay) { wantedOverlay.remove(); return }
     const powersPanel = document.getElementById("playerThuumPanel"); if (powersPanel && powersPanel.style.display === "block") { closePlayerPowersPanel(); return }
     const combatHUD = document.getElementById("combatHUD"); if (combatHUD && combatHUD.style.display === "flex") { combatHUD.style.display = "none"; return }
     let anyGMOpen = false
     document.querySelectorAll(".gmSection").forEach(sec => { if (sec.style.display !== "none" && sec.style.display !== "") anyGMOpen = true })
     if (anyGMOpen) { document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" }); return }
     const playerMenu = document.getElementById("playerMenu"); if (playerMenu && playerMenu.classList.contains("open")) { playerMenu.classList.remove("open"); return }
-    if (isGM && closeLastPNJ()) return
+    if (isGM && pnjSlotOrder && pnjSlotOrder.length) {
+      if (typeof hideHighPNJScrollImmediate === "function") hideHighPNJScrollImmediate()
+      db.ref("game/highPNJName").remove()
+      closeLastPNJ()
+      return
+    }
     return
   }
 
