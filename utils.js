@@ -298,39 +298,71 @@ function syncCameraZoomToPlayers() {
 /* AUDIO                     */
 /* ========================= */
 
-function getUserAudioVolume() {
-  const raw = window.__userAudioVolume
+function getUserEffectsVolume() {
+  const raw = window.__userEffectsVolume
   const parsed = typeof raw === "number" ? raw : parseFloat(raw)
   if (Number.isFinite(parsed)) return Math.max(0, Math.min(1, parsed))
   return 0.8
 }
 
-function setUserAudioVolume(volume) {
+function setUserEffectsVolume(volume) {
   const normalized = Math.max(0, Math.min(1, parseFloat(volume)))
-  window.__userAudioVolume = Number.isFinite(normalized) ? normalized : 0.8
-  try { localStorage.setItem("rpg_volume", String(window.__userAudioVolume)) } catch (e) {}
-  return window.__userAudioVolume
+  window.__userEffectsVolume = Number.isFinite(normalized) ? normalized : 0.8
+  try { localStorage.setItem("rpg_effects_volume", String(window.__userEffectsVolume)) } catch (e) {}
+  return window.__userEffectsVolume
 }
 
-function getScaledAudioVolume(volume = 1) {
+function getUserMusicVolume() {
+  const raw = window.__userMusicVolume
+  const parsed = typeof raw === "number" ? raw : parseFloat(raw)
+  if (Number.isFinite(parsed)) return Math.max(0, Math.min(1, parsed))
+  return 0.8
+}
+
+function setUserMusicVolume(volume) {
+  const normalized = Math.max(0, Math.min(1, parseFloat(volume)))
+  window.__userMusicVolume = Number.isFinite(normalized) ? normalized : 0.8
+  try { localStorage.setItem("rpg_music_volume", String(window.__userMusicVolume)) } catch (e) {}
+  return window.__userMusicVolume
+}
+
+function getUserAudioVolume() {
+  return getUserEffectsVolume()
+}
+
+function setUserAudioVolume(volume) {
+  return setUserEffectsVolume(volume)
+}
+
+function getScaledAudioVolume(volume = 1, channel = "effects") {
   const base = Number.isFinite(parseFloat(volume)) ? Math.max(0, Math.min(1, parseFloat(volume))) : 1
-  return Math.max(0, Math.min(1, base * getUserAudioVolume()))
+  const userVolume = channel === "music" ? getUserMusicVolume() : getUserEffectsVolume()
+  return Math.max(0, Math.min(1, base * userVolume))
 }
 
-function setManagedAudioBaseVolume(audio, volume = 1) {
+function setManagedAudioBaseVolume(audio, volume = 1, channel = "effects") {
   if (!audio) return audio
   audio.__baseVolume = Number.isFinite(parseFloat(volume)) ? Math.max(0, Math.min(1, parseFloat(volume))) : 1
-  audio.volume = getScaledAudioVolume(audio.__baseVolume)
+  audio.__audioChannel = channel === "music" ? "music" : "effects"
+  audio.volume = getScaledAudioVolume(audio.__baseVolume, audio.__audioChannel)
   if (!window.__managedAudioInstances) window.__managedAudioInstances = new Set()
   window.__managedAudioInstances.add(audio)
   return audio
 }
 
+function inferAudioChannel(audio) {
+  const id = String(audio?.id || "")
+  if (["music", "musicA", "musicB", "auroraMusic", "forsureMusic", "sortPrisonMusic", "madnessLow", "madnessMid", "madnessHigh", "madnessPeak"].includes(id)) return "music"
+  return "effects"
+}
+
 function syncManagedAudioVolumes() {
   document.querySelectorAll("audio").forEach(s => {
     const base = Number.isFinite(parseFloat(s.__baseVolume)) ? parseFloat(s.__baseVolume) : s.volume
+    const channel = s.__audioChannel || inferAudioChannel(s)
     s.__baseVolume = base
-    s.volume = getScaledAudioVolume(base)
+    s.__audioChannel = channel
+    s.volume = getScaledAudioVolume(base, channel)
   })
   if (!window.__managedAudioInstances) return
   Array.from(window.__managedAudioInstances).forEach(audio => {
@@ -340,8 +372,10 @@ function syncManagedAudioVolumes() {
       return
     }
     const base = Number.isFinite(parseFloat(audio.__baseVolume)) ? parseFloat(audio.__baseVolume) : audio.volume
+    const channel = audio.__audioChannel || inferAudioChannel(audio)
     audio.__baseVolume = base
-    audio.volume = getScaledAudioVolume(base)
+    audio.__audioChannel = channel
+    audio.volume = getScaledAudioVolume(base, channel)
   })
 }
 
@@ -359,7 +393,7 @@ function crossfadeMusic(newMusic) {
   if (!musicA || !musicB) return
 
   const normalizedMusic = /^(https?:|data:|blob:|\/|audio\/)/i.test(newMusic) ? newMusic : "audio/" + newMusic
-  const targetVolume = getUserAudioVolume()
+  const targetVolume = getUserMusicVolume()
 
   const active = currentMusic === "A" ? musicA : musicB
   const activeSrc = active.src ? decodeURIComponent(active.src.replace(/.*\//, "").replace(/%20/g," ")) : ""
@@ -482,7 +516,8 @@ function playSound(id, volume = 0.8) {
   if (!snd) return
   snd.currentTime = 0
   snd.__baseVolume = volume
-  snd.volume = getScaledAudioVolume(volume)
+  snd.__audioChannel = "effects"
+  snd.volume = getScaledAudioVolume(volume, "effects")
   snd.play().catch(() => {})
 }
 
@@ -542,7 +577,7 @@ function tryBark() {
   if (Math.floor(Math.random() * 10) !== 0) return
   lastBarkTime = now
   const bark = document.getElementById("bark")
-  if (bark) { bark.currentTime = 0; bark.__baseVolume = 0.35; bark.volume = getScaledAudioVolume(0.35); bark.play().catch(() => {}) }
+  if (bark) { bark.currentTime = 0; bark.__baseVolume = 0.35; bark.__audioChannel = "effects"; bark.volume = getScaledAudioVolume(0.35, "effects"); bark.play().catch(() => {}) }
   const barks = ["Wouf !", "Rrr !", "Snif !", "Miii !"]
   showBibiSpeech(barks[Math.floor(Math.random() * barks.length)])
 }
@@ -684,19 +719,36 @@ function scanAssets() {
 /* ========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-  const slider = document.getElementById("volumeSlider")
-  if (slider) {
-    let initialVolume = 0.8
-    try {
-      const storedVolume = parseFloat(localStorage.getItem("rpg_volume"))
-      if (Number.isFinite(storedVolume)) initialVolume = Math.max(0, Math.min(1, storedVolume))
-    } catch (e) {}
-    slider.value = String(initialVolume)
-    setUserAudioVolume(initialVolume)
-    syncManagedAudioVolumes()
+  const musicSlider = document.getElementById("musicVolumeSlider")
+  const effectsSlider = document.getElementById("effectsVolumeSlider")
+  let initialMusicVolume = 0.8
+  let initialEffectsVolume = 0.8
+  try {
+    const storedMusicVolume = parseFloat(localStorage.getItem("rpg_music_volume"))
+    const storedEffectsVolume = parseFloat(localStorage.getItem("rpg_effects_volume"))
+    const legacyVolume = parseFloat(localStorage.getItem("rpg_volume"))
+    if (Number.isFinite(storedMusicVolume)) initialMusicVolume = Math.max(0, Math.min(1, storedMusicVolume))
+    else if (Number.isFinite(legacyVolume)) initialMusicVolume = Math.max(0, Math.min(1, legacyVolume))
+    if (Number.isFinite(storedEffectsVolume)) initialEffectsVolume = Math.max(0, Math.min(1, storedEffectsVolume))
+    else if (Number.isFinite(legacyVolume)) initialEffectsVolume = Math.max(0, Math.min(1, legacyVolume))
+  } catch (e) {}
 
-    slider.addEventListener("input", () => {
-      setUserAudioVolume(slider.value)
+  setUserMusicVolume(initialMusicVolume)
+  setUserEffectsVolume(initialEffectsVolume)
+  if (musicSlider) musicSlider.value = String(initialMusicVolume)
+  if (effectsSlider) effectsSlider.value = String(initialEffectsVolume)
+  syncManagedAudioVolumes()
+
+  if (musicSlider) {
+    musicSlider.addEventListener("input", () => {
+      setUserMusicVolume(musicSlider.value)
+      syncManagedAudioVolumes()
+    })
+  }
+
+  if (effectsSlider) {
+    effectsSlider.addEventListener("input", () => {
+      setUserEffectsVolume(effectsSlider.value)
       syncManagedAudioVolumes()
     })
   }

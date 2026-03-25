@@ -2703,7 +2703,9 @@ function ensureMapMusicPlayback(mapName, delay = 0) {
           direct.src = src
           direct.loop = true
           direct.currentTime = 0
-          direct.volume = (typeof getUserAudioVolume === "function") ? getUserAudioVolume() : 0.8
+          direct.__baseVolume = 1
+          direct.__audioChannel = "music"
+          direct.volume = (typeof getUserMusicVolume === "function") ? getUserMusicVolume() : 0.8
           direct.play().catch(() => {})
           currentMusic = "A"
         }, 700)
@@ -2721,7 +2723,9 @@ function playInitialMapMusic(mapName) {
   direct.src = src
   direct.loop = true
   direct.currentTime = 0
-  direct.volume = (typeof getUserAudioVolume === "function") ? getUserAudioVolume() : 0.8
+  direct.__baseVolume = 1
+  direct.__audioChannel = "music"
+  direct.volume = (typeof getUserMusicVolume === "function") ? getUserMusicVolume() : 0.8
   direct.play().catch(() => {})
   currentMusic = "A"
 }
@@ -3622,7 +3626,9 @@ function startIntro() {
     start.style.visibility = "hidden"
     showIntroLayer()
     const music = document.getElementById("music"); music.volume = 0; music.play().catch(() => {})
-    const targetVolume = (typeof getUserAudioVolume === "function") ? getUserAudioVolume() : 0.8
+    music.__baseVolume = 1
+    music.__audioChannel = "music"
+    const targetVolume = (typeof getUserMusicVolume === "function") ? getUserMusicVolume() : 0.8
     let v = 0
     const fade = setInterval(() => { if (v < targetVolume) { v = Math.min(targetVolume, v + 0.05); music.volume = v } else clearInterval(fade) }, 200)
   }, 2000)
