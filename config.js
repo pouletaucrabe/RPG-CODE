@@ -481,6 +481,7 @@ const mobSpecialPresentations = {
   vampire: {
     scene: "vampire",
     sound: "loca.mp3",
+    soundVolume: 0.58,
     image: "lune.png",
     kicker: "Moonlit menace",
     emphasis: "seductive",
@@ -489,6 +490,7 @@ const mobSpecialPresentations = {
   witch: {
     scene: "witch",
     sound: "witch1.mp3",
+    soundVolume: 0.46,
     kicker: "Wicked resonance",
     emphasis: "floating",
     particles: ["💚", "💗", "🫧"]
@@ -496,6 +498,7 @@ const mobSpecialPresentations = {
   draugr: {
     scene: "draugr",
     sound: "draugr.mp3",
+    soundVolume: 0.5,
     kicker: "Crypt rupture",
     emphasis: "scream",
     particles: ["☠", "🪦", "❄"]
@@ -503,6 +506,7 @@ const mobSpecialPresentations = {
   ogre: {
     scene: "ogre",
     sound: "ogre.mp3",
+    soundVolume: 0.56,
     kicker: "Heavy impact",
     emphasis: "slam",
     particles: ["🧅", "💥", "🌫"]
@@ -510,6 +514,7 @@ const mobSpecialPresentations = {
   pretre: {
     scene: "pretre",
     sound: "osana.mp3",
+    soundVolume: 0.52,
     kicker: "Liturgie trouble",
     emphasis: "ritual",
     particles: ["🕯", "✨", "📿"]
@@ -517,6 +522,7 @@ const mobSpecialPresentations = {
   generalmelenchon: {
     scene: "melenchon",
     sound: "melenchon1.mp3",
+    soundVolume: 0.54,
     kicker: "Tribune de guerre",
     emphasis: "speech",
     particles: ["📣", "🔥", "⚡"]
@@ -524,6 +530,7 @@ const mobSpecialPresentations = {
   balraug: {
     scene: "balraug",
     sound: "balrog.mp3",
+    soundVolume: 0.62,
     kicker: "Bridge of fire",
     emphasis: "boss",
     particles: ["🔥", "☄", "🜂"]

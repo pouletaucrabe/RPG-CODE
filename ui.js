@@ -51,6 +51,21 @@ function closeCharacterSheet() {
   if (pendingLevelUp[currentSheetPlayer]) { triggerLevelUp(currentSheetPlayer); pendingLevelUp[currentSheetPlayer] = false }
 }
 
+function forceCloseCharacterSheetWithoutSave() {
+  const sheet = document.getElementById("characterSheet")
+  if (!sheet) return
+  sheet.style.display = "none"
+  sheet.dataset.playerId = ""
+  currentSheetPlayer = null
+  const title = document.getElementById("sheetTitle")
+  if (title) title.innerText = ""
+  const img = document.getElementById("sheetImage")
+  if (img) img.removeAttribute("src")
+  document.querySelectorAll("#characterSheet .sheetField").forEach(f => {
+    if ("value" in f) f.value = ""
+  })
+}
+
 function saveCharacter() {
   if (!myToken && !isGM) return
   if (!isGM && currentSheetPlayer === "bibi" && myToken && myToken.id !== "greg") return

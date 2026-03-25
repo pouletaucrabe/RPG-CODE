@@ -447,11 +447,30 @@ function showPlayerAuthModal() {
   cancelBtn.onclick = closePlayerAuthModal
   row.appendChild(cancelBtn)
 
+  if (auth) {
+    const gmRow = document.createElement("div")
+    gmRow.style.cssText = "margin-top:14px;padding-top:14px;border-top:1px solid rgba(140,170,210,0.2);display:flex;justify-content:center;"
+    box.appendChild(gmRow)
+
+    const gmBtn = document.createElement("button")
+    gmBtn.innerText = "Connexion MJ"
+    gmBtn.style.cssText = "padding:10px 18px;background:linear-gradient(#7a5533,#4b321c);color:#f5e6c8;border:1px solid #caa46b;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
+    gmBtn.onclick = () => {
+      closePlayerAuthModal()
+      setTimeout(() => showGMAuthModal(), 20)
+    }
+    gmRow.appendChild(gmBtn)
+  }
+
   document.body.appendChild(overlay)
   setTimeout(() => email.focus(), 30)
 }
 
 function requestPlayerAuth() {
+  if (window.__authRole === "gm") {
+    activateGM(true)
+    return
+  }
   if (window.__authPlayerId) {
     if (tryAutoSelectAuthenticatedPlayer()) return
     showNotification("Compte joueur déjà connecté : " + window.__authPlayerId.toUpperCase())
@@ -1745,6 +1764,7 @@ db.ref("game/newGame").on("value", snap => {
   if (isGM) return  // le MJ gère lui-même
   if (!gameStarted) return  // pas encore en jeu
   // Réinitialiser l'état local et revenir à l'écran d'intro
+  if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
   gameStarted = false
   window.isNewGame = false
   combatActive = false
@@ -2046,7 +2066,8 @@ function showMobSpecialAttackEvent(data) {
   let sceneAudio = null
   if (presentation && presentation.sound) {
     sceneAudio = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath(presentation.sound) : "audio/" + presentation.sound)
-    setManagedAudioBaseVolume(sceneAudio, 0.82)
+    const specialVolume = Number.isFinite(parseFloat(presentation.soundVolume)) ? parseFloat(presentation.soundVolume) : 0.82
+    setManagedAudioBaseVolume(sceneAudio, specialVolume)
     sceneAudio.play().catch(() => {})
   }
 
@@ -2060,7 +2081,7 @@ function showMobSpecialAttackEvent(data) {
   screenShakeHard()
   if (!scene || ["draugr", "ogre", "melenchon", "balraug"].includes(scene)) screenShakeHard()
   const impactSfx = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("pow.mp3") : "audio/pow.mp3")
-  setManagedAudioBaseVolume(impactSfx, 0.72)
+  setManagedAudioBaseVolume(impactSfx, 0.84)
   impactSfx.play().catch(() => {})
 }
 
@@ -2399,6 +2420,11 @@ db.ref("game/mapAudio").on("value", snap => {
     _musicTransitioning = false; _pendingMusic = null
     if (musicFadeInterval) { clearInterval(musicFadeInterval); musicFadeInterval = null }
     stopAllMusic()
+    if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
+    myToken = null
+    window.myToken = null
+    currentSheetPlayer = null
+    if (window._playerMaxPoids) window._playerMaxPoids = {}
     setTimeout(() => {
       crossfadeMusic("" + data.file + ".mp3")
       _state._pendingMapAudio = false
@@ -2964,16 +2990,35 @@ function newGame() {
       bibi: { x:620, y:340 }
     }
 
+    const criticalWrites = [
+      { label: "game/map", promise: db.ref("game/map").set("taverne.jpg") },
+      { label: "game/groupMadness", promise: db.ref("game/groupMadness").set(0) },
+      { label: "game/worldMapFogTopLeftHidden", promise: db.ref("game/worldMapFogTopLeftHidden").set(false) },
+      { label: "game/newGame", promise: db.ref("game/newGame").set({ time: Date.now() }) }
+    ]
+
+    Object.keys(initChars).forEach(pid => {
+      criticalWrites.push({ label: "characters/" + pid, promise: db.ref("characters/" + pid).set(initChars[pid]) })
+    })
+    Object.keys(initTokens).forEach(pid => {
+      criticalWrites.push({ label: "tokens/" + pid, promise: db.ref("tokens/" + pid).set(initTokens[pid]) })
+    })
+
     // Écrire les données critiques en premier (personnages + map)
     // puis nettoyer le reste en arrière-plan
-    Promise.all([
-      db.ref("characters").set(initChars),
-      db.ref("tokens").set(initTokens),
-      db.ref("game/map").set("taverne.jpg"),
-      db.ref("game/groupMadness").set(0),
-      db.ref("game/worldMapFogTopLeftHidden").set(false),
-      db.ref("game/newGame").set({ time: Date.now() }),
-    ]).then(() => {
+    Promise.allSettled(criticalWrites.map(entry => entry.promise)).then(results => {
+      const failed = results
+        .map((result, idx) => ({ result, label: criticalWrites[idx].label }))
+        .filter(entry => entry.result.status === "rejected")
+
+      if (failed.length) {
+        console.error("newGame reset failed", failed)
+        showNotification("⚠ Reset incomplet: " + failed.map(f => f.label).join(", "))
+        setGameState("MENU")
+        startIntro()
+        return
+      }
+
       // Nettoyage en arrière-plan (non bloquant)
       ;[
         db.ref("elements").remove(),
@@ -3012,11 +3057,6 @@ function newGame() {
 
       showNotification("🆕 Nouvelle partie — Taverne de Rivebois")
       addMJLog("🆕 Nouvelle partie lancée")
-      setGameState("MENU")
-      startIntro()
-    }).catch(() => {
-      // Même si certaines écritures échouent, lancer quand même
-      showNotification("🆕 Nouvelle partie — Taverne de Rivebois")
       setGameState("MENU")
       startIntro()
     })
