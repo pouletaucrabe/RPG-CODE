@@ -881,7 +881,18 @@ function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {
 /* ========================= */
 
 function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"᛫":c==="."?"᛬":c==="'"?"'":c) }).join("") }
-function openRuneChallenge() { if(!isGM) return; _state.runeJustOpened=false; db.ref("game/runeChallenge").set({ active:true, unlockedHints:[], time:Date.now() }); document.querySelectorAll(".gmSection").forEach(s=>s.style.display="none") }
+function openRuneChallenge() {
+  if(!isGM) return
+  _state.runeJustOpened=false
+  const existing = window.activeRuneChallengeData
+  if (existing && existing.active) {
+    renderRuneChallenge(existing)
+    document.querySelectorAll(".gmSection").forEach(s=>s.style.display="none")
+    return
+  }
+  db.ref("game/runeChallenge").set({ active:true, unlockedHints:[], revealedLetters:[], time:Date.now() })
+  document.querySelectorAll(".gmSection").forEach(s=>s.style.display="none")
+}
 function decodeRuneProgress(text, rev) {
   const revealed = rev || []
   return String(text || "").split("").map(c => {
@@ -891,7 +902,17 @@ function decodeRuneProgress(text, rev) {
     return c
   }).join("")
 }
-function closeRuneChallenge() { db.ref("game/runeChallenge").remove(); const ov=document.getElementById("runeChallengeOverlay"); if(ov) ov.remove(); const btn=document.getElementById("playerCodeBtn"); if(btn) btn.remove() }
+function closeRuneChallenge() {
+  const ov=document.getElementById("runeChallengeOverlay")
+  if(ov) ov.remove()
+  _state.runeJustOpened = false
+}
+function endRuneChallenge() {
+  db.ref("game/runeChallenge").remove()
+  closeRuneChallenge()
+  const btn=document.getElementById("playerCodeBtn")
+  if(btn) btn.remove()
+}
 function toggleRuneOverlay(data) { const ov=document.getElementById("runeChallengeOverlay"); if(ov) ov.remove(); else renderRuneChallenge(data) }
 function updateRuneMenuBtn(active) { const l=document.getElementById("runeLaunchBtn"),c=document.getElementById("runeContinueBtn"); if(!l) return; if(active){ l.style.display="none"; if(c) c.style.display="block" } else { l.style.display="block"; if(c) c.style.display="none"; _state.runeJustOpened=false } }
 
@@ -1403,7 +1424,8 @@ function buildWantedBoardContent(container, posters) {
 
 function openWantedBoard() {
   const existing=document.getElementById("wantedBoardOverlay")
-  if (existing) { existing.remove(); return }
+  if (existing) { closeWantedBoard(); return }
+  document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" })
   const bell = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("cloche.mp3") : "audio/cloche.mp3")
   setManagedAudioBaseVolume(bell, 0.78, "effects")
   bell.play().catch(() => {})
@@ -1418,7 +1440,7 @@ function openWantedBoard() {
   close.type="button"
   close.style.cssText="display:block;margin:0 0 14px auto;padding:6px 12px;background:rgba(80,20,0,0.55);color:#ffb0a0;border:1px solid rgba(180,60,20,0.45);border-radius:6px;cursor:pointer;font-family:Cinzel,serif;"
   close.innerText="Fermer"
-  close.onclick=()=>overlay.remove()
+  close.onclick=()=>closeWantedBoard()
   panel.appendChild(close)
   const content=document.createElement("div")
   content.id="wantedBoardContent"
@@ -1434,6 +1456,11 @@ function openWantedBoard() {
       buildWantedBoardContent(content, Object.values(data).filter(Boolean))
     })
   }
+}
+
+function closeWantedBoard() {
+  const overlay = document.getElementById("wantedBoardOverlay")
+  if (overlay) overlay.remove()
 }
 function toggleWantedDropdown(el) { const dd=document.getElementById("wantedMobDropdown"); if(!dd) return; if(dd.style.display!=="none"){ dd.style.display="none"; return }; if(!dd.dataset.built){ dd.dataset.built="1"; const em=document.createElement("div"); em.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(180,120,60);cursor:pointer;"; em.innerText="— Choisir un mob —"; em.onmousedown=e=>{ e.stopPropagation(); selectWantedMob("","— Choisir un mob —") }; dd.appendChild(em); WANTED_MOBS.forEach(m=>{ const it=document.createElement("div"); it.style.cssText="padding:5px 10px;font-family:Cinzel,serif;font-size:11px;color:rgb(255,200,120);cursor:pointer;"; it.innerText=m.charAt(0).toUpperCase()+m.slice(1); it.onmousedown=e=>{ e.stopPropagation(); selectWantedMob(m,it.innerText) }; it.onmouseenter=()=>it.style.background="rgb(60,35,5)"; it.onmouseleave=()=>it.style.background=""; dd.appendChild(it) }) }; const r=el.getBoundingClientRect(); dd.style.position="fixed"; dd.style.top=(r.bottom+2)+"px"; dd.style.left=r.left+"px"; dd.style.width=r.width+"px"; dd.style.display="block" }
 function selectWantedMob(val, lbl) { const btn=document.getElementById("wantedMobBtn"); if(btn){ btn.innerText=lbl; btn.dataset.value=val }; const dd=document.getElementById("wantedMobDropdown"); if(dd) dd.style.display="none" }
