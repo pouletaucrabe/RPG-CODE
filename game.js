@@ -2411,10 +2411,8 @@ db.ref("game/playerAllyAccess").on("value", snap => {
   if (isGM) return
   const data = snap.val()
   window.playerAllyAccessData = data || null
-  const btn = document.getElementById("playerAllyBtn")
   const existing = document.getElementById("allyViewerPanel")
 
-  if (btn) btn.style.display = "none"
   if (!data && existing) existing.remove()
   updateThuumButton()
 })
@@ -3627,8 +3625,6 @@ function startGame() {
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     updateMadnessVisibility()
-    const playerAllyBtn = document.getElementById("playerAllyBtn")
-    if (playerAllyBtn) playerAllyBtn.style.display = "none"
     const playerThuumBtn = document.getElementById("playerThuumBtn")
     if (playerThuumBtn) playerThuumBtn.style.display = "none"
   stopMenuSparks()
