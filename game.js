@@ -2406,7 +2406,35 @@ function setTokenStateBadges(tokenId, badges) {
   })
 }
 
+function clearCombatTokenStateVisuals() {
+  ;["greg","ju","elo","bibi","mobToken","eloSummonToken"].forEach(id => {
+    const token = document.getElementById(id)
+    if (!token) return
+    token.classList.remove("token--active-turn", "token--aggro", "token--marked")
+    const badges = token.querySelector(".tokenStateBadges")
+    if (badges) badges.innerHTML = ""
+  })
+}
+
+function resetLocalCombatVisualState() {
+  window.__combatTurnState = null
+  window.__combatYuAggroState = null
+  window.__combatSpiderSenseBuffState = null
+  window.__combatBibiRageState = null
+  window.__combatAttackMalusState = null
+  window.__combatPlayerPoisonState = null
+  window.__combatPlayerBleedState = null
+  window.__eloSummonState = null
+  if (typeof clearCombatTokenStateVisuals === "function") clearCombatTokenStateVisuals()
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+}
+
 function updateCombatTokenStateVisuals() {
+  if (!combatActive) {
+    clearCombatTokenStateVisuals()
+    return
+  }
+
   const activeActorId = (typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null) || ""
   ;["greg","ju","elo","bibi","mobToken","eloSummonToken"].forEach(id => {
     const token = document.getElementById(id)
@@ -3288,6 +3316,7 @@ function loadGame() {
     _applyLoadData(data, () => {
     combatActive = false
     combatStarting = false
+    resetLocalCombatVisualState()
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     db.ref("events/aurora").remove()
@@ -3328,6 +3357,7 @@ function loadSave(saveName) {
     _applyLoadData(data, () => {
     combatActive = false
     combatStarting = false
+    resetLocalCombatVisualState()
     resetMadnessPresentation()
     if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     ;[
@@ -3623,6 +3653,16 @@ function toggleDiceBar(forceState) {
   bar.classList.toggle("collapsed", collapsed)
   toggle.innerText = collapsed ? "▴" : "▾"
   toggle.setAttribute("aria-label", collapsed ? "Déplier les dés" : "Replier les dés")
+}
+
+function toggleGMDamageControls(forceState) {
+  const panel = document.getElementById("gmDamagePanel")
+  const toggle = document.getElementById("gmDamageToggle")
+  if (!panel || !toggle) return
+  const collapsed = typeof forceState === "boolean" ? forceState : !panel.classList.contains("collapsed")
+  panel.classList.toggle("collapsed", collapsed)
+  toggle.innerText = collapsed ? "◀" : "▼"
+  toggle.setAttribute("aria-label", collapsed ? "Afficher les contrÃ´les du combat" : "Masquer les contrÃ´les du combat")
 }
 
 function initGMCombatPanelsDrag() {

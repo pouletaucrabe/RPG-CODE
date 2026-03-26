@@ -703,6 +703,7 @@
   <img id="combatHUDPortrait">
   <div id="combatHUDInfo">
     <div id="combatHUDName"></div>
+    <div id="combatHUDMeta"></div>
     <div id="combatHUDAttacks"></div>
   </div>
 </div>
@@ -711,10 +712,14 @@
 
 <div id="gmDamagePanel">
   <div id="gmDamagePanelInner">
+    <div id="gmDamageTopRow">
     <div id="mobHPDisplay">
       <div id="mobHPBarTop"><span id="mobHPTopText">— / —</span></div>
       <div id="mobHPBarTopContainer"><div id="mobHPBarTop"></div></div>
     </div>
+      <button id="gmDamageToggle" type="button" onclick="toggleGMDamageControls()" aria-label="Afficher ou masquer les contrôles">▼</button>
+    </div>
+    <div id="gmDamageControls">
     <div id="gmDamageRow">
       <label>Dégâts :</label>
       <input id="mobDamageInput" type="number" placeholder="0">
@@ -722,6 +727,7 @@
     <div id="gmCombatButtons">
       <button id="btnVictoire" onclick="showVictory()">⚔ VICTOIRE</button>
       <button id="btnDefaite"  onclick="showDefeat()">💀 DÉFAITE</button>
+    </div>
     </div>
   </div>
 </div>

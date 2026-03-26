@@ -1827,52 +1827,105 @@ html, body {
   position: fixed; bottom: 20px; left: 20px;
   display: none;
   flex-direction: column;
-  background: var(--panel-bg);
-  background-image: linear-gradient(rgba(6,14,18,0.66), rgba(6,14,18,0.78)), url('images/combat_panel.png');
-  background-size: cover;
-  background-position: center;
-  border: 1px solid var(--teal-border);
-  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 32px rgba(0,0,0,0.82), inset 0 0 26px rgba(214,164,90,0.08);
-  padding: 14px; width: 280px;
+  background: linear-gradient(180deg, rgba(8,14,18,0.06), rgba(8,14,18,0.14)), url('images/menuintro.png?v=2') center/100% 100% no-repeat !important;
+  border: none;
+  box-shadow: none;
+  padding: 16px 20px 18px; width: 392px;
   max-height: min(72vh, 760px);
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-gutter: stable;
   font-family: var(--font-body); color: var(--cream);
   z-index: 99999999; gap: 12px;
-  border-radius: 3px;
-  backdrop-filter: blur(2px);
+  border-radius: 0;
+  backdrop-filter: none;
 }
 
 /* Ligne décorative haut */
 #combatHUD::before {
   content: "";
-  position: absolute; top: 0; left: 10%; right: 10%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--teal-border), transparent);
+  display: none;
 }
 
 #combatHUDPortrait {
-  width: 64px; height: 64px; border-radius: 50%;
-  border: 2px solid var(--teal-border);
-  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 10px rgba(30,140,160,0.4);
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 2px solid rgba(107, 165, 173, 0.7);
+  box-shadow: 0 0 0 2px rgba(201,159,88,0.24), 0 0 18px rgba(30,140,160,0.3);
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.14), rgba(0,0,0,0.12));
+  align-self: center;
 }
 
 #combatHUDName {
-  font-size: 16px; margin-bottom: 6px;
-  color: rgba(30,200,220,0.9); letter-spacing: 2px;
+  font-family: Cinzel, serif;
+  font-size: 18px; margin-bottom: 4px;
+  color: #f1ddb2; letter-spacing: 2.5px;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6), 0 0 10px rgba(214,164,90,0.18);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(201,159,88,0.22);
 }
 
 #combatHUDInfo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-height: 0;
+  margin-left: 26px;
+  width: calc(100% - 34px);
+}
+
+#combatHUDMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.combatHUDMetaPill {
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(104, 144, 162, 0.35);
+  background: linear-gradient(180deg, rgba(12,26,34,0.96), rgba(8,16,22,0.96));
+  color: #d6e6ef;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.02);
+}
+
+.combatHUDMetaPill--turn {
+  border-color: rgba(214,164,90,0.48);
+  color: #ffe0a8;
+}
+
+.combatHUDMetaPill--preview {
+  border-color: rgba(162,116,217,0.5);
+  color: #efd7ff;
+}
+
+#combatHUDAttacks::before {
+  content: "Techniques";
+  display: block;
+  margin-bottom: 2px;
+  color: rgba(214,164,90,0.88);
+  font-family: Cinzel, serif;
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
 }
 
 #combatHUDAttacks {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 8px;
   min-height: 0;
+  width: 84%;
+  max-height: 330px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
 }
 
 #combatStatusPanel {
@@ -1883,12 +1936,12 @@ html, body {
   max-height: 52vh;
   overflow-y: auto;
   z-index: 9999997;
-  padding: 12px 12px 10px;
-  border: 1px solid rgba(201,159,88,0.38);
-  border-radius: 10px;
-  background: linear-gradient(180deg, rgba(8,16,22,0.94), rgba(6,10,14,0.94));
-  box-shadow: 0 0 26px rgba(0,0,0,0.55), inset 0 0 18px rgba(255,255,255,0.03);
-  backdrop-filter: blur(3px);
+  padding: 13px 13px 11px;
+  border: 1px solid rgba(201,159,88,0.3);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(8,16,22,0.94), rgba(6,10,14,0.95)), url('images/combat_panel.png') center/cover no-repeat;
+  box-shadow: 0 18px 42px rgba(0,0,0,0.45), inset 0 0 18px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,226,178,0.06);
+  backdrop-filter: blur(4px);
 }
 
 #combatStatusPanel::before {
@@ -1929,10 +1982,11 @@ html, body {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 9px 10px;
-  border: 1px solid rgba(70,110,130,0.24);
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(12,24,30,0.9), rgba(8,16,22,0.95));
+  padding: 10px 11px;
+  border: 1px solid rgba(70,110,130,0.18);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(12,24,30,0.82), rgba(8,16,22,0.92));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .combatStatusItem--warn {
@@ -2075,11 +2129,27 @@ html, body {
 
 /* Blocs attaque — TALES style */
 .combatBlock {
-  background: linear-gradient(135deg, rgba(10,24,30,0.84), rgba(9,17,22,0.9));
-  border: 1px solid rgba(170,132,76,0.28);
-  border-radius: 2px; padding: 10px 12px;
+  position: relative;
+  background: linear-gradient(135deg, rgba(10,24,30,0.9), rgba(7,14,19,0.94)), url('images/combat_panel.png') center/cover no-repeat;
+  border: 1px solid rgba(170,132,76,0.22);
+  border-radius: 12px; padding: 10px 12px 9px;
   margin-bottom: 6px;
-  box-shadow: inset 0 0 18px rgba(255,215,140,0.03);
+  box-shadow: inset 0 0 18px rgba(255,215,140,0.03), 0 8px 18px rgba(0,0,0,0.18);
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: fit-content;
+}
+
+.combatBlock::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(214,164,90,0.58), transparent);
 }
 
 .combatAttackHead {
@@ -2096,8 +2166,8 @@ html, body {
 
 .combatBlock--action:hover {
   transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), 0 0 20px rgba(221, 170, 86, 0.12);
-  border-color: rgba(226, 185, 96, 0.5);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32), 0 0 20px rgba(221, 170, 86, 0.14);
+  border-color: rgba(226, 185, 96, 0.42);
   filter: brightness(1.06);
 }
 
@@ -2106,8 +2176,8 @@ html, body {
 }
 
 .combatBlock--special {
-  border-color: rgba(226, 185, 96, 0.58);
-  box-shadow: 0 0 20px rgba(214, 164, 90, 0.14), inset 0 0 18px rgba(255, 214, 124, 0.03);
+  border-color: rgba(226, 185, 96, 0.52);
+  box-shadow: 0 0 20px rgba(214, 164, 90, 0.12), inset 0 0 18px rgba(255, 214, 124, 0.03);
 }
 
 .combatBlock--spent {
@@ -2247,15 +2317,16 @@ html, body {
 }
 
 .combatAttack {
-  font-family: 'Uncial Antiqua', serif;
-  font-size: 18px; color: rgba(30,200,220,0.9); margin-bottom: 4px;
-  text-shadow: 0 0 6px rgba(30,180,200,0.4);
+  font-family: Cinzel, serif;
+  font-size: 15px; color: #f0d7a4; margin-bottom: 3px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5);
 }
 
-.attackLine { font-size: 12px; margin-bottom: 2px; color: var(--cream-dim); }
-.attackLabel { color: rgba(30,180,200,0.7); font-weight: bold; font-size: 11px; }
-.attackDice  { color: #ff6060; font-weight: bold; }
-.attackStat  { color: rgba(30,200,220,0.9); font-weight: bold; }
+.attackLine { display: block; font-size: 11px; margin-bottom: 3px; color: rgba(233, 222, 196, 0.78); line-height: 1.32; white-space: normal; }
+.combatBlock .attackLine { display: block !important; }
+.attackLabel { color: rgba(97,196,206,0.86); font-weight: bold; font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; }
+.attackDice  { color: #ffcb77; font-weight: bold; text-shadow: 0 0 10px rgba(255,180,60,0.14); }
+.attackStat  { color: rgba(111,215,226,0.95); font-weight: bold; }
 
 /* ========================= */
 /* COMBAT — PANEL DÉGÂTS MJ  */
@@ -2264,33 +2335,72 @@ html, body {
 #gmDamagePanel {
   display: none; position: fixed; top: 10px;
   left: 50%; transform: translateX(-50%);
-  background: var(--panel-bg);
-  background-image: linear-gradient(rgba(6,14,18,0.62), rgba(6,14,18,0.76)), url('images/combat_panel.png');
-  background-size: cover;
-  background-position: center;
-  border: 1px solid var(--teal-border);
-  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 34px rgba(0,0,0,0.9), inset 0 0 24px rgba(214,164,90,0.06);
-  padding: 12px 16px; border-radius: 3px;
-  z-index: 9999999; pointer-events: auto; min-width: 300px;
-  backdrop-filter: blur(2px);
+  background: transparent;
+  background-image: none;
+  border: none;
+  box-shadow: none;
+  padding: 0; border-radius: 0;
+  z-index: 9999999; pointer-events: auto; min-width: 372px;
+  backdrop-filter: none;
 }
 
 /* Ligne haut ornementale */
 #gmDamagePanel::before {
   content: "";
-  position: absolute; top: 0; left: 10%; right: 10%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--teal-border), transparent);
+  display: none;
 }
 
-#gmDamagePanelInner { display: flex; flex-direction: column; gap: 8px; }
+#gmDamagePanelInner { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+
+#gmDamageTopRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 #mobHPDisplay {
   text-align: center;
-  font-family: var(--font-body); color: var(--cream); font-size: 13px;
+  font-family: var(--font-body); color: var(--cream); font-size: 14px;
   background: url('images/nameplate_enemy.png') center/100% 100% no-repeat;
-  min-height: 32px;
-  padding: 5px 16px 8px;
-  margin-bottom: 2px;
+  min-height: 48px;
+  padding: 10px 24px 12px;
+  margin-bottom: 4px;
+  letter-spacing: 0.6px;
+}
+
+#gmDamageToggle {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(201,159,88,0.3);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(8,16,22,0.95), rgba(4,10,14,0.98));
+  color: #f2d7a6;
+  font-family: Cinzel, serif;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(0,0,0,0.24);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+#gmDamageToggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(230,190,110,0.52);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.28);
+}
+
+#gmDamagePanel.collapsed #gmDamageToggle {
+  transform: rotate(-90deg);
+}
+
+#gmDamageControls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+#gmDamagePanel.collapsed #gmDamageControls {
+  display: none;
 }
 
 /* Barre HP mob — style TALES : verte dégressive */
@@ -2312,24 +2422,31 @@ html, body {
 
 #gmDamageRow {
   display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-body); color: var(--cream); font-size: 13px;
+  justify-content: center;
+  font-family: var(--font-body); color: var(--cream); font-size: 15px;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-width: 0;
 }
 
 #mobDamageInput {
-  width: 70px; text-align: center;
-  font-family: var(--font-body); font-size: 16px;
+  width: 84px; text-align: center;
+  font-family: var(--font-body); font-size: 20px;
   background: rgba(5,15,20,0.9); color: var(--cream);
-  border: 1px solid var(--teal-border); border-radius: 2px; padding: 4px;
+  border: 1px solid rgba(201,159,88,0.26); border-radius: 8px; padding: 6px;
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.35);
 }
 
-#gmCombatButtons { display: flex; gap: 8px; justify-content: center; }
+#gmCombatButtons { display: flex; gap: 10px; justify-content: center; background: transparent; padding: 0; border-radius: 0; box-shadow: none; }
 
 #btnVictoire {
   background: linear-gradient(rgba(15,60,25,0.95), rgba(8,35,15,0.98));
   color: var(--gold);
   border: 1px solid rgba(50,180,80,0.6);
-  border-radius: 2px; padding: 8px 16px;
-  font-family: var(--font-body); font-size: 13px; cursor: pointer;
+  border-radius: 10px; padding: 9px 18px;
+  font-family: var(--font-body); font-size: 14px; cursor: pointer;
   transition: 0.2s; letter-spacing: 1px;
 }
 
@@ -2343,8 +2460,8 @@ html, body {
   background: linear-gradient(rgba(60,10,10,0.95), rgba(35,5,5,0.98));
   color: #ff7070;
   border: 1px solid rgba(180,40,40,0.6);
-  border-radius: 2px; padding: 8px 16px;
-  font-family: var(--font-body); font-size: 13px; cursor: pointer;
+  border-radius: 10px; padding: 9px 18px;
+  font-family: var(--font-body); font-size: 14px; cursor: pointer;
   transition: 0.2s; letter-spacing: 1px;
 }
 
@@ -2361,15 +2478,18 @@ html, body {
 #gmCombatPanel {
   position: fixed; top: 20px; left: 20px;
   background: var(--panel-bg);
-  background-image: linear-gradient(rgba(6,14,18,0.62), rgba(6,14,18,0.76)), url('images/combat_panel.png');
+  background-image: linear-gradient(180deg, rgba(6,14,18,0.56), rgba(6,14,18,0.82)), radial-gradient(circle at top, rgba(73,188,194,0.14), transparent 36%), url('images/combat_panel.png');
   background-size: cover;
   background-position: center;
-  border: 1px solid var(--teal-border);
-  box-shadow: 0 0 0 1px var(--gold-dim), 0 0 28px rgba(0,0,0,0.82), inset 0 0 24px rgba(214,164,90,0.05);
-  padding: 10px; border-radius: 3px;
+  border: 1px solid rgba(103,160,170,0.36);
+  box-shadow: 0 0 0 1px rgba(201,159,88,0.18), 0 14px 36px rgba(0,0,0,0.48), inset 0 0 24px rgba(214,164,90,0.05);
+  padding: 12px; border-radius: 14px;
   z-index: 999999; pointer-events: auto;
   display: none; flex-direction: column; gap: 8px;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
+  max-height: 78vh;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .gmCombatRow {
@@ -2379,11 +2499,13 @@ html, body {
 }
 
 .gmAttackButton {
+  min-width: 92px;
   background: linear-gradient(135deg, rgba(10,40,50,0.9), rgba(5,22,30,0.95));
   color: var(--cream);
   border: 1px solid rgba(30,90,102,0.5);
-  border-radius: 2px; padding: 8px 14px;
+  border-radius: 10px; padding: 9px 14px;
   font-family: var(--font-body); cursor: pointer; transition: 0.15s;
+  letter-spacing: 1px;
 }
 
 .gmAttackButton:hover {
@@ -2398,7 +2520,7 @@ html, body {
   background: linear-gradient(135deg, rgba(65,38,10,0.92), rgba(36,18,6,0.96));
   color: #f2d7a6;
   border: 1px solid rgba(214,164,90,0.42);
-  border-radius: 2px;
+  border-radius: 10px;
   padding: 8px 12px;
   font-family: var(--font-body);
   cursor: pointer;
@@ -2426,8 +2548,11 @@ html, body {
   background-position: center;
   border: 1px solid var(--teal-border);
   box-shadow: 0 0 0 1px var(--gold-dim);
-  border-radius: 3px; padding: 10px;
+  border-radius: 12px; padding: 10px;
   font-family: var(--font-body); font-size: 13px; color: var(--cream);
+  max-height: 62vh;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .gmMiniSheet:active { cursor: grabbing; }
@@ -2469,7 +2594,35 @@ html, body {
 
 .gmMiniSheet:hover {
   border-color: rgba(30,180,200,0.7);
-  box-shadow: 0 0 12px rgba(30,160,180,0.3);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.24), 0 0 12px rgba(30,160,180,0.2);
+}
+
+.combatCompanionDivider {
+  margin: 6px 0 2px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(201,159,88,0.18);
+  color: rgba(214,164,90,0.82);
+  font-family: Cinzel, serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+#combatInitiativeToggle {
+  position: fixed;
+  right: 22px;
+  top: 88px;
+  z-index: 999999996;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(214,164,90,0.4);
+  background: linear-gradient(180deg, rgba(12,24,30,0.94), rgba(6,12,18,0.94));
+  color: #f3ddb0;
+  font-family: Cinzel, serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.28);
 }
 
 /* ========================= */

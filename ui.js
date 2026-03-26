@@ -295,6 +295,7 @@ function populateAttackBlock(block, attack) {
   appendAttackDiceLine(block, attack.dice, attack.stat)
   appendAttackLine(block, "Effet", attack.effect)
   appendAttackLine(block, "Crit", attack.crit)
+  if (attack.condition) appendAttackLine(block, "Condition", attack.condition)
 }
 
 function getAttackStatKey(statLabel) {
@@ -471,8 +472,8 @@ function getPlayerAttackPower(attack, roll, statValue) {
 }
 
 function getCombatHUDPlayerId() {
-  if (myToken && myToken.id) return myToken.id
   if (isGM && window.__combatPreviewPlayerId) return window.__combatPreviewPlayerId
+  if (myToken && myToken.id) return myToken.id
   return null
 }
 
@@ -1272,8 +1273,29 @@ function showCombatHUD() {
   if (!player) return
   const playerAttacks = attacks[player]
   const specialAttack = getPlayerSpecialAttack(player)
+  const currentActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
+  const meta = document.getElementById("combatHUDMeta")
   document.getElementById("combatHUDPortrait").src   = "images/" + player + ".png"
   document.getElementById("combatHUDName").innerText  = player.toUpperCase()
+  if (meta) {
+    meta.replaceChildren()
+    const rolePill = document.createElement("div")
+    rolePill.className = "combatHUDMetaPill"
+    rolePill.innerText = isGM && window.__combatPreviewPlayerId ? "Aperçu MJ" : "Combattant"
+    meta.appendChild(rolePill)
+
+    const turnPill = document.createElement("div")
+    turnPill.className = "combatHUDMetaPill combatHUDMetaPill--turn"
+    turnPill.innerText = currentActorId === player ? "Tour actif" : ("Tour : " + String(currentActorId || "—").toUpperCase())
+    meta.appendChild(turnPill)
+
+    if (isGM && window.__combatPreviewPlayerId) {
+      const previewPill = document.createElement("div")
+      previewPill.className = "combatHUDMetaPill combatHUDMetaPill--preview"
+      previewPill.innerText = "Test MJ"
+      meta.appendChild(previewPill)
+    }
+  }
   const box = document.getElementById("combatHUDAttacks"); box.innerHTML = ""
   if (playerAttacks) playerAttacks.forEach(a => {
     const block = document.createElement("div"); block.className = "combatBlock"
@@ -1479,11 +1501,11 @@ function renderAllMobPanels() {
   const active = MOB_SLOTS.filter(s => activeMobSlots[s]); if (!active.length || !combatActive) return
 
   const toggle = document.createElement("div"); toggle.id = "mobAttackToggle"
-  toggle.style.cssText = "position:fixed;bottom:160px;right:20px;z-index:9999999;font-family:Cinzel,serif;font-size:11px;color:#ff8888;background:rgba(10,0,0,0.9);border:1px solid rgba(180,40,40,0.5);border-radius:4px;padding:4px 10px;cursor:pointer;"
+  toggle.style.cssText = "position:fixed;bottom:160px;right:20px;z-index:9999999;font-family:Cinzel,serif;font-size:12px;color:#f0d7a4;background:linear-gradient(180deg,rgba(48,12,12,0.95),rgba(18,4,4,0.96));border:1px solid rgba(180,40,40,0.45);border-radius:999px;padding:8px 14px;cursor:pointer;letter-spacing:1px;box-shadow:0 12px 22px rgba(0,0,0,0.24);"
   toggle.innerText = "Attaques des ennemis"
 
   const container = document.createElement("div"); container.id = "mobAttackPanel"
-  container.style.cssText = "position:fixed;bottom:200px;right:20px;width:270px;display:flex;flex-direction:column;gap:6px;z-index:9999999;max-height:65vh;overflow-y:auto;"
+  container.style.cssText = "position:fixed;bottom:208px;right:20px;width:320px;display:flex;flex-direction:column;gap:10px;z-index:9999999;max-height:70vh;overflow-y:auto;padding:4px;"
 
   // Grab & drop pour le MJ
   if (isGM) {
@@ -1510,7 +1532,7 @@ function renderAllMobPanels() {
 }
 
 function buildMobSubPanel(mobData, slot) {
-  const panel = document.createElement("div"); panel.style.cssText = "background:rgba(10,0,0,0.92);border:2px solid rgba(180,40,40,0.6);border-radius:8px;padding:10px;"
+  const panel = document.createElement("div"); panel.style.cssText = "background:url('images/mobpanel.png') center/100% 100% no-repeat;border:1px solid rgba(201,159,88,0.18);border-radius:14px;padding:12px;box-shadow:0 18px 30px rgba(0,0,0,0.22);"
   const header = document.createElement("div"); header.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
   const titleWrap = document.createElement("div"); titleWrap.style.cssText = "display:flex;align-items:center;gap:8px;min-width:0;"
   const portrait = document.createElement("img"); portrait.src = "images/" + sanitizeAssetName((mobData.name || "gobelins") + ".png"); portrait.style.cssText = "width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45));"; portrait.onerror = () => portrait.style.display = "none"; titleWrap.appendChild(portrait)
@@ -1643,6 +1665,10 @@ function buildMobSubPanel(mobData, slot) {
       line.appendChild(name)
       line.appendChild(dmg)
       row.appendChild(line)
+      const desc = document.createElement("div")
+      desc.style.cssText = "margin-top:4px;font-size:9px;line-height:1.35;color:#d3b8a0;"
+      desc.innerText = atk.flavor || atk.effect || "Attaque ennemie."
+      row.appendChild(desc)
       panel.appendChild(row)
     })
     if (specialAtk) {
@@ -1662,6 +1688,10 @@ function buildMobSubPanel(mobData, slot) {
       sLine.appendChild(sName)
       sLine.appendChild(sState)
       sRow.appendChild(sLine)
+      const sDesc = document.createElement("div")
+      sDesc.style.cssText = `margin-top:4px;font-size:9px;line-height:1.35;color:${specialUsed?"#b79f96":"#e2c6a2"};`
+      sDesc.innerText = specialAtk.flavor || specialAtk.effect || "Attaque signature à usage unique."
+      sRow.appendChild(sDesc)
       panel.appendChild(sRow)
     }
   }

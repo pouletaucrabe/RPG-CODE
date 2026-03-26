@@ -166,7 +166,7 @@ function renderCombatInitiativeToggle(state) {
 
   const btn = document.createElement("button")
   btn.id = "combatInitiativeToggle"
-  btn.style.cssText = "position:fixed;top:88px;right:22px;z-index:999999996;padding:10px 14px;font-family:Cinzel,serif;font-size:12px;letter-spacing:0.6px;background:linear-gradient(#6a4b1b,#342109);color:#ffe8bb;border:1px solid rgba(212,168,91,0.55);border-radius:10px;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,0.35);"
+  btn.style.cssText = "position:fixed;top:88px;right:22px;z-index:999999996;padding:10px 14px;font-family:Cinzel,serif;font-size:12px;letter-spacing:0.8px;background:linear-gradient(180deg,rgba(12,24,30,0.94),rgba(6,12,18,0.94));color:#f3ddb0;border:1px solid rgba(214,164,90,0.4);border-radius:999px;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,0.28);"
   btn.innerText = state.phase === "rolling" ? "Réouvrir les dés" : "Réouvrir l'ordre"
   btn.onclick = () => {
     window.__combatInitiativeHidden = false
@@ -188,10 +188,10 @@ function renderCombatInitiativeOverlay(state) {
 
   const overlay = document.createElement("div")
   overlay.id = "combatInitiativeOverlay"
-  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;z-index:999999995;"
+  overlay.style.cssText = "position:fixed;inset:0;background:radial-gradient(circle at center, rgba(6,14,22,0.68), rgba(0,0,0,0.9));display:flex;align-items:center;justify-content:center;z-index:999999995;backdrop-filter:blur(5px);"
 
   const box = document.createElement("div")
-  box.style.cssText = "width:min(920px,92vw);max-height:84vh;overflow:auto;padding:22px 24px;background:linear-gradient(180deg,rgba(10,16,22,0.98),rgba(6,8,12,0.98));border:1px solid rgba(201,159,88,0.5);border-radius:14px;box-shadow:0 0 40px rgba(0,0,0,0.8);font-family:Cinzel,serif;color:#f2dfbc;"
+  box.style.cssText = "width:min(980px,92vw);max-height:84vh;overflow:auto;padding:22px 24px;background:linear-gradient(180deg,rgba(10,16,22,0.94),rgba(6,8,12,0.96)), url('images/combat_panel.png') center/cover no-repeat;border:1px solid rgba(201,159,88,0.4);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,226,178,0.08);font-family:Cinzel,serif;color:#f2dfbc;"
 
   const topBar = document.createElement("div")
   topBar.style.cssText = "display:flex;justify-content:flex-end;margin-bottom:6px;"
@@ -207,19 +207,19 @@ function renderCombatInitiativeOverlay(state) {
   box.appendChild(topBar)
 
   const title = document.createElement("div")
-  title.style.cssText = "text-align:center;font-size:28px;letter-spacing:4px;color:#f3d59a;margin-bottom:8px;"
+  title.style.cssText = "text-align:center;font-size:34px;letter-spacing:5px;color:#f3d59a;margin-bottom:8px;text-shadow:0 2px 0 rgba(0,0,0,0.4),0 0 18px rgba(214,164,90,0.12);"
   title.innerText = state.phase === "rolling" ? "Initiative du Combat" : "Ordre du Combat"
   box.appendChild(title)
 
   const sub = document.createElement("div")
-  sub.style.cssText = "text-align:center;font-size:13px;color:#c7b088;margin-bottom:18px;"
+  sub.style.cssText = "text-align:center;font-size:14px;color:#c7b088;margin-bottom:20px;letter-spacing:0.5px;"
   sub.innerText = state.phase === "rolling"
     ? "Chaque combattant lance un D12. Le MJ lance pour les mobs."
     : "Round " + (state.round || 1) + " — tour actuel : " + String(state.currentActorId || "").toUpperCase()
   box.appendChild(sub)
 
   const grid = document.createElement("div")
-  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;"
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(164px,1fr));gap:14px;"
   box.appendChild(grid)
 
   const entries = state.phase === "active"
@@ -229,16 +229,16 @@ function renderCombatInitiativeOverlay(state) {
   entries.forEach((entry, idx) => {
     const card = document.createElement("div")
     const isCurrent = state.phase === "active" && String(state.currentActorId || "") === String(entry.id || "")
-    card.style.cssText = "padding:12px;border:1px solid " + (isCurrent ? "rgba(255,215,130,0.75)" : "rgba(80,120,150,0.28)") + ";border-radius:10px;background:" + (isCurrent ? "linear-gradient(180deg,rgba(72,50,18,0.94),rgba(18,14,10,0.98))" : "rgba(12,22,28,0.94)") + ";text-align:center;"
+    card.style.cssText = "padding:14px 12px;border:1px solid " + (isCurrent ? "rgba(255,215,130,0.72)" : "rgba(80,120,150,0.22)") + ";border-radius:16px;background:" + (isCurrent ? "linear-gradient(180deg,rgba(72,50,18,0.94),rgba(18,14,10,0.98))" : "linear-gradient(180deg,rgba(12,22,28,0.9),rgba(7,14,18,0.95))") + ";text-align:center;box-shadow:" + (isCurrent ? "0 16px 32px rgba(0,0,0,0.26), 0 0 22px rgba(214,164,90,0.12)" : "0 12px 24px rgba(0,0,0,0.16)") + ";"
 
     const portrait = document.createElement("img")
     portrait.src = "images/" + sanitizeAssetName(entry.image || "")
-    portrait.style.cssText = "width:72px;height:72px;object-fit:contain;border-radius:50%;border:2px solid rgba(214,172,96,0.45);margin-bottom:8px;background:rgba(0,0,0,0.22);"
+    portrait.style.cssText = "width:74px;height:74px;object-fit:contain;border-radius:50%;border:2px solid rgba(214,172,96,0.45);margin-bottom:10px;background:rgba(0,0,0,0.22);box-shadow:0 0 0 2px rgba(63,117,136,0.18);"
     portrait.onerror = () => { portrait.style.display = "none" }
     card.appendChild(portrait)
 
     const name = document.createElement("div")
-    name.style.cssText = "font-size:15px;letter-spacing:1px;color:#f0ddba;margin-bottom:6px;"
+    name.style.cssText = "font-size:15px;letter-spacing:1px;color:#f0ddba;margin-bottom:8px;text-transform:uppercase;"
     name.innerText = state.phase === "active" ? (idx + 1) + ". " + entry.label : entry.label
     card.appendChild(name)
 
@@ -247,7 +247,7 @@ function renderCombatInitiativeOverlay(state) {
       : (state.phase === "active" ? parseInt(entry.roll, 10) : null)
 
     const roll = document.createElement("div")
-    roll.style.cssText = "font-size:26px;color:#8fd8ff;text-shadow:0 0 12px rgba(120,200,255,0.35);margin-bottom:8px;"
+    roll.style.cssText = "font-size:26px;color:#8fd8ff;text-shadow:0 0 12px rgba(120,200,255,0.35);margin-bottom:10px;"
     roll.innerText = Number.isFinite(rollVal) ? "D12 : " + rollVal : "—"
     card.appendChild(roll)
 
@@ -560,6 +560,7 @@ function _startCombatSequence(mob, tierMob) {
           loadPlayerCombatStats()
           if (isGM) {
             document.getElementById("gmDamagePanel").style.display = "block"
+            if (typeof toggleGMDamageControls === "function") toggleGMDamageControls(false)
             document.getElementById("gmCombatPanel").style.display = "flex"
           }
         }, 600)
@@ -830,8 +831,7 @@ function showDefeat() {
 function endCombat() {
   if (!combatActive) return
   combatActive = false
-  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
-  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+  if (typeof resetLocalCombatVisualState === "function") resetLocalCombatVisualState()
   setGameState("GAME")
 
   const map = document.getElementById("map")
@@ -1243,11 +1243,22 @@ document.addEventListener("DOMContentLoaded", () => {
       closeCombatInitiativeOverlay()
       const initiativeToggle = document.getElementById("combatInitiativeToggle"); if (initiativeToggle) initiativeToggle.remove()
       window.__combatInitiativeHidden = false
+      if (isGM && typeof closeCombatPreviewHUD === "function") closeCombatPreviewHUD()
       if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
       return
     }
     renderCombatInitiativeOverlay(data)
     if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+    if (isGM && typeof setCombatPreviewPlayer === "function" && data.phase === "active") {
+      const currentEntry = Array.isArray(data.order)
+        ? data.order.find(entry => String(entry.id || "") === String(data.currentActorId || ""))
+        : null
+      if (currentEntry && currentEntry.type === "player" && window.__combatPreviewPlayerId) {
+        setCombatPreviewPlayer(currentEntry.id)
+      } else if (window.__combatPreviewPlayerId && typeof closeCombatPreviewHUD === "function" && currentEntry && currentEntry.type !== "player") {
+        closeCombatPreviewHUD()
+      }
+    }
     if (isGM) finalizeCombatInitiativeIfReady(data)
   })
 
