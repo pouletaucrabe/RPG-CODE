@@ -2376,6 +2376,201 @@ db.ref("combat/eloSummon").on("value", snap => {
     porkSnd.play().catch(() => {})
   }
   if (typeof spawnEloSummonToken === "function") spawnEloSummonToken(data)
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+})
+
+function ensureTokenStateBadgeContainer(token) {
+  if (!token) return null
+  let container = token.querySelector(".tokenStateBadges")
+  if (!container) {
+    container = document.createElement("div")
+    container.className = "tokenStateBadges"
+    token.appendChild(container)
+  }
+  return container
+}
+
+function setTokenStateBadges(tokenId, badges) {
+  const token = document.getElementById(tokenId)
+  if (!token) return
+  const container = ensureTokenStateBadgeContainer(token)
+  if (!container) return
+  container.innerHTML = ""
+  ;(badges || []).forEach(badge => {
+    const el = document.createElement("div")
+    el.className = "tokenStateBadge tokenStateBadge--" + (badge.kind || "buff")
+    el.innerText = badge.label || "?"
+    el.title = badge.title || badge.label || ""
+    container.appendChild(el)
+  })
+}
+
+function updateCombatTokenStateVisuals() {
+  const activeActorId = (typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null) || ""
+  ;["greg","ju","elo","bibi","mobToken","eloSummonToken"].forEach(id => {
+    const token = document.getElementById(id)
+    if (token) token.classList.remove("token--active-turn")
+  })
+
+  const activeTokenMap = {
+    greg: "greg",
+    ju: "ju",
+    elo: "elo",
+    bibi: "bibi",
+    mob: "mobToken"
+  }
+  const activeTokenId = activeTokenMap[activeActorId] || (activeActorId === "eloSummon" ? "eloSummonToken" : "")
+  if (activeTokenId) {
+    const activeToken = document.getElementById(activeTokenId)
+    if (activeToken && combatActive) activeToken.classList.add("token--active-turn")
+  }
+
+  const yuToken = document.getElementById("ju")
+  if (yuToken) {
+    const aggroTurns = parseInt(window.__combatYuAggroState?.turns, 10) || 0
+    const spiderSense = !!(window.__combatSpiderSenseBuffState && window.__combatSpiderSenseBuffState.active)
+    yuToken.classList.toggle("token--aggro", combatActive && aggroTurns > 0)
+    const yuBadges = []
+    if (aggroTurns > 0) {
+      yuBadges.push({
+        kind: "warn",
+        label: "AGGRO " + aggroTurns,
+        title: "Yu attire le mob pendant encore " + aggroTurns + " tour(s)"
+      })
+    }
+    if (spiderSense) {
+      yuBadges.push({
+        kind: "buff",
+        label: "SENSE",
+        title: "Spider Sense est actif pour tout le combat"
+      })
+    }
+    if (activeActorId === "ju") {
+      yuBadges.unshift({
+        kind: "buff",
+        label: "TOUR",
+        title: "C'est le tour de Yu"
+      })
+    }
+    setTokenStateBadges("ju", yuBadges)
+  }
+
+  const gregToken = document.getElementById("greg")
+  if (gregToken) {
+    const gregBadges = []
+    if (window.__combatBibiRageState && parseInt(window.__combatBibiRageState.turns, 10) > 0) {
+      gregBadges.push({
+        kind: "buff",
+        label: "BIBI " + (parseInt(window.__combatBibiRageState.turns, 10) || 0),
+        title: "Le Bibi renforce les attaques alliées"
+      })
+    }
+    if (activeActorId === "greg") {
+      gregBadges.unshift({
+        kind: "buff",
+        label: "TOUR",
+        title: "C'est le tour de Greg"
+      })
+    }
+    setTokenStateBadges("greg", gregBadges)
+  }
+
+  const eloToken = document.getElementById("elo")
+  if (eloToken) {
+    const eloBadges = []
+    if (window.__eloSummonState && window.__eloSummonState.active) {
+      eloBadges.push({
+        kind: "ally",
+        label: "PORK+",
+        title: "John Pork renforce les dégâts d'Elo"
+      })
+    }
+    if (activeActorId === "elo") {
+      eloBadges.unshift({
+        kind: "buff",
+        label: "TOUR",
+        title: "C'est le tour d'Elo"
+      })
+    }
+    setTokenStateBadges("elo", eloBadges)
+  }
+
+  const bibiToken = document.getElementById("bibi")
+  if (bibiToken) {
+    const bibiBadges = []
+    if (activeActorId === "bibi") {
+      bibiBadges.push({
+        kind: "buff",
+        label: "TOUR",
+        title: "C'est le tour de Bibi"
+      })
+    }
+    setTokenStateBadges("bibi", bibiBadges)
+  }
+
+  const mobToken = document.getElementById("mobToken")
+  if (mobToken) {
+    const poisonTurns = parseInt(window.__combatPlayerPoisonState?.turns, 10) || 0
+    const bleedTurns = parseInt(window.__combatPlayerBleedState?.turns, 10) || 0
+    const malusTurns = parseInt(window.__combatAttackMalusState?.turns, 10) || 0
+    const badges = []
+    if (activeActorId === "mob") badges.push({ kind: "warn", label: "TOUR", title: "C'est le tour du mob" })
+    if (poisonTurns > 0) badges.push({ kind: "warn", label: "POI " + poisonTurns, title: "Poison actif" })
+    if (bleedTurns > 0) badges.push({ kind: "warn", label: "SAI " + bleedTurns, title: "Saignement actif" })
+    if (malusTurns > 0) badges.push({ kind: "warn", label: "ATK-" + (parseInt(window.__combatAttackMalusState?.amount, 10) || 1), title: "Attaque réduite" })
+    mobToken.classList.toggle("token--marked", badges.length > 0)
+    setTokenStateBadges("mobToken", badges)
+  }
+
+  const summonToken = document.getElementById("eloSummonToken")
+  if (summonToken) {
+    const summon = window.__eloSummonState
+    const summonTurns = parseInt(summon?.turnsLeft, 10) || 0
+    const summonHp = parseInt(summon?.hp, 10) || 0
+    const badges = summon && summon.active ? [
+      { kind: "ally", label: activeActorId === "eloSummon" ? "TOUR" : "PORK", title: activeActorId === "eloSummon" ? "C'est le tour de John Pork" : "John Pork est présent" },
+      { kind: "ally", label: "PORK " + summonTurns, title: "John Pork actif pendant " + summonTurns + " tour(s)" },
+      { kind: "ally", label: "HP " + summonHp, title: "Points de vie de John Pork" }
+    ] : []
+    setTokenStateBadges("eloSummonToken", badges)
+  }
+}
+
+db.ref("combat/mob/yuAggro").on("value", snap => {
+  window.__combatYuAggroState = snap.val() || null
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+})
+
+db.ref("combat/mob/spiderSenseBuff").on("value", snap => {
+  window.__combatSpiderSenseBuffState = snap.val() || null
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+})
+
+db.ref("combat/mob/bibiRage").on("value", snap => {
+  window.__combatBibiRageState = snap.val() || null
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+})
+
+db.ref("combat/mob/attackMalus").on("value", snap => {
+  window.__combatAttackMalusState = snap.val() || null
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+})
+
+db.ref("combat/mob/playerPoison").on("value", snap => {
+  window.__combatPlayerPoisonState = snap.val() || null
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+})
+
+db.ref("combat/mob/playerBleed").on("value", snap => {
+  window.__combatPlayerBleedState = snap.val() || null
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
 })
 
 // ─── elements ───

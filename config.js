@@ -545,7 +545,7 @@ const mobSpecialPresentations = {
   witch: {
     scene: "witch",
     sound: "witch1.mp3",
-    soundVolume: 0.34,
+    soundVolume: 0.24,
     kicker: "Wicked resonance",
     emphasis: "floating",
     particles: ["💚", "💗", "🫧"]

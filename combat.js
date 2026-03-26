@@ -399,14 +399,14 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
 
   getPartyLevel(level => {
     const base = mobStats[mainMob] ? mobStats[mainMob].baseHP : 10
-    const tierMults  = { weak:1.0,  medium:1.6, high:2.8, boss:5.0  }
-    const tierScales = { weak:0.12, medium:0.18, high:0.25, boss:0.35 }
+    const tierMults  = { weak:1.3,  medium:2.0, high:3.4, boss:6.1  }
+    const tierScales = { weak:0.15, medium:0.22, high:0.30, boss:0.41 }
     const tierLvlOff = { weak:-1,   medium:1,   high:3,    boss:8    }
     const mult = tierMults[tier]  || 1.0
     const sc   = tierScales[tier] || 0.12
     // Après lvl 10 : réduire l'écart pour les world boss
     const effLevel = (tier === "boss" && level > 10) ? 10 + (level - 10) * 0.65 : level
-    const hp   = Math.round(base * mult * Math.pow(1 + effLevel * sc, 1.6))
+    const hp   = Math.round(base * mult * Math.pow(1 + effLevel * sc, 1.72))
     const lvl  = Math.max(1, level + (tierLvlOff[tier] || 0))
     db.ref("combat/mob").set({ name:mainMob, hp, maxHP:hp, lvl, tier })
 
@@ -417,11 +417,11 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
       _state.pendingExtraMobs[slot] = mob
       const tier2 = mobStats[mob] ? mobStats[mob].tier : "weak"
       const base2 = mobStats[mob] ? mobStats[mob].baseHP : 10
-      const mult2 = { weak:1.2, medium:2.0, high:3.5, boss:6.0 }[tier2] || 1.2
-      const lf2   = { weak:4,   medium:8,   high:14,  boss:30  }[tier2] || 4
+      const mult2 = { weak:1.45, medium:2.3, high:3.95, boss:6.8 }[tier2] || 1.45
+      const lf2   = { weak:5,   medium:10,   high:17,  boss:36  }[tier2] || 5
       setTimeout(() => {
         getPartyLevel(lv => {
-          const hp2  = Math.round(base2 * mult2 + lv * lf2 + Math.floor(lv * lv * 0.5))
+          const hp2  = Math.round(base2 * mult2 + lv * lf2 + Math.floor(lv * lv * 0.75))
           const lvl2 = Math.max(1, lv + ({ weak:-1, medium:1, high:3, boss:8 }[tier2] || 0))
           db.ref("combat/" + slot).set({ name:mob, hp:hp2, maxHP:hp2, lvl:lvl2, tier:tier2, slot })
           activeMobSlots[slot] = true
@@ -682,6 +682,7 @@ function spawnMobToken(mob) {
     token.style.transition = "all 0.5s cubic-bezier(0.17,0.67,0.35,1.4)"
     token.style.opacity = "1"; token.style.transform = "scale(1.3) rotate(0deg)"; token.style.filter = "brightness(2) saturate(2)"
     setTimeout(() => { token.style.transition = "all 0.3s ease"; token.style.transform = "scale(1)"; token.style.filter = "brightness(1)"; portal.remove() }, 500)
+    if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
   }, 100)
 }
 
@@ -737,6 +738,7 @@ function spawnEloSummonToken(data) {
   token.style.top = ((data && data.y) || 430) + "px"
   token.style.display = data && data.active ? "flex" : "none"
   token.style.opacity = data && data.active ? "1" : "0"
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
 
   const hpFill = document.getElementById("hp_eloSummon")
   if (hpFill) {
@@ -828,6 +830,8 @@ function showDefeat() {
 function endCombat() {
   if (!combatActive) return
   combatActive = false
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
   setGameState("GAME")
 
   const map = document.getElementById("map")
@@ -864,7 +868,6 @@ function endCombat() {
   const hud = document.getElementById("combatHUD"); if (hud) hud.style.display = "none"
   const attackBtn = document.getElementById("playerAttackBtn"); if (attackBtn) attackBtn.style.display = "none"
   const thuumBtn = document.getElementById("playerThuumBtn"); if (thuumBtn) thuumBtn.style.display = "none"
-  closeCombatInitiativeOverlay()
   window.__combatTurnState = null
   window.__playerCombatSpecialsUsed = {}
   window.__playerCombatFlags = {}
@@ -1240,9 +1243,11 @@ document.addEventListener("DOMContentLoaded", () => {
       closeCombatInitiativeOverlay()
       const initiativeToggle = document.getElementById("combatInitiativeToggle"); if (initiativeToggle) initiativeToggle.remove()
       window.__combatInitiativeHidden = false
+      if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
       return
     }
     renderCombatInitiativeOverlay(data)
+    if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
     if (isGM) finalizeCombatInitiativeIfReady(data)
   })
 

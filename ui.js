@@ -452,6 +452,9 @@ function chooseCombatTarget(playerIds, titleText) {
 
 function getPlayerAttackPower(attack, roll, statValue) {
   const type = getPlayerAttackTypeKey(attack)
+  if (attack && attack.name === "Je suis jet laguée") {
+    return Math.max(1, (parseInt(roll, 10) || 0) + (parseInt(statValue, 10) || 0))
+  }
   const multipliers = {
     physical: 1.05,
     ranged: 1.0,
@@ -556,6 +559,12 @@ function getPlayerSpecialPresentation(playerId) {
 
 function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
   const presentation = getPlayerSpecialPresentation(playerId)
+  const specialSoundMap = {
+    greg: "spégreg.mp3",
+    ju: "spéju.mp3",
+    elo: "spéelo.mp3",
+    bibi: "spébibi.mp3"
+  }
   const overlay = document.createElement("div")
   overlay.className = "playerSpecialOverlay playerSpecialOverlay--" + presentation.scene
 
@@ -599,6 +608,16 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
   overlay.appendChild(box)
   document.body.appendChild(overlay)
 
+  const specialSound = specialSoundMap[String(playerId || "").toLowerCase()]
+  if (specialSound) {
+    const voice = new Audio("audio/" + specialSound)
+    const isEloSpecial = String(playerId || "").toLowerCase() === "elo"
+    const baseVolume = isEloSpecial ? (meta.crit ? 1.25 : 1.12) : (meta.crit ? 0.96 : 0.88)
+    if (typeof setManagedAudioBaseVolume === "function") setManagedAudioBaseVolume(voice, baseVolume)
+    else voice.volume = Math.min(1, baseVolume)
+    voice.play().catch(() => {})
+  }
+
   if (meta.fail) {
     playSound("failSound", 0.82)
     flashRed()
@@ -619,7 +638,7 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
     overlay.style.transition = "opacity 0.42s ease"
     overlay.style.opacity = "0"
     setTimeout(() => overlay.remove(), 450)
-  }, meta.crit ? 1900 : 1600)
+  }, meta.crit ? 2400 : 2050)
 }
 
 function showPlayerAttackImpact(playerId, attack, outcome, meta = {}) {
@@ -705,7 +724,7 @@ function showPlayerAttackImpact(playerId, attack, outcome, meta = {}) {
     overlay.style.transition = "opacity 0.35s ease"
     overlay.style.opacity = "0"
     setTimeout(() => overlay.remove(), 380)
-  }, crit ? 1550 : 1250)
+  }, crit ? 2150 : 1800)
 }
 
 function isPlayerSpecialConditionMet(playerId, specialAttack, context = {}) {
@@ -815,6 +834,176 @@ function buildPassTurnBlock(actorId, label) {
   return block
 }
 
+function getCombatStatusEntries() {
+  const entries = []
+  const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
+  const currentActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
+  const actorLabelMap = {
+    greg: "Greg",
+    ju: "Yu",
+    elo: "Elo",
+    bibi: "Bibi",
+    mob: String(currentMob || "Mob").toUpperCase(),
+    mob2: "MOB 2",
+    mob3: "MOB 3"
+  }
+
+  if (turnState && turnState.phase === "active" && currentActorId) {
+    entries.push({
+      kind: "buff",
+      icon: "impact_ring.png",
+      title: "Tour actif",
+      text: (actorLabelMap[currentActorId] || String(currentActorId).toUpperCase()) + " joue maintenant",
+      meta: "Round " + (turnState.round || 1)
+    })
+  }
+
+  const yuAggro = window.__combatYuAggroState
+  if (yuAggro && parseInt(yuAggro.turns, 10) > 0) {
+    entries.push({
+      kind: "warn",
+      icon: "impact_ring.png",
+      title: "Aggro de Yu",
+      text: "Le mob doit viser Yu sur ses attaques ciblées.",
+      meta: parseInt(yuAggro.turns, 10) + " tour(s) restant(s)"
+    })
+  }
+
+  const spiderSense = window.__combatSpiderSenseBuffState
+  if (spiderSense && spiderSense.active) {
+    entries.push({
+      kind: "buff",
+      icon: "arcane.png",
+      title: "Spider Sense",
+      text: "Les attaques offensives alliées gagnent +10% dégâts.",
+      meta: "Actif pour tout le combat"
+    })
+  }
+
+  const bibiRage = window.__combatBibiRageState
+  if (bibiRage && parseInt(bibiRage.turns, 10) > 0) {
+    entries.push({
+      kind: "buff",
+      icon: "fang.png",
+      title: "Le Bibi",
+      text: "Chaque attaque alliée ajoute " + (parseInt(bibiRage.damage, 10) || 2) + " dégâts au mob.",
+      meta: parseInt(bibiRage.turns, 10) + " tour(s) restant(s)"
+    })
+  }
+
+  const attackMalus = window.__combatAttackMalusState
+  if (attackMalus && parseInt(attackMalus.turns, 10) > 0) {
+    entries.push({
+      kind: "warn",
+      icon: "weakness.png",
+      title: "Humiliation du mob",
+      text: "Les attaques du mob perdent " + (parseInt(attackMalus.amount, 10) || 1) + " dégâts.",
+      meta: parseInt(attackMalus.turns, 10) + " tour(s) restant(s)"
+    })
+  }
+
+  const poison = window.__combatPlayerPoisonState
+  if (poison && parseInt(poison.turns, 10) > 0) {
+    entries.push({
+      kind: "warn",
+      icon: "venom.png",
+      title: "Poison",
+      text: "Le mob perd " + (parseInt(poison.damage, 10) || 2) + " HP à chacun de ses tours.",
+      meta: parseInt(poison.turns, 10) + " tour(s) restant(s)"
+    })
+  }
+
+  const bleed = window.__combatPlayerBleedState
+  if (bleed && parseInt(bleed.turns, 10) > 0) {
+    entries.push({
+      kind: "warn",
+      icon: "fang.png",
+      title: "Saignement",
+      text: "Le mob perd " + (parseInt(bleed.damage, 10) || 1) + " HP à chacun de ses tours.",
+      meta: parseInt(bleed.turns, 10) + " tour(s) restant(s)"
+    })
+  }
+
+  const summon = window.__eloSummonState
+  if (summon && summon.active) {
+    entries.push({
+      kind: "ally",
+      icon: "pork.png",
+      title: "John Pork",
+      text: "Invocation active. Elo gagne +" + ((parseInt(summon.damageBonus, 10) || 4)) + " dégâts sur ses attaques.",
+      meta: (parseInt(summon.turnsLeft, 10) || 0) + " tour(s) • " + (parseInt(summon.hp, 10) || 0) + "/" + (parseInt(summon.maxHP, 10) || 0) + " HP"
+    })
+  }
+
+  return entries
+}
+
+function renderCombatStatusPanel() {
+  const panel = document.getElementById("combatStatusPanel")
+  if (!panel) return
+  if (!combatActive) {
+    panel.style.display = "none"
+    panel.innerHTML = ""
+    return
+  }
+
+  const entries = getCombatStatusEntries()
+  panel.innerHTML = ""
+  panel.style.display = "block"
+
+  const header = document.createElement("div")
+  header.className = "combatStatusHeader"
+  header.innerText = "États du combat"
+  panel.appendChild(header)
+
+  const list = document.createElement("div")
+  list.className = "combatStatusList"
+  panel.appendChild(list)
+
+  if (!entries.length) {
+    const empty = document.createElement("div")
+    empty.className = "combatStatusEmpty"
+    empty.innerText = "Aucun état actif."
+    list.appendChild(empty)
+    return
+  }
+
+  entries.forEach(entry => {
+    const row = document.createElement("div")
+    row.className = "combatStatusItem combatStatusItem--" + (entry.kind || "buff")
+
+    const icon = document.createElement("img")
+    icon.className = "combatStatusIcon"
+    icon.src = "images/" + sanitizeAssetName(entry.icon || "impact_ring.png")
+    icon.alt = ""
+    icon.onerror = () => { icon.style.display = "none" }
+    row.appendChild(icon)
+
+    const body = document.createElement("div")
+    body.className = "combatStatusBody"
+
+    const title = document.createElement("div")
+    title.className = "combatStatusTitle"
+    title.innerText = entry.title || "État"
+    body.appendChild(title)
+
+    const text = document.createElement("div")
+    text.className = "combatStatusText"
+    text.innerText = entry.text || ""
+    body.appendChild(text)
+
+    if (entry.meta) {
+      const meta = document.createElement("div")
+      meta.className = "combatStatusMeta"
+      meta.innerText = entry.meta
+      body.appendChild(meta)
+    }
+
+    row.appendChild(body)
+    list.appendChild(row)
+  })
+}
+
 function resolvePlayerAttack(attack, options = {}) {
   const playerId = options.actorId || getCombatHUDPlayerId()
   if (!combatActive || !playerId) {
@@ -908,19 +1097,16 @@ function resolvePlayerAttack(attack, options = {}) {
           ...["greg","ju","elo","bibi"].map(id => db.ref("characters/" + id).once("value").then(s => ({ id, data: s.val() || {} }))),
           db.ref("combat/mob/bibiRage").once("value").then(s => ({ id: "__bibiRage", data: s.val() || null })),
           db.ref("combat/mob/yuAggro").once("value").then(s => ({ id: "__yuAggro", data: s.val() || null })),
-          db.ref("combat/mob/spiderSenseBuff").once("value").then(s => ({ id: "__spiderSenseBuff", data: s.val() || null })),
-          db.ref("combat/mob/attackMalus").once("value").then(s => ({ id: "__attackMalus", data: s.val() || null }))
+          db.ref("combat/mob/spiderSenseBuff").once("value").then(s => ({ id: "__spiderSenseBuff", data: s.val() || null }))
         ]).then(entries => {
           const players = {}
           let bibiRage = null
           let yuAggro = null
           let spiderSenseBuff = null
-          let attackMalus = null
           entries.forEach(entry => {
             if (entry.id === "__bibiRage") bibiRage = entry.data
             else if (entry.id === "__yuAggro") yuAggro = entry.data
             else if (entry.id === "__spiderSenseBuff") spiderSenseBuff = entry.data
-            else if (entry.id === "__attackMalus") attackMalus = entry.data
             else players[entry.id] = entry.data
           })
 
@@ -1005,18 +1191,6 @@ function resolvePlayerAttack(attack, options = {}) {
             showNotification("Le mob est empoisonné pour 2 tours.")
           }
           if (playerId === "elo" && attack.name === "Je suis jet laguée") {
-            if (playerId === "ju" && attack.name === "Dépêche-toi !!!") {
-              db.ref("combat/mob/yuAggro").set({ source: "ju", turns: 3, allyBonus: 1, time: Date.now() })
-              if (crit) db.ref("combat/mob/yuSkipNextTurn").set({ source: "ju", active: true, time: Date.now() })
-            }
-            if (playerId === "ju" && attack.name === "Spider Sense") {
-              db.ref("combat/mob/spiderSenseBuff").set({ source: "ju", active: true, damageMult: 1.1, time: Date.now() })
-              if (crit) db.ref("combat/mob/victoryLootBonus").set({ source: "ju", active: true, time: Date.now() })
-            }
-            if (playerId === "ju" && attack.name === "Petite merde" && crit) {
-              db.ref("combat/mob/attackMalus").set({ source: "ju", amount: 1, turns: 2, time: Date.now() })
-              showNotification("Le mob est humilié et perd 1 attaque pendant 2 tours.")
-            }
             const porkSnd = new Audio("audio/pork.mp3")
             if (typeof setManagedAudioBaseVolume === "function") setManagedAudioBaseVolume(porkSnd, 0.78)
             else porkSnd.volume = 0.78
@@ -1028,6 +1202,7 @@ function resolvePlayerAttack(attack, options = {}) {
               hp: summonMaxHp,
               maxHP: summonMaxHp,
               turnsLeft: 3,
+              damageBonus: 4,
               source: "elo",
               x: 720,
               y: 430,
@@ -1128,6 +1303,7 @@ function showCombatHUD() {
   }
   if (player === "bibi") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
   if (player === "greg") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
+  renderCombatStatusPanel()
   document.getElementById("combatHUD").style.display = "none"
   const btn = document.getElementById("playerAttackBtn"); if (btn && player) btn.style.display = "flex"
 }
