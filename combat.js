@@ -1240,6 +1240,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = snap.val()
     window.__combatTurnState = data || null
     if (!data || !combatActive) {
+      window.__skippingDeadCombatTurn = ""
       closeCombatInitiativeOverlay()
       const initiativeToggle = document.getElementById("combatInitiativeToggle"); if (initiativeToggle) initiativeToggle.remove()
       window.__combatInitiativeHidden = false
@@ -1247,12 +1248,29 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
       return
     }
+    const currentEntry = data.phase === "active" && Array.isArray(data.order)
+      ? data.order.find(entry => String(entry.id || "") === String(data.currentActorId || ""))
+      : null
+    if (isGM && currentEntry && currentEntry.type === "player") {
+      const currentToken = document.getElementById(currentEntry.id)
+      const currentIsDead = !!(currentToken && currentToken.classList.contains("playerDead"))
+      if (currentIsDead) {
+        if (window.__skippingDeadCombatTurn !== currentEntry.id) {
+          window.__skippingDeadCombatTurn = currentEntry.id
+          showNotification((currentEntry.label || currentEntry.id).toUpperCase() + " est KO et passe son tour.")
+          setTimeout(() => {
+            if (typeof advanceCombatTurn === "function" && getCurrentCombatActorId() === currentEntry.id) advanceCombatTurn()
+          }, 150)
+        }
+        renderCombatInitiativeOverlay(data)
+        if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+        return
+      }
+    }
+    window.__skippingDeadCombatTurn = ""
     renderCombatInitiativeOverlay(data)
     if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
     if (isGM && typeof setCombatPreviewPlayer === "function" && data.phase === "active") {
-      const currentEntry = Array.isArray(data.order)
-        ? data.order.find(entry => String(entry.id || "") === String(data.currentActorId || ""))
-        : null
       if (currentEntry && currentEntry.type === "player" && window.__combatPreviewPlayerId) {
         setCombatPreviewPlayer(currentEntry.id)
       } else if (window.__combatPreviewPlayerId && typeof closeCombatPreviewHUD === "function" && currentEntry && currentEntry.type !== "player") {

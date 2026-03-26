@@ -1011,6 +1011,11 @@ function resolvePlayerAttack(attack, options = {}) {
     showNotification("Combat indisponible.")
     return
   }
+  const actorToken = document.getElementById(playerId)
+  if (actorToken && actorToken.classList.contains("playerDead")) {
+    showNotification(playerId.toUpperCase() + " est KO et ne peut plus agir.")
+    return
+  }
   const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
   if (turnState && turnState.phase === "rolling") {
     showNotification("Terminez d'abord les jets d'initiative.")

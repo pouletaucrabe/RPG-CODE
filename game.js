@@ -4249,6 +4249,7 @@ document.querySelectorAll(".token").forEach(token => {
   })
   token.addEventListener("mousedown", e => {
     if (e.target.closest("#playerSelect") || e.target.closest("button")) return
+    const tokenIsDead = token.classList.contains("playerDead")
     const now = Date.now()
     if (now - lastClickTime < 300) {
       if (isGM && token.id !== "mobToken") openCharacterSheet(token.id)
@@ -4256,10 +4257,18 @@ document.querySelectorAll(".token").forEach(token => {
     }
     lastClickTime = now
     if (isGM) {
+      if (tokenIsDead) {
+        showNotification(token.id.toUpperCase() + " est KO. Réanimez-le pour le déplacer.")
+        return
+      }
       document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
       token.classList.add("gmSelected"); selected = token; lastX = selected.offsetLeft
       _state.tokenDragStart = { x: e.clientX, y: e.clientY }; _state.tokenDragging = false
       e.preventDefault(); return
+    }
+    if (tokenIsDead) {
+      showNotification(token.id.toUpperCase() + " est KO et ne peut pas bouger.")
+      return
     }
     if (token.id === "bibi") { selected = token; lastX = selected.offsetLeft; bibiMoved = true; tryBark(); e.preventDefault(); return }
     if (!myToken || token.id !== myToken.id) return
@@ -4269,6 +4278,12 @@ document.querySelectorAll(".token").forEach(token => {
 
 document.addEventListener("mousemove", e => {
   if (!selected) return
+  if (selected.classList && selected.classList.contains("playerDead")) {
+    selected = null
+    _state.tokenDragging = false
+    _state.tokenDragStart = null
+    return
+  }
   if (_state.tokenDragStart && !_state.tokenDragging) {
     if (Math.abs(e.clientX - _state.tokenDragStart.x) < 5 && Math.abs(e.clientY - _state.tokenDragStart.y) < 5) return
     _state.tokenDragging = true

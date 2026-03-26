@@ -1827,7 +1827,11 @@ html, body {
   position: fixed; bottom: 20px; left: 20px;
   display: none;
   flex-direction: column;
-  background: linear-gradient(180deg, rgba(8,14,18,0.06), rgba(8,14,18,0.14)), url('images/menuintro.png?v=2') center/100% 100% no-repeat !important;
+  background-color: transparent !important;
+  background-image: url("images/menuintro.png?v=3") !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-size: 100% 100% !important;
   border: none;
   box-shadow: none;
   padding: 16px 20px 18px; width: 392px;
