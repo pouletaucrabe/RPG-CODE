@@ -194,6 +194,71 @@ function appendAttackLine(container, label, value) {
   container.appendChild(line)
 }
 
+function getCombatAssetFromAttack(attack, mobData) {
+  const type = String(attack?.type || "").toLowerCase()
+  const effect = String(attack?.effect || "").toLowerCase()
+  const name = String(attack?.name || "").toLowerCase()
+  const animation = String(attack?.animation || "").toLowerCase()
+  const mobName = String(mobData?.name || "").toLowerCase()
+
+  if (animation === "bloodmoon" || mobName.includes("vampire")) return "fang.png"
+  if (animation === "howl" || mobName.includes("loup") || mobName.includes("fenrir")) return "fang.png"
+  if (animation === "fire" || name.includes("feu") || name.includes("braise")) return "fire.png"
+  if (animation === "storm") return "arc.png"
+  if (animation === "arcane" || animation === "witch" || type.includes("sort") || type.includes("magie") || type.includes("charme") || type.includes("analyse")) return "arcane.png"
+  if (animation === "spectral" || animation === "abyss" || animation === "venom" || animation === "shadow") return "shadow.png"
+  if (animation === "divine" || type.includes("soin") || name.includes("prêtre") || mobName.includes("pretre") || mobName.includes("valkyrie") || mobName.includes("odin") || mobName.includes("freya")) return "holy.png"
+  if (effect === "curse") return "curse.png"
+  if (effect === "all") return "impact_ring.png"
+  if (type.includes("distance")) return "arc.png"
+  if (type.includes("invocation")) return "rune_glow.png"
+  if (type.includes("spécial") || type.includes("special")) return "impact_ring.png"
+  if (type.includes("mêlée") || type.includes("melee") || name.includes("morsure") || name.includes("griffe") || name.includes("crocs")) return "claw.png"
+  return "slash_overlay.png"
+}
+
+function createCombatIcon(attack, mobData, className) {
+  const img = document.createElement("img")
+  img.className = className || "combatIcon"
+  img.src = "images/" + getCombatAssetFromAttack(attack, mobData)
+  img.alt = ""
+  img.onerror = () => { img.style.display = "none" }
+  return img
+}
+
+function addMJCombatLogEntry(data) {
+  const log = document.getElementById("mjLogContent")
+  if (!log) return
+  const entry = document.createElement("div")
+  entry.className = "mjEntry mjEntry--combat"
+
+  const icon = createCombatIcon(data.attack || {}, data.mobData || null, "mjCombatIcon")
+  entry.appendChild(icon)
+
+  const text = document.createElement("div")
+  text.className = "mjCombatText"
+
+  const top = document.createElement("div")
+  top.className = "mjCombatTop"
+  top.innerText = (data.mobName || "MOB") + "  •  " + (data.attackName || "Attaque")
+  text.appendChild(top)
+
+  const bottom = document.createElement("div")
+  bottom.className = "mjCombatBottom"
+  bottom.innerText = (data.target || "CIBLE") + "  •  " + String(data.dmg || 0) + " dégâts"
+  text.appendChild(bottom)
+
+  if (data.special) {
+    const tag = document.createElement("div")
+    tag.className = "mjCombatTag"
+    tag.innerText = "SPÉCIALE"
+    entry.appendChild(tag)
+  }
+
+  entry.appendChild(text)
+  log.prepend(entry)
+}
+
 function appendAttackDiceLine(container, dice, stat) {
   if (!dice) return
   const line = document.createElement("div")
@@ -205,7 +270,7 @@ function appendAttackDiceLine(container, dice, stat) {
   diceEl.className = "attackDice"
   diceEl.innerText = "d" + dice
   line.appendChild(labelEl)
-  line.appendChild(document.createTextNode(" 🎲 "))
+  line.appendChild(document.createTextNode(" "))
   line.appendChild(diceEl)
   if (stat) {
     const statEl = document.createElement("span")
@@ -218,14 +283,806 @@ function appendAttackDiceLine(container, dice, stat) {
 }
 
 function populateAttackBlock(block, attack) {
+  const head = document.createElement("div")
+  head.className = "combatAttackHead"
+  head.appendChild(createCombatIcon(attack, null, "combatIcon"))
   const t = document.createElement("div")
   t.className = "combatAttack"
   t.innerText = attack.name
-  block.appendChild(t)
+  head.appendChild(t)
+  block.appendChild(head)
   appendAttackLine(block, "Type", attack.type)
   appendAttackDiceLine(block, attack.dice, attack.stat)
   appendAttackLine(block, "Effet", attack.effect)
   appendAttackLine(block, "Crit", attack.crit)
+}
+
+function getAttackStatKey(statLabel) {
+  const raw = String(statLabel || "").toLowerCase()
+  if (raw.includes("force")) return "force"
+  if (raw.includes("charme")) return "charme"
+  if (raw.includes("chance")) return "chance"
+  if (raw.includes("perspi") || raw.includes("perspic")) return "perspi"
+  if (raw.includes("def")) return "defense"
+  return "force"
+}
+
+function getPlayerAttackTypeKey(attack) {
+  const value = String(attack?.type || "").toLowerCase()
+  if (value.includes("soin")) return "heal"
+  if (value.includes("sort")) return "spell"
+  if (value.includes("invocation")) return "summon"
+  if (value.includes("analyse")) return "analysis"
+  if (value.includes("charme")) return "charm"
+  if (value.includes("distance")) return "ranged"
+  if (value.includes("sp")) return "special"
+  return "physical"
+}
+
+function getPlayerSpecialAttack(playerId) {
+  return (typeof playerSpecialAttacks !== "undefined" && playerSpecialAttacks) ? (playerSpecialAttacks[playerId] || null) : null
+}
+
+function hasPlayerUsedCombatSpecial(playerId) {
+  return !!(window.__playerCombatSpecialsUsed && window.__playerCombatSpecialsUsed[playerId])
+}
+
+function markPlayerCombatSpecialUsed(playerId) {
+  if (!window.__playerCombatSpecialsUsed) window.__playerCombatSpecialsUsed = {}
+  window.__playerCombatSpecialsUsed[playerId] = true
+}
+
+function markPlayerCombatTrigger(playerId, key) {
+  if (!window.__playerCombatFlags) window.__playerCombatFlags = {}
+  if (!window.__playerCombatFlags[playerId]) window.__playerCombatFlags[playerId] = {}
+  window.__playerCombatFlags[playerId][key] = true
+}
+
+function hasPlayerCombatTrigger(playerId, key) {
+  return !!(window.__playerCombatFlags && window.__playerCombatFlags[playerId] && window.__playerCombatFlags[playerId][key])
+}
+
+function getCharacterMaxHp(playerId, charData = {}) {
+  const direct =
+    parseInt(charData.maxHp ?? charData.hpMax ?? charData.hpmax, 10)
+  if (Number.isFinite(direct) && direct > 0) return direct
+
+  const lvl = Math.max(1, parseInt(charData.lvl, 10) || 1)
+  if (typeof getPlayerStatsAtLevel === "function") {
+    const statsAtLevel = getPlayerStatsAtLevel(playerId, lvl)
+    if (statsAtLevel && Number.isFinite(parseInt(statsAtLevel.hp, 10))) {
+      return parseInt(statsAtLevel.hp, 10)
+    }
+  }
+
+  if (playerBaseStats && playerBaseStats[playerId] && Number.isFinite(parseInt(playerBaseStats[playerId].hp, 10))) {
+    return parseInt(playerBaseStats[playerId].hp, 10)
+  }
+
+  return Math.max(1, parseInt(charData.hp, 10) || 1)
+}
+
+function parseInventoryItems(text) {
+  return String(text || "")
+    .toLowerCase()
+    .split(/[\n,;]+/)
+    .map(item => item.trim())
+    .filter(Boolean)
+}
+
+function playerHasInventoryItem(charData, itemNeedle) {
+  const needle = String(itemNeedle || "").toLowerCase().trim()
+  if (!needle) return false
+  return parseInventoryItems(charData?.inventaire).some(item => item === needle || item.includes(needle))
+}
+
+function getTokenCenterById(id) {
+  const token = document.getElementById(id)
+  if (!token) return null
+  const left = parseInt(token.style.left, 10)
+  const top = parseInt(token.style.top, 10)
+  const width = token.offsetWidth || parseInt(token.style.width, 10) || 96
+  const height = token.offsetHeight || parseInt(token.style.height, 10) || 96
+  const x = Number.isFinite(left) ? left + width / 2 : token.offsetLeft + width / 2
+  const y = Number.isFinite(top) ? top + height / 2 : token.offsetTop + height / 2
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null
+  return { x, y }
+}
+
+function getDistanceBetweenTokens(idA, idB) {
+  const a = getTokenCenterById(idA)
+  const b = getTokenCenterById(idB)
+  if (!a || !b) return Infinity
+  const dx = a.x - b.x
+  const dy = a.y - b.y
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+function isGregNearMobForBite() {
+  return getDistanceBetweenTokens("greg", "mobToken") <= 185
+}
+
+function isPhysicalMobAttack(attack) {
+  const effect = String(attack?.effect || "").toLowerCase()
+  const type = String(attack?.type || "").toLowerCase()
+  const name = String(attack?.name || "").toLowerCase()
+  if (effect === "all" || effect === "curse" || effect === "magic" || effect === "ranged") return false
+  if (effect === "melee") return true
+  if (type.includes("melee") || type.includes("physical") || type.includes("physique")) return true
+  return /(coup|frappe|morsure|griffe|croc|charge|balayage|taloche|massue|lance|estoc|poing|fouet|pi[eé]tinement|entaille)/.test(name)
+}
+
+function chooseCombatTarget(playerIds, titleText) {
+  return new Promise(resolve => {
+    const existing = document.getElementById("combatTargetPicker")
+    if (existing) existing.remove()
+
+    const picker = document.createElement("div")
+    picker.id = "combatTargetPicker"
+    picker.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,20,24,0.98);border:1px solid rgba(214,164,90,0.5);box-shadow:0 0 0 1px rgba(120,90,40,0.5),0 0 40px rgba(0,0,0,0.9);border-radius:3px;padding:16px;z-index:1000000001;font-family:Cinzel,serif;min-width:260px;"
+
+    const title = document.createElement("div")
+    title.style.cssText = "font-size:13px;letter-spacing:2px;color:#f2d7a6;text-align:center;margin-bottom:12px;"
+    title.innerText = titleText || "Choisir une cible"
+    picker.appendChild(title)
+
+    playerIds.forEach(pid => {
+      const btn = document.createElement("button")
+      btn.style.cssText = "display:block;width:100%;padding:8px;margin-bottom:6px;font-family:Cinzel,serif;font-size:12px;background:rgba(10,30,38,0.8);color:#e0f0f4;border:1px solid rgba(30,90,102,0.5);border-radius:2px;cursor:pointer;text-align:left;"
+      btn.innerText = pid.toUpperCase()
+      btn.onclick = () => {
+        picker.remove()
+        resolve(pid)
+      }
+      picker.appendChild(btn)
+    })
+
+    const cancel = document.createElement("button")
+    cancel.style.cssText = "display:block;width:100%;padding:6px;font-family:Cinzel,serif;font-size:11px;background:rgba(80,20,20,0.4);color:#ff8888;border:1px solid rgba(180,40,40,0.4);border-radius:2px;cursor:pointer;"
+    cancel.innerText = "Annuler"
+    cancel.onclick = () => {
+      picker.remove()
+      resolve(null)
+    }
+    picker.appendChild(cancel)
+
+    document.body.appendChild(picker)
+  })
+}
+
+function getPlayerAttackPower(attack, roll, statValue) {
+  const type = getPlayerAttackTypeKey(attack)
+  const multipliers = {
+    physical: 1.05,
+    ranged: 1.0,
+    special: 1.18,
+    charm: 1.08,
+    spell: 1.12,
+    analysis: 0.72,
+    summon: 0.94,
+    heal: 1.0
+  }
+  const power = Math.round(roll * (multipliers[type] || 1) + statValue * 0.82)
+  if (type === "heal") return Math.max(8, power)
+  return Math.max(1, power)
+}
+
+function getCombatHUDPlayerId() {
+  if (myToken && myToken.id) return myToken.id
+  if (isGM && window.__combatPreviewPlayerId) return window.__combatPreviewPlayerId
+  return null
+}
+
+function setCombatPreviewPlayer(playerID) {
+  if (!isGM) return
+  window.__combatPreviewPlayerId = playerID || null
+  showCombatHUD()
+  const hud = document.getElementById("combatHUD")
+  if (hud) {
+    hud.style.display = "flex"
+    hud.style.alignItems = "flex-start"
+  }
+  document.querySelectorAll(".gmPlayerTestBtn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.playerId === playerID)
+  })
+}
+
+function closeCombatPreviewHUD() {
+  window.__combatPreviewPlayerId = null
+  const hud = document.getElementById("combatHUD")
+  if (hud) hud.style.display = "none"
+  document.querySelectorAll(".gmPlayerTestBtn").forEach(btn => btn.classList.remove("active"))
+}
+
+function renderPlayerAttackResolution(playerId, attack, roll, total, outcome) {
+  const statKey = getAttackStatKey(attack.stat)
+  const statLabel = String(attack.stat || statKey).toUpperCase()
+  const verb = outcome.mode === "heal" ? "restaure" : "inflige"
+  const target = outcome.mode === "heal" ? playerId.toUpperCase() : (outcome.targetName || "MOB")
+  const amount = outcome.amount || 0
+  showNotification(
+    attack.name + " — d" + attack.dice + ": " + roll + " + " + statLabel + " (" + (total - roll) + ") • " +
+    verb + " " + amount + (outcome.mode === "heal" ? " PV" : " dégâts") + " à " + target
+  )
+}
+
+function renderPlayerAttackResolutionV2(playerId, attack, roll, total, outcome) {
+  const statKey = getAttackStatKey(attack.stat)
+  const statLabel = String(attack.stat || statKey).toUpperCase()
+  const verb = outcome.mode === "heal" ? "restaure" : "inflige"
+  const target = outcome.mode === "heal" ? playerId.toUpperCase() : (outcome.targetName || "MOB")
+  const amount = outcome.amount || 0
+  const parts = ["d" + attack.dice + ": " + roll]
+  const statBonus = outcome.statBonus != null ? outcome.statBonus : (total - roll)
+  if (statBonus) parts.push(statLabel + " +" + statBonus)
+  if (outcome.flatBonus) parts.push("Bonus +" + outcome.flatBonus)
+  if (outcome.multiplier && outcome.multiplier !== 1) parts.push("x" + outcome.multiplier)
+  showNotification(
+    attack.name + " — " + parts.join(" • ") + " • " +
+    verb + " " + amount + (outcome.mode === "heal" ? " PV" : " dégâts") + " à " + target
+  )
+}
+
+function getPlayerSpecialPresentation(playerId) {
+  const key = String(playerId || "").toLowerCase()
+  const map = {
+    greg: {
+      scene: "greg",
+      kicker: "FINISHER",
+      accent: "#d9b37c",
+      glow: "rgba(217,179,124,0.38)"
+    },
+    ju: {
+      scene: "yu",
+      kicker: "RIPOSTE",
+      accent: "#8fc9ff",
+      glow: "rgba(143,201,255,0.34)"
+    },
+    elo: {
+      scene: "elo",
+      kicker: "INCANTATION",
+      accent: "#9cf2cf",
+      glow: "rgba(156,242,207,0.34)"
+    },
+    bibi: {
+      scene: "bibi",
+      kicker: "RAGE CANINE",
+      accent: "#ffd28d",
+      glow: "rgba(255,210,141,0.34)"
+    }
+  }
+  return map[key] || map.greg
+}
+
+function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
+  const presentation = getPlayerSpecialPresentation(playerId)
+  const overlay = document.createElement("div")
+  overlay.className = "playerSpecialOverlay playerSpecialOverlay--" + presentation.scene
+
+  const stage = document.createElement("div")
+  stage.className = "playerSpecialStage"
+  overlay.appendChild(stage)
+
+  const ring = document.createElement("img")
+  ring.src = "images/impact_ring.png"
+  ring.alt = ""
+  ring.className = "playerSpecialRing"
+  stage.appendChild(ring)
+
+  const slash = document.createElement("img")
+  slash.src = "images/" + ((presentation.scene === "elo" || presentation.scene === "yu") ? "rune_glow.png" : "slash_overlay.png")
+  slash.alt = ""
+  slash.className = "playerSpecialSlash"
+  stage.appendChild(slash)
+
+  const box = document.createElement("div")
+  box.className = "playerSpecialBox"
+
+  const kicker = document.createElement("div")
+  kicker.className = "playerSpecialKicker"
+  kicker.style.color = presentation.accent
+  kicker.innerText = meta.fail ? "ÉLAN BRISÉ" : meta.crit ? "MOMENT DÉCISIF" : presentation.kicker
+  box.appendChild(kicker)
+
+  const title = document.createElement("div")
+  title.className = "playerSpecialTitle"
+  title.innerText = String(attack.name || "SPÉCIALE").toUpperCase()
+  box.appendChild(title)
+
+  const sub = document.createElement("div")
+  sub.className = "playerSpecialSub"
+  sub.style.color = presentation.accent
+  if (outcome.mode === "heal") sub.innerText = playerId.toUpperCase() + " restaure " + (outcome.amount || 0) + " PV"
+  else sub.innerText = playerId.toUpperCase() + " frappe " + (outcome.targetName || "MOB") + " pour " + (outcome.amount || 0) + " dégâts"
+  box.appendChild(sub)
+
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+
+  if (meta.fail) {
+    playSound("failSound", 0.82)
+    flashRed()
+    screenShake()
+  } else if (meta.crit) {
+    playSound("critSound", 0.95)
+    flashGold()
+    flashGold()
+    screenShakeHard()
+    powerExplosion()
+  } else {
+    playSound("powerSound", 0.62)
+    flashGold()
+    screenShake()
+  }
+
+  setTimeout(() => {
+    overlay.style.transition = "opacity 0.42s ease"
+    overlay.style.opacity = "0"
+    setTimeout(() => overlay.remove(), 450)
+  }, meta.crit ? 1900 : 1600)
+}
+
+function showPlayerAttackImpact(playerId, attack, outcome, meta = {}) {
+  if (meta.special) {
+    showPlayerSpecialCinematic(playerId, attack, outcome, meta)
+    return
+  }
+  const type = getPlayerAttackTypeKey(attack)
+  const crit = !!meta.crit
+  const fail = !!meta.fail
+
+  const overlay = document.createElement("div")
+  overlay.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:99999995;display:flex;align-items:center;justify-content:center;"
+
+  const ring = document.createElement("img")
+  ring.src = "images/impact_ring.png"
+  ring.alt = ""
+  ring.style.cssText = "position:absolute;width:min(44vw,420px);opacity:0.22;filter:drop-shadow(0 0 22px rgba(255,210,120,0.28));animation:combatEventPulse 0.42s ease-out 2;"
+  overlay.appendChild(ring)
+
+  const slash = document.createElement("img")
+  slash.src = "images/" + (type === "spell" || type === "analysis" || type === "summon" ? "rune_glow.png" : "slash_overlay.png")
+  slash.alt = ""
+  slash.style.cssText = "position:absolute;width:min(56vw,520px);opacity:0.2;transform:rotate(" + (Math.random() * 16 - 8) + "deg);filter:drop-shadow(0 0 16px rgba(255,255,255,0.14));"
+  overlay.appendChild(slash)
+
+  const box = document.createElement("div")
+  const colorMap = {
+    physical: "#d9b37c",
+    ranged: "#c8d7ea",
+    special: "#ffd28d",
+    charm: "#d6a6ff",
+    spell: "#8ff0d2",
+    analysis: "#8fc9ff",
+    summon: "#c1a0ff",
+    heal: "#b8ffd2"
+  }
+  const accent = fail ? "#b86868" : (colorMap[type] || "#d9b37c")
+  box.style.cssText = "position:relative;min-width:min(52vw,580px);max-width:72vw;padding:18px 30px;border:1px solid rgba(230,190,110,0.3);background:linear-gradient(135deg,rgba(6,14,18,0.9),rgba(12,20,24,0.84));box-shadow:0 0 30px rgba(0,0,0,0.44), inset 0 0 22px rgba(255,255,255,0.03);"
+
+  const kicker = document.createElement("div")
+  kicker.style.cssText = "font-family:Cinzel,serif;font-size:12px;letter-spacing:3px;color:" + accent + ";text-align:center;margin-bottom:6px;"
+  kicker.innerText = fail ? "ÉLAN BRISÉ" : crit ? "FRAPPE CRITIQUE" : "ACTION DU JOUEUR"
+  box.appendChild(kicker)
+
+  const title = document.createElement("div")
+  title.style.cssText = "font-family:'Uncial Antiqua','Cinzel',serif;font-size:30px;line-height:1.15;text-align:center;color:#f4ead2;text-shadow:0 0 16px rgba(0,0,0,0.5);"
+  title.innerText = String(attack.name || "ATTAQUE").toUpperCase()
+  box.appendChild(title)
+
+  const sub = document.createElement("div")
+  sub.style.cssText = "margin-top:10px;font-family:Cinzel,serif;font-size:14px;letter-spacing:1px;text-align:center;color:" + accent + ";"
+  if (outcome.mode === "heal") sub.innerText = playerId.toUpperCase() + " récupère " + (outcome.amount || 0) + " PV"
+  else sub.innerText = playerId.toUpperCase() + " frappe " + (outcome.targetName || "MOB") + " pour " + (outcome.amount || 0) + " dégâts"
+  box.appendChild(sub)
+
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+
+  if (fail) {
+    playSound("failSound", 0.8)
+    flashRed()
+    screenShake()
+  } else if (crit) {
+    playSound("critSound", 0.9)
+    flashGold()
+    flashGold()
+    screenShakeHard()
+    powerExplosion()
+  } else if (type === "heal") {
+    playSound("powerSound", 0.42)
+    flashGold()
+  } else if (type === "spell" || type === "analysis" || type === "summon" || type === "charm") {
+    playSound("powerSound", 0.5)
+    flashGold()
+    screenShake()
+  } else {
+    playSound("critSound", 0.45)
+    screenShake()
+  }
+
+  setTimeout(() => {
+    overlay.style.transition = "opacity 0.35s ease"
+    overlay.style.opacity = "0"
+    setTimeout(() => overlay.remove(), 380)
+  }, crit ? 1550 : 1250)
+}
+
+function isPlayerSpecialConditionMet(playerId, specialAttack, context = {}) {
+  if (!specialAttack) return false
+  const rule = specialAttack.rule || ""
+  const mob = context.mob || null
+  const charData = context.charData || {}
+  const players = context.players || {}
+
+  if (rule === "mob_below_half") {
+    if (!mob) return false
+    const hp = parseInt(mob.hp, 10) || 0
+    const maxHP = Math.max(1, parseInt(mob.maxHP, 10) || hp || 1)
+    return hp <= Math.ceil(maxHP * 0.5)
+  }
+
+  if (rule === "mob_below_forty") {
+    if (!mob) return false
+    const hp = parseInt(mob.hp, 10) || 0
+    const maxHP = Math.max(1, parseInt(mob.maxHP, 10) || hp || 1)
+    return hp <= Math.ceil(maxHP * 0.4)
+  }
+
+  if (rule === "after_spider_sense") {
+    return hasPlayerCombatTrigger(playerId, "spiderSense")
+  }
+
+  if (rule === "mob_used_special") {
+    return !!mob?.specialUsed
+  }
+
+  if (rule === "ally_below_sixty") {
+    return ["greg","ju","elo","bibi"].some(id => {
+      const ally = players[id]
+      if (!ally) return false
+      const hp = parseInt(ally.hp, 10) || 0
+      const maxHP = getCharacterMaxHp(id, ally)
+      return hp <= Math.ceil(maxHP * 0.6)
+    })
+  }
+
+  if (rule === "self_below_seventy") {
+    const hp = parseInt(charData.hp, 10) || 0
+    const maxHP = getCharacterMaxHp(playerId, charData)
+    return hp <= Math.ceil(maxHP * 0.7)
+  }
+
+  if (rule === "greg_below_twenty") {
+    const greg = players.greg || {}
+    const hp = parseInt(greg.hp, 10) || 0
+    const maxHP = getCharacterMaxHp("greg", greg)
+    return hp <= Math.ceil(maxHP * 0.2)
+  }
+
+  return false
+}
+
+function buildPlayerSpecialBlock(playerId, specialAttack) {
+  const block = document.createElement("div")
+  block.className = "combatBlock combatBlock--action combatBlock--special"
+  const used = hasPlayerUsedCombatSpecial(playerId)
+
+  populateAttackBlock(block, specialAttack)
+  appendAttackLine(block, "Condition", specialAttack.conditionText)
+
+  const state = document.createElement("div")
+  state.className = "combatSpecialState"
+  state.innerText = used ? "Déjà utilisée dans ce combat" : "Unique • condition requise"
+  block.appendChild(state)
+
+  if (used) {
+    block.classList.add("combatBlock--spent")
+    block.onclick = null
+  } else {
+    block.title = "Cliquer pour lancer l'attaque spéciale"
+    block.onclick = () => resolvePlayerAttack(specialAttack, { isSpecial: true })
+  }
+
+  return block
+}
+
+function buildPassTurnBlock(actorId, label) {
+  const block = document.createElement("div")
+  block.className = "combatBlock combatBlock--action combatBlock--pass"
+  const title = document.createElement("div")
+  title.className = "attackTitle"
+  title.innerText = "Passer le tour"
+  block.appendChild(title)
+  appendAttackLine(block, "Cible", label || String(actorId || "").toUpperCase())
+  appendAttackLine(block, "Effet", "Passe l'action sans attaquer")
+  block.title = "Terminer le tour de " + (label || String(actorId || "").toUpperCase())
+  block.onclick = () => {
+    const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
+    if (turnState && turnState.phase === "rolling") {
+      showNotification("Terminez d'abord les jets d'initiative.")
+      return
+    }
+    const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
+    if (activeActorId && activeActorId !== actorId) {
+      showNotification("Tour actif : " + String(activeActorId || "").toUpperCase())
+      return
+    }
+    showNotification((label || String(actorId || "").toUpperCase()) + " passe son tour.")
+    if (typeof addMJLog === "function") addMJLog((label || String(actorId || "").toUpperCase()) + " passe son tour.")
+    if (typeof advanceCombatTurn === "function") advanceCombatTurn()
+  }
+  return block
+}
+
+function resolvePlayerAttack(attack, options = {}) {
+  const playerId = options.actorId || getCombatHUDPlayerId()
+  if (!combatActive || !playerId) {
+    showNotification("Combat indisponible.")
+    return
+  }
+  const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
+  if (turnState && turnState.phase === "rolling") {
+    showNotification("Terminez d'abord les jets d'initiative.")
+    return
+  }
+  const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
+  if (activeActorId && activeActorId !== playerId) {
+    showNotification("Ce n'est pas encore le tour de " + playerId.toUpperCase() + ".")
+    return
+  }
+  const isSpecial = !!options.isSpecial
+  if (isSpecial && hasPlayerUsedCombatSpecial(playerId)) {
+    showNotification("Spéciale déjà utilisée dans ce combat.")
+    return
+  }
+  if (window.__playerAttackResolving) return
+  window.__playerAttackResolving = true
+  const statKey = getAttackStatKey(attack.stat)
+  const diceMax = Math.max(2, parseInt(attack.dice, 10) || 20)
+
+  db.ref("characters/" + playerId).once("value", charSnap => {
+    const data = charSnap.val() || {}
+    if (playerId === "greg" && attack.name === "I know Frank (si arc)" && !playerHasInventoryItem(data, "arc")) {
+      showNotification("Greg doit avoir un arc dans son inventaire.")
+      window.__playerAttackResolving = false
+      return
+    }
+    if (playerId === "greg" && attack.name === "Chat Bite (CaC)" && !isGregNearMobForBite()) {
+      showNotification("Chat Bite demande que Greg soit au contact du mob.")
+      window.__playerAttackResolving = false
+      return
+    }
+    const statValue = parseInt(data[statKey], 10) || 0
+    const roll = Math.floor(Math.random() * diceMax) + 1
+    const total = roll + statValue
+    showDiceAnimation(playerId, diceMax, roll)
+
+    setTimeout(() => {
+      const type = getPlayerAttackTypeKey(attack)
+      const basePower = getPlayerAttackPower(attack, roll, statValue)
+      const crit = roll === diceMax
+      const fail = roll === 1
+
+      if (type === "heal") {
+        const healAmount = fail ? Math.max(4, Math.round(basePower * 0.45)) : crit ? basePower * 2 : basePower
+        const ids = ["greg","ju","elo","bibi"]
+        chooseCombatTarget(ids, "Choisir la cible de soin").then(targetId => {
+          if (!targetId) {
+            window.__playerAttackResolving = false
+            return
+          }
+          db.ref("characters/" + targetId).once("value", targetSnap => {
+            const targetData = targetSnap.val() || {}
+            const maxHp = getCharacterMaxHp(targetId, targetData)
+            const currentHp = parseInt(targetData.hp, 10) || 0
+            const nextHp = Math.min(maxHp, currentHp + healAmount)
+            db.ref("characters/" + targetId + "/hp").set(nextHp)
+            const outcome = {
+              mode: "heal",
+              amount: nextHp - currentHp
+            }
+            renderPlayerAttackResolutionV2(targetId, attack, roll, total, {
+              ...outcome,
+              statBonus: statValue
+            })
+            showPlayerAttackImpact(playerId, attack, outcome, { crit, fail, special: isSpecial })
+            if (typeof advanceCombatTurn === "function") advanceCombatTurn()
+            window.__playerAttackResolving = false
+          }, () => {
+            window.__playerAttackResolving = false
+          })
+        })
+        return
+      }
+
+      db.ref("combat/mob").once("value", mobSnap => {
+        const mob = mobSnap.val()
+        if (!mob) {
+          showNotification("Aucun ennemi principal à viser.")
+          window.__playerAttackResolving = false
+          return
+        }
+
+        Promise.all([
+          ...["greg","ju","elo","bibi"].map(id => db.ref("characters/" + id).once("value").then(s => ({ id, data: s.val() || {} }))),
+          db.ref("combat/mob/bibiRage").once("value").then(s => ({ id: "__bibiRage", data: s.val() || null })),
+          db.ref("combat/mob/yuAggro").once("value").then(s => ({ id: "__yuAggro", data: s.val() || null })),
+          db.ref("combat/mob/spiderSenseBuff").once("value").then(s => ({ id: "__spiderSenseBuff", data: s.val() || null })),
+          db.ref("combat/mob/attackMalus").once("value").then(s => ({ id: "__attackMalus", data: s.val() || null }))
+        ]).then(entries => {
+          const players = {}
+          let bibiRage = null
+          let yuAggro = null
+          let spiderSenseBuff = null
+          let attackMalus = null
+          entries.forEach(entry => {
+            if (entry.id === "__bibiRage") bibiRage = entry.data
+            else if (entry.id === "__yuAggro") yuAggro = entry.data
+            else if (entry.id === "__spiderSenseBuff") spiderSenseBuff = entry.data
+            else if (entry.id === "__attackMalus") attackMalus = entry.data
+            else players[entry.id] = entry.data
+          })
+
+          if (isSpecial) {
+            const specialAttack = getPlayerSpecialAttack(playerId)
+            if (!isPlayerSpecialConditionMet(playerId, specialAttack, { mob, charData: data, players })) {
+              showNotification(specialAttack?.conditionText || "Condition non remplie.")
+              window.__playerAttackResolving = false
+              return
+            }
+          }
+
+          let damage = fail ? 0 : basePower
+          if (crit) damage *= 2
+          let multiplier = crit ? 2 : 1
+          if (isSpecial) {
+            const specialMult = attack.damageBonus || 1.75
+            damage = Math.round(damage * specialMult)
+            multiplier *= specialMult
+          }
+          let flatBonus = 0
+
+          if (playerId === "elo" && window.__eloSummonState && window.__eloSummonState.active) {
+            flatBonus = crit ? 8 : 4
+            damage += flatBonus
+          }
+
+          if (!fail && bibiRage && parseInt(bibiRage.turns, 10) > 0) {
+            const rageBonus = Math.max(1, parseInt(bibiRage.damage, 10) || 2)
+            damage += rageBonus
+            flatBonus += rageBonus
+          }
+
+          if (!fail && yuAggro && parseInt(yuAggro.turns, 10) > 0 && type !== "heal") {
+            const aggroBonus = Math.max(1, parseInt(yuAggro.allyBonus, 10) || 1)
+            damage += aggroBonus
+            flatBonus += aggroBonus
+          }
+
+          const mapName = String(currentMap || "").toLowerCase()
+          if (attack.name === "Je vais te raconter une histoire" && (mapName.includes("foret") || mapName.includes("mine"))) {
+            damage *= 2
+            multiplier *= 2
+          }
+
+          if (!fail && spiderSenseBuff && spiderSenseBuff.active && type !== "heal") {
+            const spiderMult = parseFloat(spiderSenseBuff.damageMult) || 1.1
+            damage = Math.max(1, Math.round(damage * spiderMult))
+            multiplier *= spiderMult
+          }
+
+          if (attack.name === "Spider Sense") {
+            damage = Math.max(1, Math.round(damage * 0.65))
+            markPlayerCombatTrigger(playerId, "spiderSense")
+          }
+
+          if (attack.name === "Petite merde" && hasPlayerCombatTrigger(playerId, "spiderSense")) {
+            damage *= 2
+            multiplier *= 2
+          }
+
+          if (isSpecial && attack.rule === "ally_below_sixty" && crit) {
+            ;["greg","ju","elo","bibi"].forEach(id => {
+              db.ref("characters/" + id).once("value", allySnap => {
+                const ally = allySnap.val() || {}
+                const hp = parseInt(ally.hp, 10) || 0
+                const maxHP = getCharacterMaxHp(id, ally)
+                db.ref("characters/" + id + "/hp").set(Math.min(maxHP, hp + 8))
+              })
+            })
+          }
+
+          const nextHp = Math.max(0, (parseInt(mob.hp, 10) || 0) - damage)
+          db.ref("combat/mob/hp").set(nextHp)
+          if (!fail && bibiRage && parseInt(bibiRage.turns, 10) > 0) {
+            const turnsLeft = Math.max(0, (parseInt(bibiRage.turns, 10) || 0) - 1)
+            if (turnsLeft <= 0) db.ref("combat/mob/bibiRage").remove()
+            else db.ref("combat/mob/bibiRage/turns").set(turnsLeft)
+          }
+          if (playerId === "elo" && attack.name === "Je vais te raconter une histoire" && crit) {
+            db.ref("combat/mob/playerPoison").set({ source: "elo", damage: 2, turns: 2, time: Date.now() })
+            showNotification("Le mob est empoisonné pour 2 tours.")
+          }
+          if (playerId === "elo" && attack.name === "Je suis jet laguée") {
+            if (playerId === "ju" && attack.name === "Dépêche-toi !!!") {
+              db.ref("combat/mob/yuAggro").set({ source: "ju", turns: 3, allyBonus: 1, time: Date.now() })
+              if (crit) db.ref("combat/mob/yuSkipNextTurn").set({ source: "ju", active: true, time: Date.now() })
+            }
+            if (playerId === "ju" && attack.name === "Spider Sense") {
+              db.ref("combat/mob/spiderSenseBuff").set({ source: "ju", active: true, damageMult: 1.1, time: Date.now() })
+              if (crit) db.ref("combat/mob/victoryLootBonus").set({ source: "ju", active: true, time: Date.now() })
+            }
+            if (playerId === "ju" && attack.name === "Petite merde" && crit) {
+              db.ref("combat/mob/attackMalus").set({ source: "ju", amount: 1, turns: 2, time: Date.now() })
+              showNotification("Le mob est humilié et perd 1 attaque pendant 2 tours.")
+            }
+            const porkSnd = new Audio("audio/pork.mp3")
+            if (typeof setManagedAudioBaseVolume === "function") setManagedAudioBaseVolume(porkSnd, 0.78)
+            else porkSnd.volume = 0.78
+            porkSnd.play().catch(() => {})
+            const eloMaxHp = getCharacterMaxHp("elo", players.elo || data || {})
+            const summonMaxHp = Math.max(1, Math.round(eloMaxHp * 0.8))
+            db.ref("combat/eloSummon").set({
+              active: true,
+              hp: summonMaxHp,
+              maxHP: summonMaxHp,
+              turnsLeft: 3,
+              source: "elo",
+              x: 720,
+              y: 430,
+              time: Date.now()
+            })
+          }
+          if (playerId === "greg" && attack.name === "Le Bibi" && crit) {
+            db.ref("combat/mob/bibiRage").set({ source: "greg", damage: 2, turns: 3, time: Date.now() })
+            showNotification("Le Bibi entre en rage pour 3 tours.")
+          }
+          if (playerId === "greg" && attack.name === "I know Frank (si arc)" && crit) {
+            db.ref("combat/mob/playerBleed").set({ source: "greg", damage: 1, turns: 2, time: Date.now() })
+            showNotification("Le mob saigne pendant 2 tours.")
+          }
+          if (playerId === "ju" && type === "charm") {
+            db.ref("combat/mob/yuAggro").set({ source: "ju", turns: 3, allyBonus: 1, time: Date.now() })
+            if (crit) db.ref("combat/mob/yuSkipNextTurn").set({ source: "ju", active: true, time: Date.now() })
+          }
+          if (playerId === "ju" && attack.name === "Spider Sense") {
+            db.ref("combat/mob/spiderSenseBuff").set({ source: "ju", active: true, damageMult: 1.1, time: Date.now() })
+            if (crit) db.ref("combat/mob/victoryLootBonus").set({ source: "ju", active: true, time: Date.now() })
+          }
+          if (playerId === "ju" && attack.name === "Petite merde" && crit) {
+            db.ref("combat/mob/attackMalus").set({ source: "ju", amount: 1, turns: 2, time: Date.now() })
+            showNotification("Le mob est humilié et perd 1 attaque pendant 2 tours.")
+          }
+          const outcome = {
+            mode: "damage",
+            amount: damage,
+            targetName: String(mob.name || "MOB").toUpperCase()
+          }
+          renderPlayerAttackResolutionV2(playerId, attack, roll, total, {
+            ...outcome,
+            statBonus: statValue,
+            flatBonus,
+            multiplier
+          })
+          showPlayerAttackImpact(playerId, attack, outcome, { crit, fail, special: isSpecial })
+          if (typeof addMJLog === "function") {
+            addMJLog(playerId.toUpperCase() + " — " + attack.name + " → " + String(mob.name || "MOB").toUpperCase() + " : -" + damage + " HP")
+          }
+          if (isSpecial) markPlayerCombatSpecialUsed(playerId)
+          showCombatHUD()
+          if (typeof advanceCombatTurn === "function") advanceCombatTurn()
+          window.__playerAttackResolving = false
+        }).catch(() => {
+          window.__playerAttackResolving = false
+        })
+      }, () => {
+        window.__playerAttackResolving = false
+      })
+    }, 2150)
+  }, () => {
+    window.__playerAttackResolving = false
+  })
 }
 
 function cleanupGMPlayerSheetListener(playerID) {
@@ -236,24 +1093,63 @@ function cleanupGMPlayerSheetListener(playerID) {
 }
 
 function showCombatHUD() {
-  if (!myToken) return
-  const player = myToken.id, playerAttacks = attacks[player]
+  const player = getCombatHUDPlayerId()
+  if (!player) return
+  const playerAttacks = attacks[player]
+  const specialAttack = getPlayerSpecialAttack(player)
   document.getElementById("combatHUDPortrait").src   = "images/" + player + ".png"
   document.getElementById("combatHUDName").innerText  = player.toUpperCase()
   const box = document.getElementById("combatHUDAttacks"); box.innerHTML = ""
   if (playerAttacks) playerAttacks.forEach(a => {
     const block = document.createElement("div"); block.className = "combatBlock"
     populateAttackBlock(block, a)
+    block.classList.add("combatBlock--action")
+    block.title = "Cliquer pour lancer l'attaque"
+    block.onclick = () => resolvePlayerAttack(a)
     box.appendChild(block)
   })
+  if (specialAttack) box.appendChild(buildPlayerSpecialBlock(player, specialAttack))
+  if (player === "greg") {
+    const bibiSpecial = getPlayerSpecialAttack("bibi")
+    if (bibiSpecial) {
+      const divider = document.createElement("div")
+      divider.className = "combatCompanionDivider"
+      divider.innerText = "BIBI"
+      box.appendChild(divider)
+
+      const bibiBlock = buildPlayerSpecialBlock("bibi", bibiSpecial)
+      bibiBlock.classList.add("combatBlock--companion")
+      bibiBlock.title = "Greg peut piloter la spéciale de Bibi"
+      if (!hasPlayerUsedCombatSpecial("bibi")) {
+        bibiBlock.onclick = () => resolvePlayerAttack(bibiSpecial, { isSpecial: true, actorId: "bibi" })
+      }
+      box.appendChild(bibiBlock)
+    }
+  }
+  if (player === "bibi") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
+  if (player === "greg") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
   document.getElementById("combatHUD").style.display = "none"
-  const btn = document.getElementById("playerAttackBtn"); if (btn && myToken) btn.style.display = "flex"
+  const btn = document.getElementById("playerAttackBtn"); if (btn && player) btn.style.display = "flex"
 }
 
 function togglePlayerAttacks() {
   const hud = document.getElementById("combatHUD"); if (!hud) return
+  const playerId = getCombatHUDPlayerId()
+  const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
+  const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
+  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && turnState && turnState.phase === "rolling" && !(isGM && window.__combatPreviewPlayerId)) {
+    showNotification("Terminez d'abord les jets d'initiative.")
+    return
+  }
+  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && activeActorId && activeActorId !== playerId && !(isGM && window.__combatPreviewPlayerId)) {
+    showNotification("Tour actif : " + String(activeActorId || "").toUpperCase())
+    return
+  }
   if (hud.style.display === "none" || !hud.style.display) { hud.style.display = "flex"; hud.style.alignItems = "flex-start" }
-  else hud.style.display = "none"
+  else {
+    hud.style.display = "none"
+    if (isGM && window.__combatPreviewPlayerId) closeCombatPreviewHUD()
+  }
 }
 
 function showGMCombatPanel() {
@@ -261,8 +1157,21 @@ function showGMCombatPanel() {
   if (window.__gmMiniRefs) Object.keys(window.__gmMiniRefs).forEach(cleanupGMPlayerSheetListener)
   const panel = document.getElementById("gmCombatPanel"); panel.innerHTML = ""
   ;[{ id:"elo",name:"ELO" }, { id:"ju",name:"YU" }, { id:"greg",name:"GREG" }].forEach(p => {
+    const row = document.createElement("div")
+    row.className = "gmCombatRow"
+
     const btn = document.createElement("button"); btn.className = "gmAttackButton"; btn.innerText = p.name
-    btn.onclick = () => openGMPlayerSheet(p.id); panel.appendChild(btn)
+    btn.onclick = () => openGMPlayerSheet(p.id)
+    row.appendChild(btn)
+
+    const testBtn = document.createElement("button")
+    testBtn.className = "gmPlayerTestBtn"
+    testBtn.dataset.playerId = p.id
+    testBtn.innerText = "Test HUD"
+    testBtn.onclick = () => setCombatPreviewPlayer(p.id)
+    row.appendChild(testBtn)
+
+    panel.appendChild(row)
   })
   panel.style.display = "flex"
 }
@@ -342,19 +1251,25 @@ function _smartTarget(attack) {
   if (effect === "all") return "all"
 
   // Attaque corps à corps — joueur le plus proche du token mob
-  if (effect === "melee" || name.includes("coup") || name.includes("frappe") || name.includes("morsure") || name.includes("griffe")) {
+  if (isPhysicalMobAttack(attack)) {
     const mobTok = document.getElementById("mobToken")
     if (mobTok) {
       const mobX = parseInt(mobTok.style.left)||600, mobY = parseInt(mobTok.style.top)||200
-      let closest = alivePlayers[0], minDist = Infinity
+      const ranked = []
       alivePlayers.forEach(pid => {
         const tok = document.getElementById(pid); if (!tok) return
         const dx = (parseInt(tok.style.left)||0) - mobX
         const dy = (parseInt(tok.style.top)||0)  - mobY
         const dist = Math.sqrt(dx*dx + dy*dy)
-        if (dist < minDist) { minDist = dist; closest = pid }
+        ranked.push({ pid, dist })
       })
-      return closest
+      ranked.sort((a, b) => a.dist - b.dist)
+      if (!ranked.length) return alivePlayers[0]
+      if (ranked.length === 1) return ranked[0].pid
+      const proximityRoll = Math.random()
+      if (proximityRoll < 0.68) return ranked[0].pid
+      if (proximityRoll < 0.9) return ranked[1].pid
+      return ranked[Math.floor(Math.random() * ranked.length)].pid
     }
   }
 
@@ -389,7 +1304,7 @@ function renderAllMobPanels() {
 
   const toggle = document.createElement("div"); toggle.id = "mobAttackToggle"
   toggle.style.cssText = "position:fixed;bottom:160px;right:20px;z-index:9999999;font-family:Cinzel,serif;font-size:11px;color:#ff8888;background:rgba(10,0,0,0.9);border:1px solid rgba(180,40,40,0.5);border-radius:4px;padding:4px 10px;cursor:pointer;"
-  toggle.innerText = "⚔ Attaques Mobs"
+  toggle.innerText = "Attaques des ennemis"
 
   const container = document.createElement("div"); container.id = "mobAttackPanel"
   container.style.cssText = "position:fixed;bottom:200px;right:20px;width:270px;display:flex;flex-direction:column;gap:6px;z-index:9999999;max-height:65vh;overflow-y:auto;"
@@ -421,7 +1336,9 @@ function renderAllMobPanels() {
 function buildMobSubPanel(mobData, slot) {
   const panel = document.createElement("div"); panel.style.cssText = "background:rgba(10,0,0,0.92);border:2px solid rgba(180,40,40,0.6);border-radius:8px;padding:10px;"
   const header = document.createElement("div"); header.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
-  const tEl = document.createElement("div"); tEl.style.cssText = "font-family:Cinzel,serif;font-size:12px;color:#ff8888;font-weight:bold;"; tEl.innerText = "⚔ "+(mobData.name||"MOB").toUpperCase()+" Niv."+(mobData.lvl||1); header.appendChild(tEl)
+  const titleWrap = document.createElement("div"); titleWrap.style.cssText = "display:flex;align-items:center;gap:8px;min-width:0;"
+  const portrait = document.createElement("img"); portrait.src = "images/" + sanitizeAssetName((mobData.name || "gobelins") + ".png"); portrait.style.cssText = "width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45));"; portrait.onerror = () => portrait.style.display = "none"; titleWrap.appendChild(portrait)
+  const tEl = document.createElement("div"); tEl.style.cssText = "font-family:Cinzel,serif;font-size:12px;color:#ffb6a0;font-weight:bold;letter-spacing:1px;"; tEl.innerText = (mobData.name||"MOB").toUpperCase()+"  Niv."+(mobData.lvl||1); titleWrap.appendChild(tEl); header.appendChild(titleWrap)
 
   if (isGM) {
     const cBtn = document.createElement("button"); cBtn.style.cssText = "padding:2px 8px;font-size:11px;background:rgba(40,40,80,0.5);color:#8888ff;border:1px solid rgba(80,80,180,0.4);border-radius:3px;cursor:pointer;"; cBtn.innerText = "—"
@@ -449,13 +1366,13 @@ function buildMobSubPanel(mobData, slot) {
   if (isGM) {
     // Bouton aléatoire intelligent
     const rBtn = document.createElement("button"); rBtn.style.cssText = "width:100%;padding:5px;margin-bottom:5px;font-family:Cinzel,serif;font-size:10px;background:rgba(80,30,120,0.5);color:#cc88ff;border:1px solid rgba(120,50,200,0.5);border-radius:4px;cursor:pointer;"
-    rBtn.innerText = "🎲 Aléatoire (ciblage auto)"
+    rBtn.innerText = "Aléatoire (ciblage auto)"
     rBtn.onclick = () => {
       const av = atks.filter(a=>a.name!==panel._lastAttack)
       const atk = (av.length?av:atks)[Math.floor(Math.random()*(av.length||atks.length))]
       const target = _smartTarget(atk)
       panel._currentTarget = target === "all" ? null : target
-      launchMobAttackFromSlot(atk, mobData, panel, target)
+      launchMobAttackFromSlotV2(atk, mobData, panel, target)
     }
     panel.appendChild(rBtn)
 
@@ -465,14 +1382,25 @@ function buildMobSubPanel(mobData, slot) {
       const range = getRange(atk, mobLvl, tier)
       const min = range.min, max = range.max
       btn.style.cssText = `padding:6px 8px;margin-bottom:4px;background:rgba(120,10,10,${isCD?"0.2":"0.4"});border:1px solid rgba(180,40,40,${isCD?"0.2":"0.4"});border-radius:4px;cursor:${isCD?"not-allowed":"pointer"};opacity:${isCD?"0.5":"1"};`
-      btn.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:14px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${isCD?"#666":"#ffcccc"};font-weight:bold;">${atk.name}${isCD?" ⏱":""}</span><span style="font-size:9px;color:#ff8888;margin-left:auto;">${min}-${max}</span></div>`
+      const row = document.createElement("div")
+      row.style.cssText = "display:flex;align-items:center;gap:6px;"
+      row.appendChild(createCombatIcon(atk, mobData, "combatIcon combatIcon--small"))
+      const name = document.createElement("span")
+      name.style.cssText = `font-family:Cinzel,serif;font-size:10px;color:${isCD?"#666":"#ffcccc"};font-weight:bold;`
+      name.innerText = atk.name + (isCD?" Recharge":"")
+      const dmg = document.createElement("span")
+      dmg.style.cssText = "font-size:9px;color:#ff8888;margin-left:auto;"
+      dmg.innerText = min + "-" + max
+      row.appendChild(name)
+      row.appendChild(dmg)
+      btn.appendChild(row)
       if (!isCD) {
         btn.onmouseenter=()=>btn.style.background="rgba(180,20,20,0.6)"
         btn.onmouseleave=()=>btn.style.background="rgba(120,10,10,0.4)"
         btn.onclick=()=>{
           const target = _smartTarget(atk)
           panel._currentTarget = target === "all" ? null : target
-          launchMobAttackFromSlot(atk, mobData, panel, target)
+          launchMobAttackFromSlotV2(atk, mobData, panel, target)
         }
       }
       panel.appendChild(btn)
@@ -483,14 +1411,29 @@ function buildMobSubPanel(mobData, slot) {
       const sMin = specialRange.min, sMax = specialRange.max
       const sBtn = document.createElement("div")
       sBtn.style.cssText = `padding:8px 10px;margin:8px 0 4px;background:${specialUsed?"rgba(60,30,30,0.35)":"linear-gradient(135deg,rgba(120,20,20,0.88),rgba(40,0,0,0.96))"};border:1px solid ${specialUsed?"rgba(140,80,80,0.3)":"rgba(255,180,110,0.55)"};border-radius:6px;cursor:${specialUsed?"not-allowed":"pointer"};opacity:${specialUsed?"0.55":"1"};box-shadow:${specialUsed?"none":"0 0 24px rgba(255,120,60,0.18)"};`
-      sBtn.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${specialAtk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${specialUsed?"#aa8888":"#ffd6a0"};font-weight:bold;letter-spacing:0.5px;">${specialAtk.name}${specialUsed?" — UNIQUE DÉJÀ UTILISÉE":""}</span><span style="font-size:9px;color:${specialUsed?"#9a6a6a":"#ffb37a"};margin-left:auto;">${sMin}-${sMax}</span></div><div style="font-size:9px;color:${specialUsed?"#8a6a6a":"#ffb988"};margin-top:4px;line-height:1.35;">${specialAtk.flavor || "Attaque signature à usage unique."}</div>`
+      const sTop = document.createElement("div")
+      sTop.style.cssText = "display:flex;align-items:center;gap:8px;"
+      sTop.appendChild(createCombatIcon(specialAtk, mobData, "combatIcon"))
+      const sName = document.createElement("span")
+      sName.style.cssText = `font-family:Cinzel,serif;font-size:10px;color:${specialUsed?"#aa8888":"#ffd6a0"};font-weight:bold;letter-spacing:0.5px;`
+      sName.innerText = specialAtk.name + (specialUsed ? " — UNIQUE DÉJÀ UTILISÉE" : "")
+      const sDmg = document.createElement("span")
+      sDmg.style.cssText = `font-size:9px;color:${specialUsed?"#9a6a6a":"#ffb37a"};margin-left:auto;`
+      sDmg.innerText = sMin + "-" + sMax
+      sTop.appendChild(sName)
+      sTop.appendChild(sDmg)
+      sBtn.appendChild(sTop)
+      const sFlavor = document.createElement("div")
+      sFlavor.style.cssText = `font-size:9px;color:${specialUsed?"#8a6a6a":"#ffb988"};margin-top:4px;line-height:1.35;`
+      sFlavor.innerText = specialAtk.flavor || "Attaque signature à usage unique."
+      sBtn.appendChild(sFlavor)
       if (!specialUsed) {
         sBtn.onmouseenter=()=>sBtn.style.filter="brightness(1.08)"
         sBtn.onmouseleave=()=>sBtn.style.filter=""
         sBtn.onclick=()=>{
           const target = specialAtk.effect === "all" ? "all" : (_smartTarget(specialAtk) || panel._currentTarget)
           panel._currentTarget = target === "all" ? null : target
-          launchMobAttackFromSlot(specialAtk, mobData, panel, target, slot)
+          launchMobAttackFromSlotV2(specialAtk, mobData, panel, target, slot)
         }
       }
       panel.appendChild(sBtn)
@@ -512,7 +1455,18 @@ function buildMobSubPanel(mobData, slot) {
       const range = getRange(atk, mobLvl, tier)
       const min = range.min, max = range.max
       const row = document.createElement("div"); row.style.cssText = "padding:5px 8px;margin-bottom:3px;background:rgba(60,5,5,0.5);border:1px solid rgba(120,20,20,0.3);border-radius:3px;opacity:0.85;"
-      row.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:13px;">${atk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:#ffaaaa;">${atk.name}</span><span style="font-size:9px;color:#884444;margin-left:auto;">${min}-${max}</span></div>`
+      const line = document.createElement("div")
+      line.style.cssText = "display:flex;align-items:center;gap:6px;"
+      line.appendChild(createCombatIcon(atk, mobData, "combatIcon combatIcon--small"))
+      const name = document.createElement("span")
+      name.style.cssText = "font-family:Cinzel,serif;font-size:10px;color:#ffaaaa;"
+      name.innerText = atk.name
+      const dmg = document.createElement("span")
+      dmg.style.cssText = "font-size:9px;color:#884444;margin-left:auto;"
+      dmg.innerText = min + "-" + max
+      line.appendChild(name)
+      line.appendChild(dmg)
+      row.appendChild(line)
       panel.appendChild(row)
     })
     if (specialAtk) {
@@ -520,12 +1474,73 @@ function buildMobSubPanel(mobData, slot) {
       const sMin = specialRange.min, sMax = specialRange.max
       const sRow = document.createElement("div")
       sRow.style.cssText = `padding:6px 8px;margin-top:6px;background:${specialUsed?"rgba(55,35,35,0.45)":"rgba(96,28,12,0.5)"};border:1px solid ${specialUsed?"rgba(140,80,80,0.28)":"rgba(255,180,110,0.32)"};border-radius:4px;opacity:0.92;`
-      sRow.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:13px;">${specialAtk.icon}</span><span style="font-family:Cinzel,serif;font-size:10px;color:${specialUsed?"#b48b8b":"#ffd3a0"};">${specialAtk.name}</span><span style="font-size:9px;color:${specialUsed?"#8e6767":"#c9855f"};margin-left:auto;">${specialUsed ? "UNIQUE ✓" : (sMin + "-" + sMax)}</span></div>`
+      const sLine = document.createElement("div")
+      sLine.style.cssText = "display:flex;align-items:center;gap:6px;"
+      sLine.appendChild(createCombatIcon(specialAtk, mobData, "combatIcon combatIcon--small"))
+      const sName = document.createElement("span")
+      sName.style.cssText = `font-family:Cinzel,serif;font-size:10px;color:${specialUsed?"#b48b8b":"#ffd3a0"};`
+      sName.innerText = specialAtk.name
+      const sState = document.createElement("span")
+      sState.style.cssText = `font-size:9px;color:${specialUsed?"#8e6767":"#c9855f"};margin-left:auto;`
+      sState.innerText = specialUsed ? "UNIQUE" : (sMin + "-" + sMax)
+      sLine.appendChild(sName)
+      sLine.appendChild(sState)
+      sRow.appendChild(sLine)
       panel.appendChild(sRow)
     }
   }
 
   return panel
+}
+
+function tickMobPlayerPoison() {
+  db.ref("combat/mob/playerPoison").once("value", snap => {
+    const poison = snap.val()
+    if (!poison || !poison.turns || poison.turns <= 0) return
+
+    db.ref("combat/mob").once("value", mobSnap => {
+      const mob = mobSnap.val()
+      if (!mob) return
+
+      const damage = Math.max(1, parseInt(poison.damage, 10) || 2)
+      const turnsLeft = Math.max(0, (parseInt(poison.turns, 10) || 0) - 1)
+      db.ref("combat/mob/hp").set(Math.max(0, (parseInt(mob.hp, 10) || 0) - damage))
+      showNotification("Poison — " + String(mob.name || "MOB").toUpperCase() + " perd " + damage + " HP")
+      if (typeof addMJLog === "function") addMJLog("POISON — " + String(mob.name || "MOB").toUpperCase() + " : -" + damage + " HP")
+      if (turnsLeft <= 0) db.ref("combat/mob/playerPoison").remove()
+      else db.ref("combat/mob/playerPoison/turns").set(turnsLeft)
+    })
+  })
+}
+
+function tickMobPlayerBleed() {
+  db.ref("combat/mob/playerBleed").once("value", snap => {
+    const bleed = snap.val()
+    if (!bleed || !bleed.turns || bleed.turns <= 0) return
+
+    db.ref("combat/mob").once("value", mobSnap => {
+      const mob = mobSnap.val()
+      if (!mob) return
+
+      const damage = Math.max(1, parseInt(bleed.damage, 10) || 1)
+      const turnsLeft = Math.max(0, (parseInt(bleed.turns, 10) || 0) - 1)
+      db.ref("combat/mob/hp").set(Math.max(0, (parseInt(mob.hp, 10) || 0) - damage))
+      showNotification("Saignement — " + String(mob.name || "MOB").toUpperCase() + " perd " + damage + " HP")
+      if (typeof addMJLog === "function") addMJLog("SAIGNEMENT — " + String(mob.name || "MOB").toUpperCase() + " : -" + damage + " HP")
+      if (turnsLeft <= 0) db.ref("combat/mob/playerBleed").remove()
+      else db.ref("combat/mob/playerBleed/turns").set(turnsLeft)
+    })
+  })
+}
+
+function tickTimedCombatMobState(path) {
+  db.ref(path).once("value", snap => {
+    const data = snap.val()
+    if (!data || !data.turns || data.turns <= 0) return
+    const turnsLeft = Math.max(0, (parseInt(data.turns, 10) || 0) - 1)
+    if (turnsLeft <= 0) db.ref(path).remove()
+    else db.ref(path + "/turns").set(turnsLeft)
+  })
 }
 
 function applyMobDamageToPlayer(pid, dmg, attack, mobData, slot) {
@@ -553,6 +1568,8 @@ function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget, slot) {
   if (attack.special && mobData.specialUsed) { showNotification("⚠ Attaque spéciale déjà utilisée"); return }
   panel._lastAttack = attack.name
   animateMobDice(() => {
+    tickMobPlayerPoison()
+    tickMobPlayerBleed()
     const dmg = getMobDamage(attack, mobData.lvl||1, mobData.tier||"weak")
     const mobLabel = (mobData.name || "MOB").toUpperCase()
     const targetLabel = (attack.effect === "all" || target === "all") ? "TOUS" : String(target || "").toUpperCase()
@@ -560,13 +1577,13 @@ function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget, slot) {
     if (attack.special && slot) db.ref("combat/" + slot + "/specialUsed").set(true)
     if (attack.effect === "all" || target === "all") {
       ;["greg","ju","elo","bibi"].forEach(pid => applyMobDamageToPlayer(pid, dmg, attack, mobData, slot))
-      db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "" })
-      addMJLog(`${attack.icon} ${mobLabel} — ${attack.name}${specialTag} → TOUS : ${dmg} dégâts`)
+      db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
+      addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: "TOUS", dmg, special: !!attack.special, attack, mobData })
     } else {
       applyMobDamageToPlayer(target, dmg, attack, mobData, slot)
-      db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "" })
-      addMJLog(`${attack.icon} ${mobLabel} — ${attack.name}${specialTag} → ${targetLabel} : ${dmg} dégâts`)
-      showNotification("💥 "+attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
+      db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
+      addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: targetLabel, dmg, special: !!attack.special, attack, mobData })
+      showNotification(attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
     }
     setTimeout(() => renderAllMobPanels(), 200)
   })
@@ -575,6 +1592,69 @@ function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget, slot) {
 function animateMobDice(cb) {
   const d20=document.getElementById("mobD20"); if(!d20){ cb(); return }
   let spins=0; const iv=setInterval(()=>{ d20.style.transform=`rotate(${Math.random()*360}deg) scale(1.3)`; if(++spins>8){ clearInterval(iv); d20.style.transform=""; cb() } },120)
+}
+
+function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
+  const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
+  if (turnState && turnState.phase === "rolling") {
+    showNotification("Les jets d'initiative ne sont pas terminés.")
+    return
+  }
+  const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
+  const slotId = String(slot || "mob")
+  if (activeActorId && activeActorId !== slotId) {
+    showNotification("Tour actif : " + String(activeActorId || "").toUpperCase())
+    return
+  }
+  if (attack.special && mobData.specialUsed) { showNotification("âš  Attaque spÃ©ciale dÃ©jÃ  utilisÃ©e"); return }
+  Promise.all([
+    db.ref("combat/mob/yuAggro").once("value"),
+    db.ref("combat/mob/yuSkipNextTurn").once("value"),
+    db.ref("combat/mob/attackMalus").once("value")
+  ]).then(([yuAggroSnap, yuSkipSnap, attackMalusSnap]) => {
+    const yuAggro = yuAggroSnap.val()
+    const yuSkip = yuSkipSnap.val()
+    const attackMalus = attackMalusSnap.val()
+    const aggroActive = !!(yuAggro && parseInt(yuAggro.turns, 10) > 0)
+    const malusActive = !!(attackMalus && parseInt(attackMalus.turns, 10) > 0)
+    const target = aggroActive && attack.effect !== "all" ? "ju" : (forcedTarget || panel._currentTarget)
+    if (!target && attack.effect !== "all") { showNotification("âš  Choisissez une cible !"); return }
+    panel._lastAttack = attack.name
+    animateMobDice(() => {
+      const mobLabel = (mobData.name || "MOB").toUpperCase()
+      if (yuSkip && yuSkip.active) {
+        const skipMsg = mobLabel + " est trop occupé à se demander si Yu est un moins de 10 pour attaquer."
+        showNotification(skipMsg)
+        if (typeof addMJLog === "function") addMJLog(skipMsg)
+        db.ref("combat/mob/yuSkipNextTurn").remove()
+        if (aggroActive) tickTimedCombatMobState("combat/mob/yuAggro")
+        if (malusActive) tickTimedCombatMobState("combat/mob/attackMalus")
+        if (typeof advanceCombatTurn === "function") advanceCombatTurn()
+        setTimeout(() => renderAllMobPanels(), 200)
+        return
+      }
+      tickMobPlayerPoison()
+      tickMobPlayerBleed()
+      let dmg = getMobDamage(attack, mobData.lvl||1, mobData.tier||"weak")
+      if (malusActive) dmg = Math.max(0, dmg - Math.max(1, parseInt(attackMalus.amount, 10) || 1))
+      const targetLabel = (attack.effect === "all" || target === "all") ? "TOUS" : String(target || "").toUpperCase()
+      if (attack.special && slot) db.ref("combat/" + slot + "/specialUsed").set(true)
+      if (attack.effect === "all" || target === "all") {
+        ;["greg","ju","elo","bibi"].forEach(pid => applyMobDamageToPlayer(pid, dmg, attack, mobData, slot))
+        db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
+        addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: "TOUS", dmg, special: !!attack.special, attack, mobData })
+      } else {
+        applyMobDamageToPlayer(target, dmg, attack, mobData, slot)
+        db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
+        addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: targetLabel, dmg, special: !!attack.special, attack, mobData })
+        showNotification(attack.name+" â†’ "+target.toUpperCase()+" â€” "+dmg+" dÃ©gÃ¢ts !"); screenShake()
+      }
+      if (aggroActive) tickTimedCombatMobState("combat/mob/yuAggro")
+      if (malusActive) tickTimedCombatMobState("combat/mob/attackMalus")
+      if (typeof advanceCombatTurn === "function") advanceCombatTurn()
+      setTimeout(() => renderAllMobPanels(), 200)
+    })
+  })
 }
 
 function addMobToFight(mobId, forceTier) {

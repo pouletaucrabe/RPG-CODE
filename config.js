@@ -155,6 +155,61 @@ const attacks = {
   ]
 }
 
+const playerSpecialAttacks = {
+  greg: {
+    name: "Crâne de Frank",
+    type: "Spécial",
+    dice: 20,
+    stat: "Force",
+    effect: "Exécution brutale sur cible affaiblie",
+    crit: "Dégâts colossaux",
+    conditionText: "Mob principal à 40% HP ou moins",
+    flavor: "Greg lâche toute retenue et termine le travail sans élégance.",
+    icon: "slash_overlay.png",
+    rule: "mob_below_forty",
+    damageBonus: 1.95
+  },
+  ju: {
+    name: "Plan qui tourne trop bien",
+    type: "Spécial",
+    dice: 20,
+    stat: "Perspicacité",
+    effect: "Riposte de précision après la spéciale ennemie",
+    crit: "Rupture totale des défenses",
+    conditionText: "Le mob principal a déjà utilisé sa spéciale",
+    flavor: "Ju attend exactement le moment où l'ennemi se croit intouchable.",
+    icon: "rune_glow.png",
+    rule: "mob_used_special",
+    damageBonus: 1.8
+  },
+  elo: {
+    name: "C'est fou ce dont les humains sont capables",
+    type: "Spécial",
+    dice: 20,
+    stat: "Charme",
+    effect: "Déchaîne la nature quand le groupe vacille",
+    crit: "Soin léger du groupe en plus des dégâts",
+    conditionText: "Un allié à 60% HP ou moins",
+    flavor: "Elo appelle une histoire si vieille qu'elle mord encore.",
+    icon: "rune_glow.png",
+    rule: "ally_below_sixty",
+    damageBonus: 1.7
+  },
+  bibi: {
+    name: "Le zoomies final",
+    type: "Spécial",
+    dice: 20,
+    stat: "Chance",
+    effect: "Bibi déchaîne son chaos canin",
+    crit: "Dégâts massifs et peur de meute",
+    conditionText: "Greg à 20% HP ou moins",
+    flavor: "Quand Bibi craque, tout le champ de bataille le sent.",
+    icon: "fang.png",
+    rule: "greg_below_twenty",
+    damageBonus: 1.85
+  }
+}
+
 /* ========================= */
 /* ATTAQUES MOBS             */
 /* ========================= */
@@ -490,7 +545,7 @@ const mobSpecialPresentations = {
   witch: {
     scene: "witch",
     sound: "witch1.mp3",
-    soundVolume: 0.46,
+    soundVolume: 0.34,
     kicker: "Wicked resonance",
     emphasis: "floating",
     particles: ["💚", "💗", "🫧"]

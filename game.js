@@ -1560,6 +1560,7 @@ function usePlayerThuum(forcedWord) {
 
 document.addEventListener("DOMContentLoaded", () => {
 window.__introClickLockUntil = 0
+initGMCombatPanelsDrag()
   
 // Masquer les PNJ immédiatement au chargement
 ;["storyImage","storyImage2","storyImage3"].forEach(id => {
@@ -1575,6 +1576,7 @@ if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
 // ─── combat/mob — listener unique fusionné ───
 db.ref("combat/mob").on("value", snap => {
   const data = snap.val()
+  activeMobSlots["mob"] = !!data
 
   // Barre HP panneau MJ
   const topBar  = document.getElementById("mobHPBarTop")
@@ -1591,6 +1593,10 @@ db.ref("combat/mob").on("value", snap => {
     if (hud) hud.style.display = "none"
     const token = document.getElementById("mobToken")
     if (token) token.style.display = "none"
+    const mobAttackPanel = document.getElementById("mobAttackPanel")
+    if (mobAttackPanel) mobAttackPanel.remove()
+    const mobAttackToggle = document.getElementById("mobAttackToggle")
+    if (mobAttackToggle) mobAttackToggle.remove()
     return
   }
 
@@ -1610,6 +1616,17 @@ db.ref("combat/mob").on("value", snap => {
 
     if (isGM) {
       hud.style.display = "block"
+      activeMobSlots["mob"] = true
+      const mobAttackPanel = document.getElementById("mobAttackPanel")
+      const mobAttackToggle = document.getElementById("mobAttackToggle")
+      const mobPanelBroken =
+        !mobAttackPanel ||
+        !mobAttackToggle ||
+        !mobAttackPanel.children.length ||
+        (mobAttackPanel.style.display === "none" && mobAttackToggle.style.display === "none")
+      if (typeof renderAllMobPanels === "function" && mobPanelBroken) {
+        setTimeout(() => renderAllMobPanels(), 40)
+      }
       if (lastMobHP !== null && data.hp < lastMobHP) { flashRed(); screenShake() }
       if (data.hp <= 0 && combatActive && !window.__combatOutcomeShowing) { showVictory() }
       lastMobHP = data.hp
@@ -2102,33 +2119,56 @@ db.ref("game/mobAttackEvent").on("value", snap => {
     return
   }
   const notif = document.createElement("div")
-  notif.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999999;text-align:center;pointer-events:none;background:rgba(0,0,0,0.85);border:2px solid rgba(220,40,40,0.7);border-radius:12px;padding:24px 40px;box-shadow:0 0 40px rgba(200,0,0,0.5);opacity:0;transition:opacity 0.3s ease;"
-  const icon = document.createElement("div")
-  icon.style.cssText = "font-size:48px;margin-bottom:8px;"
-  icon.innerText = String(data.icon || "")
-  notif.appendChild(icon)
+  notif.className = "combatEventCard"
+  notif.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999999;text-align:center;pointer-events:none;opacity:0;transition:opacity 0.3s ease;"
+  const ring = document.createElement("img")
+  ring.src = "images/impact_ring.png"
+  ring.className = "combatEventRing"
+  ring.alt = ""
+  ring.onerror = () => ring.style.display = "none"
+  notif.appendChild(ring)
+  const slash = document.createElement("img")
+  slash.src = "images/slash_overlay.png"
+  slash.className = "combatEventSlash"
+  slash.alt = ""
+  slash.onerror = () => slash.style.display = "none"
+  notif.appendChild(slash)
+  const panel = document.createElement("div")
+  panel.className = "combatEventPanel"
+  const icon = document.createElement("img")
+  if (typeof createCombatIcon === "function") {
+    const mapped = createCombatIcon({ name:data.attackName, effect:data.effect, type:data.type, animation:data.animation }, { name:data.mobName }, "combatEventIcon")
+    icon.src = mapped.getAttribute("src") || ""
+  } else {
+    icon.src = "images/slash_overlay.png"
+  }
+  icon.className = "combatEventIcon"
+  icon.alt = ""
+  icon.onerror = () => icon.style.display = "none"
+  panel.appendChild(icon)
   if (data.mobName) {
     const mobName = document.createElement("div")
-    mobName.style.cssText = "font-family:Cinzel,serif;font-size:12px;color:#ff8888;letter-spacing:2px;margin-bottom:4px;"
+    mobName.className = "combatEventMobName"
     mobName.innerText = String(data.mobName)
-    notif.appendChild(mobName)
+    panel.appendChild(mobName)
   }
   const attackName = document.createElement("div")
-  attackName.style.cssText = "font-family:'Cinzel Decorative',serif;font-size:22px;color:#ff4444;text-shadow:0 0 20px red;letter-spacing:3px;margin-bottom:10px;"
+  attackName.className = "combatEventAttackName"
   attackName.innerText = String(data.attackName || "")
-  notif.appendChild(attackName)
+  panel.appendChild(attackName)
   const targetLine = document.createElement("div")
-  targetLine.style.cssText = "font-family:Cinzel,serif;font-size:18px;color:#ffaaaa;"
-  targetLine.appendChild(document.createTextNode("→ "))
+  targetLine.className = "combatEventTarget"
+  targetLine.appendChild(document.createTextNode("Cible "))
   const targetStrong = document.createElement("span")
-  targetStrong.style.cssText = "color:#fff;font-weight:bold;"
+  targetStrong.className = "combatEventTargetName"
   targetStrong.innerText = String(data.target || "")
   targetLine.appendChild(targetStrong)
-  notif.appendChild(targetLine)
+  panel.appendChild(targetLine)
   const damage = document.createElement("div")
-  damage.style.cssText = "font-family:Cinzel,serif;font-size:28px;color:#ff3333;font-weight:bold;text-shadow:0 0 10px red;margin-top:6px;"
+  damage.className = "combatEventDamage"
   damage.innerText = "-" + clampInteger(data.dmg, 0, 9999) + " HP"
-  notif.appendChild(damage)
+  panel.appendChild(damage)
+  notif.appendChild(panel)
   document.body.appendChild(notif)
   setTimeout(() => { notif.style.opacity = "1" }, 30)
   setTimeout(() => {
@@ -2318,6 +2358,24 @@ db.ref("game/playerRevive").on("value", snap => {
       renderAllMobPanels()
     }
   })
+})
+
+db.ref("combat/eloSummon").on("value", snap => {
+  const data = snap.val()
+  const wasActive = !!(window.__eloSummonState && window.__eloSummonState.active)
+  window.__eloSummonState = data || null
+  const existing = document.getElementById("eloSummonToken")
+  if (!combatActive || !data || !data.active) {
+    if (existing) existing.remove()
+    return
+  }
+  if (!wasActive) {
+    const porkSnd = new Audio("audio/pork.mp3")
+    if (typeof setManagedAudioBaseVolume === "function") setManagedAudioBaseVolume(porkSnd, 0.78)
+    else porkSnd.volume = 0.78
+    porkSnd.play().catch(() => {})
+  }
+  if (typeof spawnEloSummonToken === "function") spawnEloSummonToken(data)
 })
 
 // ─── elements ───
@@ -3372,6 +3430,55 @@ function toggleDiceBar(forceState) {
   toggle.setAttribute("aria-label", collapsed ? "Déplier les dés" : "Replier les dés")
 }
 
+function initGMCombatPanelsDrag() {
+  if (window.__gmCombatPanelsDragInit) return
+  window.__gmCombatPanelsDragInit = true
+
+  const makeDraggable = (id) => {
+    const panel = document.getElementById(id)
+    if (!panel) return
+
+    let dragging = false
+    let offsetX = 0
+    let offsetY = 0
+
+    panel.addEventListener("mousedown", e => {
+      if (!isGM) return
+      if (e.target.closest("button") || e.target.closest("input") || e.target.closest("label")) return
+      dragging = true
+      const rect = panel.getBoundingClientRect()
+      offsetX = e.clientX - rect.left
+      offsetY = e.clientY - rect.top
+      panel.style.cursor = "grabbing"
+      panel.style.left = rect.left + "px"
+      panel.style.top = rect.top + "px"
+      panel.style.right = "auto"
+      panel.style.bottom = "auto"
+      e.preventDefault()
+    })
+
+    document.addEventListener("mousemove", e => {
+      if (!dragging) return
+      const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth)
+      const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight)
+      const left = Math.max(0, Math.min(maxLeft, e.clientX - offsetX))
+      const top = Math.max(0, Math.min(maxTop, e.clientY - offsetY))
+      panel.style.left = left + "px"
+      panel.style.top = top + "px"
+    })
+
+    document.addEventListener("mouseup", () => {
+      if (!dragging) return
+      dragging = false
+      panel.style.cursor = "grab"
+    })
+
+    panel.style.cursor = "grab"
+  }
+
+  makeDraggable("gmDamagePanel")
+}
+
 function mobRoll(max) {
   if (!isGM || !combatActive) return
   const result = Math.floor(Math.random() * max) + 1
@@ -3410,7 +3517,7 @@ function _buildDice3D(resultBox) {
   return { cube, label, resLabel }
 }
 
-function showDiceAnimation(playerName, max, final) {
+function showDiceAnimation(playerName, max, final, rawRoll) {
   const resultBox = document.getElementById("diceResult")
   resultBox.classList.remove("crit", "fail", "mjRoll")
   resultBox.style.display = "flex"
@@ -3418,6 +3525,7 @@ function showDiceAnimation(playerName, max, final) {
   resultBox.offsetHeight
 
   const safeName = String(playerName).replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  const naturalRoll = Number.isFinite(parseInt(rawRoll, 10)) ? parseInt(rawRoll, 10) : final
   const { cube, label, resLabel } = _buildDice3D(resultBox)
 
   label.textContent = safeName + " — d" + max
@@ -3446,7 +3554,7 @@ function showDiceAnimation(playerName, max, final) {
 
       if (playerName === "MJ") { resultBox.classList.add("mjRoll"); flashGold(); screenShake() }
 
-      if (final === max) {
+      if (naturalRoll === max) {
         resultBox.classList.add("crit")
         resLabel.textContent = "✦ " + final + " ✦"
         playSound("critSound"); screenShake(); flashGold()
@@ -3459,7 +3567,7 @@ function showDiceAnimation(playerName, max, final) {
         }
       }
 
-      if (final === 1) {
+      if (naturalRoll === 1) {
         resultBox.classList.add("fail")
         playSound("failSound"); screenShakeHard(); flashRed()
         tryRuneEventOnDice()
@@ -3497,7 +3605,7 @@ function rollStat(stat) {
   const field = document.getElementById(stat); if (!field) return
   const statValue = parseInt(field.value) || 0
   const dice = Math.floor(Math.random() * 20) + 1
-  showDiceAnimation(myToken.id, 20, dice + statValue)
+  showDiceAnimation(myToken.id, 20, dice + statValue, dice)
 }
 
 /* ========================= */
@@ -3768,7 +3876,8 @@ function activateGM(fromFirebaseRole = false) {
   isGM = true
   document.getElementById("gmBar").style.display     = "flex"
   document.getElementById("mjLog").style.display     = "block"
-  document.getElementById("gmSaveBar").style.display = "block"
+  const gmSaveBar = document.getElementById("gmSaveBar")
+  if (gmSaveBar) gmSaveBar.style.display = "none"
   ensureMadnessGMButton()
   updateThuumButton()
   showNotification(fromFirebaseRole ? "🎲 Mode MJ activé (Firebase)" : "🎲 Mode MJ activé")
@@ -3929,7 +4038,7 @@ document.addEventListener("mousemove", e => {
     if (Math.abs(e.clientX - _state.tokenDragStart.x) < 5 && Math.abs(e.clientY - _state.tokenDragStart.y) < 5) return
     _state.tokenDragging = true
   }
-  if (!isGM && (!myToken || (selected.id !== myToken.id && selected.id !== "bibi"))) return
+  if (!isGM && (!myToken || (selected.id !== myToken.id && selected.id !== "bibi" && !(selected.id === "eloSummonToken" && myToken.id === "elo")))) return
   const map  = document.getElementById("map"); const rect = map.getBoundingClientRect()
   const gx   = Math.floor((e.clientX - rect.left) / grid) * grid
   const gy   = Math.floor((e.clientY - rect.top)  / grid) * grid
@@ -3938,7 +4047,8 @@ document.addEventListener("mousemove", e => {
   lastX = gx; selected.style.left = gx + "px"; selected.style.top = gy + "px"
   const now = Date.now()
   if (now - lastSend > sendDelay && (gx !== lastSentX || gy !== lastSentY)) {
-    if (!selected._fbSlot) db.ref("tokens/" + selected.id).update({ x: gx, y: gy })
+    if (selected.id === "eloSummonToken") db.ref("combat/eloSummon").update({ x: gx, y: gy })
+    else if (!selected._fbSlot) db.ref("tokens/" + selected.id).update({ x: gx, y: gy })
     lastSentX = gx; lastSentY = gy; lastSend = now
   }
   if (selected.id === "greg") {
@@ -4012,6 +4122,15 @@ document.addEventListener("keydown", e => {
     const gmAuthModal = document.getElementById("gmAuthModal"); if (gmAuthModal) { closeGMAuthModal(); return }
     const playerAuthModal = document.getElementById("playerAuthModal"); if (playerAuthModal) { closePlayerAuthModal(); return }
     const savePanel = document.getElementById("savePanel"); if (savePanel) { savePanel.remove(); return }
+    const combatInitiativeOverlay = document.getElementById("combatInitiativeOverlay")
+    if (combatInitiativeOverlay) {
+      window.__combatInitiativeHidden = true
+      if (typeof closeCombatInitiativeOverlay === "function") closeCombatInitiativeOverlay()
+      if (typeof renderCombatInitiativeToggle === "function" && typeof getCombatTurnState === "function") {
+        renderCombatInitiativeToggle(getCombatTurnState())
+      }
+      return
+    }
     const wantedEditor = document.getElementById("wantedEditor"); if (wantedEditor && wantedEditor.style.display !== "none") { wantedEditor.style.display = "none"; return }
     const mobSelectionMenu = document.getElementById("mobSelectionMenu"); if (mobSelectionMenu && mobSelectionMenu.style.display !== "none") { mobSelectionMenu.style.display = "none"; return }
     const wantedBoard = document.getElementById("wantedBoardOverlay")
@@ -4032,7 +4151,12 @@ document.addEventListener("keydown", e => {
     const sheet = document.getElementById("characterSheet"); if (sheet && sheet.style.display !== "none" && sheet.style.display !== "") { closeCharacterSheet(); return }
     const shopOverlay = document.getElementById("shopOverlay"); if (shopOverlay && isGM) { closeShop(); return }
     if (wantedOverlay) { wantedOverlay.remove(); return }
-    const combatHUD = document.getElementById("combatHUD"); if (combatHUD && combatHUD.style.display === "flex") { combatHUD.style.display = "none"; return }
+    const combatHUD = document.getElementById("combatHUD")
+    if (combatHUD && combatHUD.style.display === "flex") {
+      if (isGM && window.__combatPreviewPlayerId && typeof closeCombatPreviewHUD === "function") closeCombatPreviewHUD()
+      else combatHUD.style.display = "none"
+      return
+    }
     if (isGM && pnjSlotOrder && pnjSlotOrder.length) {
       if (typeof hideHighPNJScrollImmediate === "function") hideHighPNJScrollImmediate()
       db.ref("game/highPNJName").remove()

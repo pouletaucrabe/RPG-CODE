@@ -27,6 +27,301 @@ function _syncCombatEnd() {
   return db.ref("game/combatState").remove()
 }
 
+function getCombatTurnState() {
+  return window.__combatTurnState || null
+}
+
+function getCurrentCombatActorId() {
+  const state = getCombatTurnState()
+  if (!state || state.phase !== "active") return null
+  return String(state.currentActorId || "")
+}
+
+function getInitiativeParticipants() {
+  const list = [
+    { id: "greg", type: "player", label: "Greg", image: "greg.png" },
+    { id: "ju", type: "player", label: "Yu", image: "ju.png" },
+    { id: "elo", type: "player", label: "Elo", image: "elo.png" },
+    { id: "bibi", type: "player", label: "Bibi", image: "bibi.png" }
+  ]
+  ;["mob", "mob2", "mob3"].forEach(slot => {
+    if (!activeMobSlots[slot]) return
+    const data = slot === "mob"
+      ? { name: currentMob || "mob" }
+      : (_state.pendingExtraMobs && _state.pendingExtraMobs[slot] ? { name: _state.pendingExtraMobs[slot] } : null)
+    if (!data || !data.name) return
+    list.push({
+      id: slot,
+      type: "mob",
+      label: String(data.name || slot).toUpperCase(),
+      image: sanitizeAssetName(String(data.name || "gobelins") + ".png")
+    })
+  })
+  return list
+}
+
+function initCombatTurnState() {
+  if (!isGM) return
+  const participants = getInitiativeParticipants()
+  db.ref("combat/turnState").set({
+    phase: "rolling",
+    round: 1,
+    currentIndex: 0,
+    currentActorId: "",
+    participants,
+    rolls: {},
+    order: [],
+    time: Date.now()
+  })
+}
+
+function canRollInitiativeForActor(actorId, state) {
+  const actor = String(actorId || "")
+  if (!state || state.phase !== "rolling") return false
+  const rolls = state.rolls || {}
+  if (rolls[actor]) return false
+  if (isGM) return actor === "mob" || actor === "mob2" || actor === "mob3"
+  return !!(myToken && myToken.id === actor)
+}
+
+function submitInitiativeRoll(actorId) {
+  const state = getCombatTurnState()
+  const actor = String(actorId || "")
+  if (!canRollInitiativeForActor(actor, state)) return
+  const roll = Math.floor(Math.random() * 12) + 1
+  db.ref("combat/turnState/rolls/" + actor).set(roll)
+  showDiceAnimation(actor === "mob" || actor === "mob2" || actor === "mob3" ? "MJ" : actor, 12, roll)
+}
+
+function submitInitiativeRollForGMTest(actorId) {
+  if (!isGM) return
+  const state = getCombatTurnState()
+  const actor = String(actorId || "")
+  if (!state || state.phase !== "rolling") return
+  if ((state.rolls || {})[actor]) return
+  const roll = Math.floor(Math.random() * 12) + 1
+  db.ref("combat/turnState/rolls/" + actor).set(roll)
+  showDiceAnimation(actor === "mob" || actor === "mob2" || actor === "mob3" ? "MJ" : actor, 12, roll)
+}
+
+function submitAllInitiativeRollsForGMTest() {
+  if (!isGM) return
+  const state = getCombatTurnState()
+  if (!state || state.phase !== "rolling") return
+  const participants = Array.isArray(state.participants) ? state.participants : []
+  participants.forEach(entry => submitInitiativeRollForGMTest(entry.id))
+}
+
+function finalizeCombatInitiativeIfReady(state) {
+  if (!isGM || !state || state.phase !== "rolling") return
+  const participants = Array.isArray(state.participants) ? state.participants : []
+  const rolls = state.rolls || {}
+  if (!participants.length) return
+  const allReady = participants.every(entry => Number.isFinite(parseInt(rolls[entry.id], 10)))
+  if (!allReady) return
+  const order = participants
+    .map((entry, index) => ({ ...entry, roll: parseInt(rolls[entry.id], 10) || 0, index }))
+    .sort((a, b) => {
+      if (b.roll !== a.roll) return b.roll - a.roll
+      if (a.type !== b.type) return a.type === "player" ? -1 : 1
+      return a.index - b.index
+    })
+  db.ref("combat/turnState").update({
+    phase: "active",
+    order,
+    currentIndex: 0,
+    currentActorId: order[0] ? order[0].id : "",
+    round: 1
+  })
+}
+
+function advanceCombatTurn() {
+  const state = getCombatTurnState()
+  if (!state || state.phase !== "active") return
+  const order = Array.isArray(state.order) ? state.order : []
+  if (!order.length) return
+  let nextIndex = (parseInt(state.currentIndex, 10) || 0) + 1
+  let nextRound = parseInt(state.round, 10) || 1
+  if (nextIndex >= order.length) {
+    nextIndex = 0
+    nextRound += 1
+  }
+  const nextActor = order[nextIndex] ? order[nextIndex].id : ""
+  db.ref("combat/turnState").update({
+    currentIndex: nextIndex,
+    currentActorId: nextActor,
+    round: nextRound
+  })
+}
+
+function closeCombatInitiativeOverlay() {
+  const overlay = document.getElementById("combatInitiativeOverlay")
+  if (overlay) overlay.remove()
+}
+
+function renderCombatInitiativeToggle(state) {
+  const existing = document.getElementById("combatInitiativeToggle")
+  if (existing) existing.remove()
+  if (!combatActive || !state) return
+
+  const btn = document.createElement("button")
+  btn.id = "combatInitiativeToggle"
+  btn.style.cssText = "position:fixed;top:88px;right:22px;z-index:999999996;padding:10px 14px;font-family:Cinzel,serif;font-size:12px;letter-spacing:0.6px;background:linear-gradient(#6a4b1b,#342109);color:#ffe8bb;border:1px solid rgba(212,168,91,0.55);border-radius:10px;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,0.35);"
+  btn.innerText = state.phase === "rolling" ? "Réouvrir les dés" : "Réouvrir l'ordre"
+  btn.onclick = () => {
+    window.__combatInitiativeHidden = false
+    renderCombatInitiativeOverlay(state)
+  }
+  document.body.appendChild(btn)
+}
+
+function renderCombatInitiativeOverlay(state) {
+  closeCombatInitiativeOverlay()
+  if (!combatActive || !state) return
+  if (window.__combatInitiativeHidden) {
+    renderCombatInitiativeToggle(state)
+    return
+  }
+
+  const existingToggle = document.getElementById("combatInitiativeToggle")
+  if (existingToggle) existingToggle.remove()
+
+  const overlay = document.createElement("div")
+  overlay.id = "combatInitiativeOverlay"
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;z-index:999999995;"
+
+  const box = document.createElement("div")
+  box.style.cssText = "width:min(920px,92vw);max-height:84vh;overflow:auto;padding:22px 24px;background:linear-gradient(180deg,rgba(10,16,22,0.98),rgba(6,8,12,0.98));border:1px solid rgba(201,159,88,0.5);border-radius:14px;box-shadow:0 0 40px rgba(0,0,0,0.8);font-family:Cinzel,serif;color:#f2dfbc;"
+
+  const topBar = document.createElement("div")
+  topBar.style.cssText = "display:flex;justify-content:flex-end;margin-bottom:6px;"
+  const hideBtn = document.createElement("button")
+  hideBtn.style.cssText = "padding:7px 12px;font-family:Cinzel,serif;font-size:11px;background:linear-gradient(#38444b,#171e22);color:#dbe8ef;border:1px solid rgba(132,158,173,0.45);border-radius:8px;cursor:pointer;"
+  hideBtn.innerText = "Fermer"
+  hideBtn.onclick = () => {
+    window.__combatInitiativeHidden = true
+    closeCombatInitiativeOverlay()
+    renderCombatInitiativeToggle(state)
+  }
+  topBar.appendChild(hideBtn)
+  box.appendChild(topBar)
+
+  const title = document.createElement("div")
+  title.style.cssText = "text-align:center;font-size:28px;letter-spacing:4px;color:#f3d59a;margin-bottom:8px;"
+  title.innerText = state.phase === "rolling" ? "Initiative du Combat" : "Ordre du Combat"
+  box.appendChild(title)
+
+  const sub = document.createElement("div")
+  sub.style.cssText = "text-align:center;font-size:13px;color:#c7b088;margin-bottom:18px;"
+  sub.innerText = state.phase === "rolling"
+    ? "Chaque combattant lance un D12. Le MJ lance pour les mobs."
+    : "Round " + (state.round || 1) + " — tour actuel : " + String(state.currentActorId || "").toUpperCase()
+  box.appendChild(sub)
+
+  const grid = document.createElement("div")
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;"
+  box.appendChild(grid)
+
+  const entries = state.phase === "active"
+    ? (Array.isArray(state.order) ? state.order : [])
+    : (Array.isArray(state.participants) ? state.participants : [])
+
+  entries.forEach((entry, idx) => {
+    const card = document.createElement("div")
+    const isCurrent = state.phase === "active" && String(state.currentActorId || "") === String(entry.id || "")
+    card.style.cssText = "padding:12px;border:1px solid " + (isCurrent ? "rgba(255,215,130,0.75)" : "rgba(80,120,150,0.28)") + ";border-radius:10px;background:" + (isCurrent ? "linear-gradient(180deg,rgba(72,50,18,0.94),rgba(18,14,10,0.98))" : "rgba(12,22,28,0.94)") + ";text-align:center;"
+
+    const portrait = document.createElement("img")
+    portrait.src = "images/" + sanitizeAssetName(entry.image || "")
+    portrait.style.cssText = "width:72px;height:72px;object-fit:contain;border-radius:50%;border:2px solid rgba(214,172,96,0.45);margin-bottom:8px;background:rgba(0,0,0,0.22);"
+    portrait.onerror = () => { portrait.style.display = "none" }
+    card.appendChild(portrait)
+
+    const name = document.createElement("div")
+    name.style.cssText = "font-size:15px;letter-spacing:1px;color:#f0ddba;margin-bottom:6px;"
+    name.innerText = state.phase === "active" ? (idx + 1) + ". " + entry.label : entry.label
+    card.appendChild(name)
+
+    const rollVal = state.rolls && state.rolls[entry.id]
+      ? parseInt(state.rolls[entry.id], 10)
+      : (state.phase === "active" ? parseInt(entry.roll, 10) : null)
+
+    const roll = document.createElement("div")
+    roll.style.cssText = "font-size:26px;color:#8fd8ff;text-shadow:0 0 12px rgba(120,200,255,0.35);margin-bottom:8px;"
+    roll.innerText = Number.isFinite(rollVal) ? "D12 : " + rollVal : "—"
+    card.appendChild(roll)
+
+    if (state.phase === "rolling") {
+      if (canRollInitiativeForActor(entry.id, state)) {
+        const btn = document.createElement("button")
+        btn.style.cssText = "padding:8px 14px;font-family:Cinzel,serif;font-size:12px;background:linear-gradient(#234d66,#142f40);color:#e8f4ff;border:1px solid rgba(125,178,212,0.55);border-radius:8px;cursor:pointer;"
+        btn.innerText = "Lancer D12"
+        btn.onclick = () => submitInitiativeRoll(entry.id)
+        card.appendChild(btn)
+      } else if (isGM && !Number.isFinite(rollVal)) {
+        const gmBtn = document.createElement("button")
+        gmBtn.style.cssText = "padding:8px 14px;font-family:Cinzel,serif;font-size:12px;background:linear-gradient(#6a4b1b,#342109);color:#ffe8bb;border:1px solid rgba(212,168,91,0.55);border-radius:8px;cursor:pointer;"
+        gmBtn.innerText = "Test MJ"
+        gmBtn.onclick = () => submitInitiativeRollForGMTest(entry.id)
+        card.appendChild(gmBtn)
+      } else {
+        const waiting = document.createElement("div")
+        waiting.style.cssText = "font-size:11px;color:#9aa9b2;"
+        waiting.innerText = Number.isFinite(rollVal) ? "Jet validé" : "En attente"
+        card.appendChild(waiting)
+      }
+    } else {
+      const status = document.createElement("div")
+      status.style.cssText = "font-size:11px;color:" + (isCurrent ? "#ffd48b" : "#96a7b5") + ";"
+      status.innerText = isCurrent ? "Tour actif" : "En attente"
+      card.appendChild(status)
+      if (isGM && entry.type === "player" && typeof setCombatPreviewPlayer === "function") {
+        const previewBtn = document.createElement("button")
+        previewBtn.style.cssText = "margin-top:8px;padding:7px 12px;font-family:Cinzel,serif;font-size:11px;background:linear-gradient(#4d2f68,#231132);color:#f1dcff;border:1px solid rgba(179,120,219,0.55);border-radius:8px;cursor:pointer;"
+        previewBtn.innerText = isCurrent ? "Tester le tour" : "Test HUD"
+        previewBtn.onclick = () => setCombatPreviewPlayer(entry.id)
+        card.appendChild(previewBtn)
+      }
+    }
+
+    grid.appendChild(card)
+  })
+
+  if (isGM) {
+    const tools = document.createElement("div")
+    tools.style.cssText = "display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px;"
+
+    if (state.phase === "rolling") {
+      const allBtn = document.createElement("button")
+      allBtn.style.cssText = "padding:10px 16px;font-family:Cinzel,serif;font-size:12px;background:linear-gradient(#6a4b1b,#342109);color:#ffe8bb;border:1px solid rgba(212,168,91,0.55);border-radius:9px;cursor:pointer;"
+      allBtn.innerText = "MJ Test : lancer tous les D12"
+      allBtn.onclick = () => submitAllInitiativeRollsForGMTest()
+      tools.appendChild(allBtn)
+    } else {
+      const currentEntry = entries.find(entry => String(entry.id || "") === String(state.currentActorId || ""))
+      if (currentEntry && currentEntry.type === "player" && typeof setCombatPreviewPlayer === "function") {
+        const currentBtn = document.createElement("button")
+        currentBtn.style.cssText = "padding:10px 16px;font-family:Cinzel,serif;font-size:12px;background:linear-gradient(#4d2f68,#231132);color:#f1dcff;border:1px solid rgba(179,120,219,0.55);border-radius:9px;cursor:pointer;"
+        currentBtn.innerText = "MJ Test : ouvrir le HUD de " + currentEntry.label
+        currentBtn.onclick = () => setCombatPreviewPlayer(currentEntry.id)
+        tools.appendChild(currentBtn)
+      }
+      if (typeof closeCombatPreviewHUD === "function") {
+        const closeBtn = document.createElement("button")
+        closeBtn.style.cssText = "padding:10px 16px;font-family:Cinzel,serif;font-size:12px;background:linear-gradient(#38444b,#171e22);color:#dbe8ef;border:1px solid rgba(132,158,173,0.45);border-radius:9px;cursor:pointer;"
+        closeBtn.innerText = "Fermer le HUD test"
+        closeBtn.onclick = () => closeCombatPreviewHUD()
+        tools.appendChild(closeBtn)
+      }
+    }
+
+    box.appendChild(tools)
+  }
+
+  overlay.appendChild(box)
+  document.body.appendChild(overlay)
+}
+
 function startCombat(mob, forceTier) {
   if (combatStarting || !isGM) return
   // Balraug uniquement sur sa map
@@ -82,6 +377,19 @@ function launchFromMobMenu() {
 function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
   if (combatActive || combatStarting) return
   combatStarting = true; combatActive = true
+  window.__playerCombatSpecialsUsed = {}
+  window.__playerCombatFlags = {}
+  db.ref("game/storyImage").remove()
+  db.ref("game/storyImage2").remove()
+  db.ref("game/storyImage3").remove()
+  db.ref("game/highPNJName").remove()
+  ;["storyImage","storyImage2","storyImage3"].forEach(id => {
+    const box = document.getElementById(id)
+    if (!box) return
+    box.style.display = "none"
+    box.style.opacity = "0"
+  })
+  document.querySelectorAll("[id^='pnjNameTag']").forEach(tag => tag.remove())
   setGameState("COMBAT"); currentMob = mainMob
   document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" })
   document.getElementById("mobD12").style.display = "inline-block"
@@ -226,6 +534,7 @@ function _startCombatSequence(mob, tierMob) {
             const allyBtn = document.getElementById("allyBtn"); if (allyBtn && isGM) allyBtn.style.display = "flex"
             showCombatHUD()
             if (typeof updateThuumButton === "function") updateThuumButton()
+            if (isGM) initCombatTurnState()
 
           db.ref("combat/mob").once("value", () => {
             activeMobSlots["mob"] = true
@@ -376,6 +685,75 @@ function spawnMobToken(mob) {
   }, 100)
 }
 
+function spawnEloSummonToken(data) {
+  const tokenZone = document.getElementById("combatTokens")
+  if (!tokenZone) return
+
+  let token = document.getElementById("eloSummonToken")
+  if (!token) {
+    token = document.createElement("div")
+    token.id = "eloSummonToken"
+    token.className = "token"
+    token.style.cssText = "position:absolute;left:720px;top:430px;display:flex;z-index:160;"
+
+    const stats = document.createElement("div")
+    stats.className = "tokenStats"
+    stats.id = "stats_eloSummon"
+    token.appendChild(stats)
+
+    const hpWrap = document.createElement("div")
+    hpWrap.className = "hpBarToken"
+    const hpFill = document.createElement("div")
+    hpFill.className = "hpBarFill"
+    hpFill.id = "hp_eloSummon"
+    hpWrap.appendChild(hpFill)
+    token.appendChild(hpWrap)
+
+    const img = document.createElement("img")
+    img.id = "eloSummonTokenImg"
+    img.src = "images/pork.png"
+    img.style.cssText = "object-fit:cover;"
+    token.appendChild(img)
+
+    const name = document.createElement("div")
+    name.className = "nameTag"
+    name.innerText = "John Pork"
+    token.appendChild(name)
+
+    token.addEventListener("mousedown", e => {
+      if (!isGM && (!myToken || myToken.id !== "elo")) return
+      selected = token
+      lastX = token.offsetLeft
+      _state.tokenDragStart = { x: e.clientX, y: e.clientY }
+      _state.tokenDragging = false
+      e.preventDefault()
+      e.stopPropagation()
+    })
+
+    tokenZone.appendChild(token)
+  }
+
+  token.style.left = ((data && data.x) || 720) + "px"
+  token.style.top = ((data && data.y) || 430) + "px"
+  token.style.display = data && data.active ? "flex" : "none"
+  token.style.opacity = data && data.active ? "1" : "0"
+
+  const hpFill = document.getElementById("hp_eloSummon")
+  if (hpFill) {
+    const pct = Math.max(0, Math.min(100, ((data?.hp || 0) / Math.max(1, data?.maxHP || 1)) * 100))
+    hpFill.style.width = pct + "%"
+  }
+
+  const stats = document.getElementById("stats_eloSummon")
+  if (stats) {
+    stats.innerHTML = ""
+    const hpText = document.createElement("div")
+    hpText.className = "hpText"
+    hpText.innerText = "❤ " + (data?.hp || 0) + "/" + (data?.maxHP || 0)
+    stats.appendChild(hpText)
+  }
+}
+
 /* ========================= */
 /* VICTOIRE / DÉFAITE        */
 /* ========================= */
@@ -386,6 +764,10 @@ function showVictory() {
     db.ref("game/combatOutcome").set({ type: "victory", time: Date.now() })
     setTimeout(() => db.ref("game/combatOutcome").remove(), 1500)
   }
+  db.ref("combat/mob/victoryLootBonus").once("value", snap => {
+    const bonus = snap.val()
+    if (bonus && bonus.active) showNotification("Spider Sense a révélé un meilleur butin pour la victoire.")
+  })
   playSound("victorySound", 0.45)
   fadeMusicOut(() => {})
 
@@ -475,14 +857,33 @@ function endCombat() {
   document.getElementById("combatFilter").style.display = "none"
   document.getElementById("mobD12").style.display       = "none"
   document.getElementById("mobD20").style.display       = "none"
+  closeCombatInitiativeOverlay()
+  const initiativeToggle = document.getElementById("combatInitiativeToggle"); if (initiativeToggle) initiativeToggle.remove()
+  window.__combatInitiativeHidden = false
 
   const hud = document.getElementById("combatHUD"); if (hud) hud.style.display = "none"
   const attackBtn = document.getElementById("playerAttackBtn"); if (attackBtn) attackBtn.style.display = "none"
   const thuumBtn = document.getElementById("playerThuumBtn"); if (thuumBtn) thuumBtn.style.display = "none"
+  closeCombatInitiativeOverlay()
+  window.__combatTurnState = null
+  window.__playerCombatSpecialsUsed = {}
+  window.__playerCombatFlags = {}
+  window.__eloSummonState = null
+  const eloSummonToken = document.getElementById("eloSummonToken"); if (eloSummonToken) eloSummonToken.remove()
   if (typeof closePlayerThuumPanel === "function") closePlayerThuumPanel()
   if (isGM) {
     db.ref("combat/mob").remove()
     ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
+    db.ref("combat/eloSummon").remove()
+    db.ref("combat/mob/playerPoison").remove()
+    db.ref("combat/mob/playerBleed").remove()
+    db.ref("combat/mob/bibiRage").remove()
+    db.ref("combat/mob/yuAggro").remove()
+    db.ref("combat/mob/yuSkipNextTurn").remove()
+    db.ref("combat/mob/spiderSenseBuff").remove()
+    db.ref("combat/mob/victoryLootBonus").remove()
+    db.ref("combat/mob/attackMalus").remove()
+    db.ref("combat/turnState").remove()
     db.ref("combat/usedAllies").remove()
     db.ref("combat/usedThuum").remove()
     db.ref("game/allyPanelOpen").remove()
@@ -832,6 +1233,19 @@ function _resolveRemoteCombatEnd(attempt = 0) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  db.ref("combat/turnState").on("value", snap => {
+    const data = snap.val()
+    window.__combatTurnState = data || null
+    if (!data || !combatActive) {
+      closeCombatInitiativeOverlay()
+      const initiativeToggle = document.getElementById("combatInitiativeToggle"); if (initiativeToggle) initiativeToggle.remove()
+      window.__combatInitiativeHidden = false
+      return
+    }
+    renderCombatInitiativeOverlay(data)
+    if (isGM) finalizeCombatInitiativeIfReady(data)
+  })
+
   db.ref("game/combatState").on("value", snap => {
     const data = snap.val()
 
