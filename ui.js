@@ -1516,12 +1516,8 @@ function renderAllMobPanels() {
   const exT=document.getElementById("mobAttackToggle"); if(exT) exT.remove()
   const active = MOB_SLOTS.filter(s => activeMobSlots[s]); if (!active.length || !combatActive) return
 
-  const toggle = document.createElement("div"); toggle.id = "mobAttackToggle"
-  toggle.style.cssText = "position:fixed;top:calc(96px + 38vh - 78px);right:22px;z-index:9999999;font-family:Cinzel,serif;font-size:12px;color:#f0d7a4;background:linear-gradient(180deg,rgba(48,12,12,0.95),rgba(18,4,4,0.96));border:1px solid rgba(180,40,40,0.45);border-radius:999px;padding:8px 14px;cursor:pointer;letter-spacing:1px;box-shadow:0 12px 22px rgba(0,0,0,0.24);"
-  toggle.innerText = "Attaques des ennemis"
-
   const container = document.createElement("div"); container.id = "mobAttackPanel"
-  container.style.cssText = "position:fixed;top:calc(96px + 38vh - 32px);right:22px;width:320px;display:flex;flex-direction:column;gap:10px;z-index:9999999;max-height:42vh;overflow-y:auto;padding:4px;"
+  container.style.cssText = "position:fixed;top:calc(96px + 38vh - 92px);right:22px;width:320px;display:flex;flex-direction:column;gap:10px;z-index:9999999;max-height:42vh;overflow-y:auto;padding:4px;"
 
   // Grab & drop pour le MJ
   if (isGM) {
@@ -1541,8 +1537,6 @@ function renderAllMobPanels() {
     document.addEventListener("mouseup", () => { dragging=false; container.style.cursor="grab" })
   }
 
-  toggle.onclick = () => { toggle.style.display="none"; container.style.display="flex" }
-  document.body.appendChild(toggle)
   active.forEach(slot => { db.ref("combat/"+slot).once("value", snap => { const md=snap.val(); if(md) container.appendChild(buildMobSubPanel(md,slot)) }) })
   document.body.appendChild(container)
 }

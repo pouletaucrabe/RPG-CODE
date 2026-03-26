@@ -4371,6 +4371,8 @@ document.addEventListener("keydown", e => {
   if (key === "escape") {
     const gmAuthModal = document.getElementById("gmAuthModal"); if (gmAuthModal) { closeGMAuthModal(); return }
     const playerAuthModal = document.getElementById("playerAuthModal"); if (playerAuthModal) { closePlayerAuthModal(); return }
+    const diceLogContent = document.getElementById("diceLogContent")
+    if (diceLogContent && diceLogContent.style.display !== "none") { if (typeof toggleDiceLog === "function") toggleDiceLog(); return }
     const savePanel = document.getElementById("savePanel"); if (savePanel) { savePanel.remove(); return }
     const combatInitiativeOverlay = document.getElementById("combatInitiativeOverlay")
     if (combatInitiativeOverlay) {

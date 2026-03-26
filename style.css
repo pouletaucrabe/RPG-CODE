@@ -1306,7 +1306,7 @@ html, body {
   color: #f0e1bc;
   font-family: var(--font-body);
   padding: 12px 12px 10px; border-radius: 10px;
-  z-index: 9999999;
+  z-index: 1000000001;
 }
 
 .dice-log-head {
