@@ -134,7 +134,13 @@
 </div>
 
 <div id="diceResult"></div>
-<div id="diceLog"></div>
+<div id="diceLog">
+  <div class="dice-log-head">
+    <span>🎲 Historique des dés</span>
+    <span id="diceLogToggle" onclick="toggleDiceLog()" class="mj-log-toggle" title="Réduire">▼</span>
+  </div>
+  <div id="diceLogContent"></div>
+</div>
 
 <!-- FICHE PERSONNAGE -->
 <div id="characterSheet">

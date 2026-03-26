@@ -1276,6 +1276,17 @@ function cleanupGMPlayerSheetListener(playerID) {
 function showCombatHUD() {
   const player = getCombatHUDPlayerId()
   if (!player) return
+  const hud = document.getElementById("combatHUD")
+  if (hud) {
+    let bg = document.getElementById("combatHUDBg")
+    if (!bg) {
+      bg = document.createElement("img")
+      bg.id = "combatHUDBg"
+      bg.alt = ""
+      bg.src = "images/menuintro.png?v=7"
+      hud.prepend(bg)
+    }
+  }
   const playerAttacks = attacks[player]
   const specialAttack = getPlayerSpecialAttack(player)
   const currentActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
@@ -1331,7 +1342,7 @@ function showCombatHUD() {
   if (player === "bibi") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
   if (player === "greg") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
   renderCombatStatusPanel()
-  document.getElementById("combatHUD").style.display = "none"
+  if (hud) hud.style.display = "none"
   const btn = document.getElementById("playerAttackBtn"); if (btn && player) btn.style.display = "flex"
 }
 
@@ -3533,6 +3544,17 @@ function toggleMJLog() {
 /* DOCUMENTS / INDICES       */
 /* ========================= */
 
+function toggleDiceLog() {
+  const content = document.getElementById("diceLogContent")
+  const btn = document.getElementById("diceLogToggle")
+  const log = document.getElementById("diceLog")
+  if (!content || !btn || !log) return
+  const collapsed = content.style.display === "none"
+  content.style.display = collapsed ? "block" : "none"
+  btn.innerText = collapsed ? "▼" : "▲"
+  log.style.maxHeight = collapsed ? "260px" : "auto"
+}
+
 function showDocument(image, title) {
   if (!isGM) return
   playSound("parcheminSound", 0.8)
@@ -3574,4 +3596,22 @@ function grantAllyActionToPlayers(pnj, action) {
   }).then(() => {
     showNotification("✦ " + action.label + " donnée aux joueurs")
   })
+}
+function toggleCollapsiblePanel(contentId, buttonId, panelId) {
+  const content = document.getElementById(contentId)
+  const btn = document.getElementById(buttonId)
+  const panel = document.getElementById(panelId)
+  if (!content || !btn || !panel) return
+  const collapsed = content.style.display === "none"
+  content.style.display = collapsed ? "block" : "none"
+  btn.innerText = collapsed ? "▼" : "▲"
+  panel.style.maxHeight = collapsed ? "260px" : "auto"
+}
+
+toggleMJLog = function () {
+  toggleCollapsiblePanel("mjLogContent", "mjLogToggle", "mjLog")
+}
+
+toggleDiceLog = function () {
+  toggleCollapsiblePanel("diceLogContent", "diceLogToggle", "diceLog")
 }

@@ -86,7 +86,8 @@ function addMJLog(text) {
 
 function addDiceLog(player, dice, result) {
   const log = document.getElementById("diceLog")
-  if (!log) return
+  const content = document.getElementById("diceLogContent") || log
+  if (!content) return
   const entry = document.createElement("div")
   entry.classList.add("logEntry")
   if (player === "MJ") entry.classList.add("logMJ")
@@ -94,9 +95,9 @@ function addDiceLog(player, dice, result) {
   if (result === dice) { text += " ✨"; entry.classList.add("logCrit") }
   if (result === 1)    { text += " ☠";  entry.classList.add("logFail") }
   entry.innerText = text
-  log.prepend(entry)
+  content.prepend(entry)
   addMJLog(text)
-  if (log.children.length > 20) log.removeChild(log.lastChild)
+  while (content.children.length > 20) content.removeChild(content.lastChild)
 }
 
 function showXPMessage(amount) {

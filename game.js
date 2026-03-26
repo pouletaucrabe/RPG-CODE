@@ -2425,7 +2425,7 @@ function resetLocalCombatVisualState() {
   window.__combatPlayerPoisonState = null
   window.__combatPlayerBleedState = null
   window.__eloSummonState = null
-  if (typeof clearCombatTokenStateVisuals === "function") clearCombatTokenStateVisuals()
+  clearCombatTokenStateVisuals()
   if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
 }
 
