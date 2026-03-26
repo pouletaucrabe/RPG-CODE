@@ -137,9 +137,9 @@
 <div id="diceLog">
   <div class="dice-log-head">
     <span>🎲 Historique des dés</span>
-    <span id="diceLogToggle" onclick="toggleDiceLog()" class="mj-log-toggle" title="Réduire">▼</span>
+    <span id="diceLogToggle" onclick="toggleDiceLog()" class="mj-log-toggle" title="Déplier">▲</span>
   </div>
-  <div id="diceLogContent"></div>
+  <div id="diceLogContent" style="display:none;"></div>
 </div>
 
 <!-- FICHE PERSONNAGE -->
@@ -716,14 +716,14 @@
 
 <div id="combatStatusPanel" style="display:none;"></div>
 
-<div id="gmDamagePanel">
+<div id="gmDamagePanel" class="collapsed">
   <div id="gmDamagePanelInner">
     <div id="gmDamageTopRow">
     <div id="mobHPDisplay">
       <div id="mobHPBarTop"><span id="mobHPTopText">— / —</span></div>
       <div id="mobHPBarTopContainer"><div id="mobHPBarTop"></div></div>
     </div>
-      <button id="gmDamageToggle" type="button" onclick="toggleGMDamageControls()" aria-label="Afficher ou masquer les contrôles">▼</button>
+      <button id="gmDamageToggle" type="button" onclick="toggleGMDamageControls()" aria-label="Afficher ou masquer les contrôles">◀</button>
     </div>
     <div id="gmDamageControls">
     <div id="gmDamageRow">

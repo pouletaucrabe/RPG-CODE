@@ -560,7 +560,7 @@ function _startCombatSequence(mob, tierMob) {
           loadPlayerCombatStats()
           if (isGM) {
             document.getElementById("gmDamagePanel").style.display = "block"
-            if (typeof toggleGMDamageControls === "function") toggleGMDamageControls(false)
+            if (typeof toggleGMDamageControls === "function") toggleGMDamageControls(true)
             document.getElementById("gmCombatPanel").style.display = "flex"
           }
         }, 600)
