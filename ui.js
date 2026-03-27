@@ -620,7 +620,7 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
   }
 
   if (meta.fail) {
-    playSound("failSound", 0.82)
+    playSound("critFailSound", 0.82)
     flashRed()
     screenShake()
   } else if (meta.crit) {
@@ -700,7 +700,7 @@ function showPlayerAttackImpact(playerId, attack, outcome, meta = {}) {
   document.body.appendChild(overlay)
 
   if (fail) {
-    playSound("failSound", 0.8)
+    playSound("critFailSound", 0.8)
     flashRed()
     screenShake()
   } else if (crit) {
@@ -717,7 +717,7 @@ function showPlayerAttackImpact(playerId, attack, outcome, meta = {}) {
     flashGold()
     screenShake()
   } else {
-    playSound("critSound", 0.45)
+    playSound("powerSound", 0.34)
     screenShake()
   }
 
@@ -3166,7 +3166,7 @@ function _rollAllyDice(pnj, action, targetId) {
       // Son crit/fail UNIQUEMENT selon résultat, après 400ms
       setTimeout(()=>{
         if (roll === action.dice) playSound("critSound", 0.8)
-        else if (roll === 1) playSound("failSound", 0.8)
+        else if (roll === 1) playSound("critFailSound", 0.8)
       }, 400)
 
       // Fermer après 2s puis appliquer

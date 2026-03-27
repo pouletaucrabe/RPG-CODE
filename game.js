@@ -1985,7 +1985,7 @@ function showMobSpecialAttackEvent(data) {
   }, 3200)
   screenShakeHard()
   screenShakeHard()
-  playSound("critSound", 0.75)
+  playSound("powerSound", 0.58)
 }
 
 function showMobSpecialAttackEvent(data) {
@@ -2177,7 +2177,7 @@ db.ref("game/mobAttackEvent").on("value", snap => {
     db.ref("game/mobAttackEvent").remove()
   }, 2800)
   screenShakeHard()
-  playSound("critSound", 0.6)
+  playSound("powerSound", 0.52)
 })
 
 // ─── curse/wheel ───
@@ -3711,7 +3711,6 @@ function initGMCombatPanelsDrag() {
     panel.style.cursor = "grab"
   }
 
-  makeDraggable("gmDamagePanel")
 }
 
 function mobRoll(max) {
@@ -3761,6 +3760,8 @@ function showDiceAnimation(playerName, max, final, rawRoll) {
 
   const safeName = String(playerName).replace(/</g, "&lt;").replace(/>/g, "&gt;")
   const naturalRoll = Number.isFinite(parseInt(rawRoll, 10)) ? parseInt(rawRoll, 10) : final
+  const isCritical = Number.isInteger(naturalRoll) && Number.isInteger(max) && naturalRoll === max && naturalRoll > 1
+  const isFailure = Number.isInteger(naturalRoll) && naturalRoll === 1
   const { cube, label, resLabel } = _buildDice3D(resultBox)
 
   label.textContent = safeName + " — d" + max
@@ -3789,7 +3790,7 @@ function showDiceAnimation(playerName, max, final, rawRoll) {
 
       if (playerName === "MJ") { resultBox.classList.add("mjRoll"); flashGold(); screenShake() }
 
-      if (naturalRoll === max) {
+      if (isCritical) {
         resultBox.classList.add("crit")
         resLabel.textContent = "✦ " + final + " ✦"
         playSound("critSound"); screenShake(); flashGold()
@@ -3802,9 +3803,9 @@ function showDiceAnimation(playerName, max, final, rawRoll) {
         }
       }
 
-      if (naturalRoll === 1) {
+      if (isFailure) {
         resultBox.classList.add("fail")
-        playSound("failSound"); screenShakeHard(); flashRed()
+        playSound("critFailSound"); screenShakeHard(); flashRed()
         tryRuneEventOnDice()
         if (playerName !== "MJ" && playerName !== "MOB") {
           db.ref("characters/" + playerName + "/curse").once("value", snap => {
@@ -3828,7 +3829,7 @@ function showDiceAnimation(playerName, max, final, rawRoll) {
           resultBox.classList.remove("crit","fail","mjRoll")
           cube.style.animation = ""
         }, 500)
-      }, 4000)
+      }, 5600)
     }, 300)
   }, 1800)
 }
