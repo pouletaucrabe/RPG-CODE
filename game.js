@@ -1,4 +1,4 @@
-"use strict"
+﻿"use strict"
 
 /* ========================= */
 /* FIREBASE INIT             */
@@ -1280,7 +1280,7 @@ function renderPlayerRuneEntry(panel) {
 
   const icon = document.createElement("div")
   icon.style.cssText = "width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel Decorative','Cinzel',serif;font-size:28px;color:#c8a050;"
-  icon.innerText = "ᚱ"
+  icon.innerText = "áš±"
   entry.appendChild(icon)
 
   const text = document.createElement("div")
@@ -1445,7 +1445,7 @@ function playThuumCastEffect(data) {
       }, 1700)
     }
   }
-  showNotification("ᚦ " + (data.word || "SKRAA") + " - " + (data.playerId || "").toUpperCase())
+  showNotification("áš¦ " + (data.word || "SKRAA") + " - " + (data.playerId || "").toUpperCase())
 }
 
 function grantThuumToPlayer(playerId, word) {
@@ -2185,6 +2185,19 @@ db.ref("curse/wheel").on("value", snap => {
   const data = snap.val()
   if (!data) {
     window.__curseWheelTriggeredFor = null
+    return
+  }
+  const startedAt = parseInt(data.time, 10) || 0
+  const ageMs = startedAt ? (Date.now() - startedAt) : 0
+  if (ageMs > 15000) {
+    const intro = document.getElementById("curseIntroScreen")
+    const wheel = document.getElementById("curseWheelScreen")
+    const result = document.getElementById("curseResultScreen")
+    if (intro) intro.remove()
+    if (wheel) wheel.remove()
+    if (result) result.remove()
+    window.__curseWheelTriggeredFor = null
+    db.ref("curse/wheel").remove()
     return
   }
   if (data.state === "intro")  showCurseIntro(data.player)
@@ -3662,7 +3675,7 @@ function toggleGMDamageControls(forceState) {
   const collapsed = typeof forceState === "boolean" ? forceState : !panel.classList.contains("collapsed")
   panel.classList.toggle("collapsed", collapsed)
   toggle.innerText = collapsed ? "◀" : "▼"
-  toggle.setAttribute("aria-label", collapsed ? "Afficher les contrÃ´les du combat" : "Masquer les contrÃ´les du combat")
+  toggle.setAttribute("aria-label", collapsed ? "Afficher les contrôles du combat" : "Masquer les contrôles du combat")
 }
 
 function initGMCombatPanelsDrag() {

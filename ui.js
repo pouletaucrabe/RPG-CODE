@@ -1,4 +1,4 @@
-"use strict"
+﻿"use strict"
 
 /* ========================= */
 /* FICHE PERSONNAGE          */
@@ -1542,7 +1542,7 @@ function renderAllMobPanels() {
 }
 
 function buildMobSubPanel(mobData, slot) {
-  const panel = document.createElement("div"); panel.style.cssText = "background:url('images/mobpanel.png') center/100% 100% no-repeat;border:1px solid rgba(201,159,88,0.18);border-radius:14px;padding:12px;box-shadow:0 18px 30px rgba(0,0,0,0.22);"
+  const panel = document.createElement("div"); panel.style.cssText = "background:url('images/mobpanel.png') center/100% 100% no-repeat;padding:12px;filter:drop-shadow(0 12px 18px rgba(0,0,0,0.22));"
   const header = document.createElement("div"); header.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
   const titleWrap = document.createElement("div"); titleWrap.style.cssText = "display:flex;align-items:center;gap:8px;min-width:0;"
   const portrait = document.createElement("img"); portrait.src = "images/" + sanitizeAssetName((mobData.name || "gobelins") + ".png"); portrait.style.cssText = "width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.45));"; portrait.onerror = () => portrait.style.display = "none"; titleWrap.appendChild(portrait)
@@ -1822,7 +1822,7 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
     showNotification("Tour actif : " + String(activeActorId || "").toUpperCase())
     return
   }
-  if (attack.special && mobData.specialUsed) { showNotification("âš  Attaque spÃ©ciale dÃ©jÃ  utilisÃ©e"); return }
+  if (attack.special && mobData.specialUsed) { showNotification("⚠ Attaque spéciale déjà utilisée"); return }
   Promise.all([
     db.ref("combat/mob/yuAggro").once("value"),
     db.ref("combat/mob/yuSkipNextTurn").once("value"),
@@ -1834,7 +1834,7 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
     const aggroActive = !!(yuAggro && parseInt(yuAggro.turns, 10) > 0)
     const malusActive = !!(attackMalus && parseInt(attackMalus.turns, 10) > 0)
     const target = aggroActive && attack.effect !== "all" ? "ju" : (forcedTarget || panel._currentTarget)
-    if (!target && attack.effect !== "all") { showNotification("âš  Choisissez une cible !"); return }
+    if (!target && attack.effect !== "all") { showNotification("⚠ Choisissez une cible !"); return }
     panel._lastAttack = attack.name
     animateMobDice(() => {
       const mobLabel = (mobData.name || "MOB").toUpperCase()
@@ -1863,7 +1863,7 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
         applyMobDamageToPlayer(target, dmg, attack, mobData, slot)
         db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
         addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: targetLabel, dmg, special: !!attack.special, attack, mobData })
-        showNotification(attack.name+" â†’ "+target.toUpperCase()+" â€” "+dmg+" dÃ©gÃ¢ts !"); screenShake()
+        showNotification(attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
       }
       if (aggroActive) tickTimedCombatMobState("combat/mob/yuAggro")
       if (malusActive) tickTimedCombatMobState("combat/mob/attackMalus")
@@ -2176,7 +2176,7 @@ function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {
 /* RUNE CHALLENGE            */
 /* ========================= */
 
-function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"᛫":c==="."?"᛬":c==="'"?"'":c) }).join("") }
+function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"á›«":c==="."?"á›¬":c==="'"?"'":c) }).join("") }
 function openRuneChallenge() {
   if(!isGM) return
   _state.runeJustOpened=false
@@ -2215,7 +2215,7 @@ function updateRuneMenuBtn(active) { const l=document.getElementById("runeLaunch
 function renderRuneChallenge(data) {
   const uh=data.unlockedHints||[], rev=data.revealedLetters||[], enc=encodeToRunes(secretMessage,rev), dec=decodeRuneProgress(secretMessage,rev)
   const ov=document.createElement("div"); ov.id="runeChallengeOverlay"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,5,2,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999990;opacity:0;transition:opacity 0.6s ease;overflow-y:auto;padding:20px 0;"
-  const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;color:#c8a050;letter-spacing:6px;margin-bottom:6px;text-shadow:0 0 20px gold;"; t.innerText="ᚱᚢᚾᛖᛊ ᛞᛖ ᛚ'ᚨᚾᚲᛁᛖᚾ"; ov.appendChild(t)
+  const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;color:#c8a050;letter-spacing:6px;margin-bottom:6px;text-shadow:0 0 20px gold;"; t.innerText="áš±áš¢áš¾á›–á›Š á›žá›– á›š'áš¨áš¾áš²á›á›–áš¾"; ov.appendChild(t)
   const st=document.createElement("div"); st.style.cssText="font-family:'IM Fell English',serif;font-size:14px;color:#8a6830;margin-bottom:24px;letter-spacing:2px;"; st.innerText="Déchiffrez le message des anciens..."; ov.appendChild(st)
   const mb=document.createElement("div"); mb.style.cssText="background:url('images/roc.png') center/100% 100% no-repeat;padding:50px 70px;max-width:700px;width:90vw;text-align:center;margin-bottom:24px;border-radius:4px;"
   const rt=document.createElement("div"); rt.style.cssText="font-size:32px;color:#ffe8a0;line-height:2.2;letter-spacing:6px;font-family:serif;word-break:break-word;font-weight:bold;"; rt.innerText=enc; mb.appendChild(rt); ov.appendChild(mb)
@@ -2243,24 +2243,79 @@ function showRuneBubble(dialogue, letter, rune) { const ex=document.getElementBy
 /* MALÉDICTION               */
 /* ========================= */
 
-function toggleCurse(level) { if(level===8) addMJLog("☠ Malédiction complète !"); curseLevel=level; document.querySelectorAll(".curseGem").forEach((g,i)=>g.classList.toggle("active",i<level)); if(level===8){ flashRed(); screenShakeHard(); showNotification("☠ La malédiction est complète !"); if(myToken){ myToken.classList.add("cursed"); startBloodEffect(myToken); triggerCurseWheel(myToken.id) } }; if(level<8&&myToken){ myToken.classList.remove("cursed"); stopBloodEffect(myToken) }; saveCurse() }
-function saveCurse() { if(!myToken) return; db.ref("characters/"+myToken.id+"/curse").set(curseLevel) }
-function setCorruption(level) { corruptionLevel=level; document.querySelectorAll(".corruptionPoint").forEach((b,i)=>b.classList.toggle("active",i<level)); if(level===10){ addMJLog("✨ Pouvoir activé pour "+(myToken?myToken.id:"")); flashGold(); screenShake(); powerExplosion(); showNotification("✨ Pouvoir disponible !"); if(myToken){ myToken.classList.add("powerReady"); activatePowerMode(myToken.id) } }; if(level<10&&myToken) myToken.classList.remove("powerReady"); saveCorruption() }
-function saveCorruption() { if(!myToken) return; db.ref("characters/"+myToken.id+"/corruption").set(corruptionLevel) }
+function toggleCurse(level) {
+  const targetId = currentSheetPlayer || (myToken && myToken.id)
+  if (!targetId) return
+  const previousLevel = curseLevel
+  if (level === 8) addMJLog("☠ Malédiction complète !")
+  curseLevel = level
+  document.querySelectorAll(".curseGem").forEach((g, i) => g.classList.toggle("active", i < level))
+  const targetToken = document.getElementById(targetId)
+  if (level === 8) {
+    flashRed()
+    screenShakeHard()
+    showNotification("☠ La malédiction est complète !")
+    if (targetToken) {
+      targetToken.classList.add("cursed")
+      startBloodEffect(targetToken)
+    }
+    if (previousLevel < 8) {
+      window.__curseWheelTriggeredFor = String(targetId).toLowerCase()
+      showCurseIntro(targetId)
+      triggerCurseWheel(targetId)
+    }
+  }
+  if (level < 8 && targetToken) {
+    targetToken.classList.remove("cursed")
+    stopBloodEffect(targetToken)
+  }
+  if (level < 8 && window.__curseWheelTriggeredFor === String(targetId).toLowerCase()) {
+    window.__curseWheelTriggeredFor = null
+  }
+  saveCurse()
+}
+function saveCurse() {
+  const targetId = currentSheetPlayer || (myToken && myToken.id)
+  if (!targetId) return
+  db.ref("characters/" + targetId + "/curse").set(curseLevel)
+}
+function setCorruption(level) {
+  const targetId = currentSheetPlayer || (myToken && myToken.id)
+  if (!targetId) return
+  corruptionLevel = level
+  document.querySelectorAll(".corruptionPoint").forEach((b, i) => b.classList.toggle("active", i < level))
+  const targetToken = document.getElementById(targetId)
+  if (level === 10) {
+    addMJLog("✨ Pouvoir activé pour " + targetId)
+    flashGold()
+    screenShake()
+    powerExplosion()
+    showNotification("✨ Pouvoir disponible !")
+    if (targetToken) targetToken.classList.add("powerReady")
+    activatePowerMode(targetId)
+  }
+  if (level < 10 && targetToken) targetToken.classList.remove("powerReady", "powerFull")
+  saveCorruption()
+}
+function saveCorruption() {
+  const targetId = currentSheetPlayer || (myToken && myToken.id)
+  if (!targetId) return
+  db.ref("characters/" + targetId + "/corruption").set(corruptionLevel)
+}
 function triggerCurseWheel(playerID) { db.ref("curse/wheel").set({ player:playerID, state:"intro", time:Date.now() }) }
 
 function showCurseIntro(playerID) {
   playSound("curseSound"); playSound("curse1Sound"); let s=document.getElementById("curseIntroScreen"); if(!s){ s=document.createElement("div"); s.id="curseIntroScreen"; document.body.appendChild(s) }; s.innerHTML=""; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;animation:cursePulse 0.5s ease-in-out infinite alternate;"
-  const t=document.createElement("div"); t.innerText="☠ VOUS ÊTES MAUDIT ☠"; t.style.cssText="font-family:Cinzel;font-size:60px;color:#ff0000;text-shadow:0 0 20px red;animation:curseShake 0.1s infinite;text-align:center;margin-bottom:30px;"; s.appendChild(t)
+  const t=document.createElement("div"); t.innerText="VOUS ETES MAUDIT"; t.style.cssText="font-family:Cinzel;font-size:60px;color:#ff0000;text-shadow:0 0 20px red;animation:curseShake 0.1s infinite;text-align:center;margin-bottom:30px;"; s.appendChild(t)
   const sub=document.createElement("div"); sub.innerText=playerID.toUpperCase()+" doit affronter son destin..."; sub.style.cssText="font-family:IM Fell English;font-size:24px;color:#cc4444;text-align:center;opacity:0.8;"; s.appendChild(sub)
   screenShakeHard(); flashRed(); setTimeout(()=>{ if(s) s.remove(); db.ref("curse/wheel/state").set("wheel") },3000)
 }
 
 function showCurseWheelScreen(playerID) {
-  const isCursed=myToken&&myToken.id===playerID; let s=document.getElementById("curseWheelScreen"); if(!s){ s=document.createElement("div"); s.id="curseWheelScreen"; document.body.appendChild(s) }; s.innerHTML=""; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"
-  const t=document.createElement("div"); t.innerText="☠ La Roue du Destin ☠"; t.style.cssText="font-family:Cinzel;font-size:36px;color:#cc0000;text-shadow:0 0 20px red;margin-bottom:30px;"; s.appendChild(t)
+  const isCursed=isGM || (myToken&&myToken.id===playerID); let s=document.getElementById("curseWheelScreen"); if(!s){ s=document.createElement("div"); s.id="curseWheelScreen"; document.body.appendChild(s) }; s.innerHTML=""; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"
+  const t=document.createElement("div"); t.innerText="LA ROUE DU DESTIN"; t.style.cssText="font-family:Cinzel;font-size:36px;color:#cc0000;text-shadow:0 0 20px red;margin-bottom:30px;"; s.appendChild(t)
   const canvas=document.createElement("canvas"); canvas.id="curseWheelCanvas"; canvas.width=500; canvas.height=500; canvas.style.cssText="filter:drop-shadow(0 0 20px darkred);"; s.appendChild(canvas)
-  const btn=document.createElement("button"); btn.innerText=isCursed?"⚠ Tourner la Roue ⚠":"En attente de "+playerID.toUpperCase()+"..."; btn.style.cssText="margin-top:30px;padding:14px 40px;font-family:Cinzel;font-size:18px;background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:"+(isCursed?"pointer":"default")+";opacity:"+(isCursed?"1":"0.4")+";"; if(isCursed) btn.onclick=()=>{ btn.disabled=true; btn.style.opacity="0.4"; spinCurseWheel(playerID) }; s.appendChild(btn); drawCurseWheel(canvas,0)
+  const btn=document.createElement("button"); btn.innerText=isCursed?"Tourner la roue":"En attente de "+playerID.toUpperCase()+"..."; btn.style.cssText="margin-top:30px;padding:14px 40px;font-family:Cinzel;font-size:18px;background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:"+(isCursed?"pointer":"default")+";opacity:"+(isCursed?"1":"0.4")+";"; if(isCursed) btn.onclick=()=>{ btn.disabled=true; btn.style.opacity="0.4"; spinCurseWheel(playerID) }; s.appendChild(btn); drawCurseWheel(canvas,0)
 }
 
 function drawCurseWheel(canvas, rotation) {
@@ -2280,13 +2335,30 @@ function spinCurseWheel(playerID) {
 }
 
 function showCurseResult(playerID, resultIndex) {
-  const ch=curseWheelChoices[resultIndex]; const ws=document.getElementById("curseWheelScreen"); if(ws) ws.remove(); playSound("curseSound"); playSound("curse2Sound")
+  const safeIndex = Math.max(0, Math.min(curseWheelChoices.length - 1, parseInt(resultIndex, 10) || 0))
+  const ch=curseWheelChoices[safeIndex]; const ws=document.getElementById("curseWheelScreen"); if(ws) ws.remove(); playSound("curseSound"); playSound("curse2Sound")
   const s=document.createElement("div"); s.id="curseResultScreen"; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"; document.body.appendChild(s); flashRed(); screenShakeHard()
   const ic=document.createElement("div"); ic.innerText=ch.icon; ic.style.cssText="font-size:100px;margin-bottom:20px;animation:curseResultPop 0.5s ease-out;"; s.appendChild(ic)
   const t=document.createElement("div"); t.innerText=ch.label; t.style.cssText="font-family:Cinzel;font-size:56px;color:#ff0000;text-shadow:0 0 20px red;margin-bottom:16px;text-align:center;animation:curseResultPop 0.6s ease-out;"; s.appendChild(t)
   const d=document.createElement("div"); d.innerText=ch.description; d.style.cssText="font-family:IM Fell English;font-size:22px;color:#cc6666;text-align:center;margin-bottom:40px;"; s.appendChild(d)
-  if(myToken&&myToken.id===playerID) applyCurseEffect(playerID,resultIndex)
-  setTimeout(()=>{ s.remove(); db.ref("curse/wheel").remove(); if(myToken&&myToken.id===playerID){ db.ref("characters/"+playerID+"/curse").set(0); if(currentSheetPlayer===playerID){ curseLevel=0; document.querySelectorAll(".curseGem").forEach(g=>g.classList.remove("active")) }; const tok=document.getElementById(playerID); if(tok){ tok.classList.remove("cursed"); stopBloodEffect(tok) } } },5000)
+  if (isGM) applyCurseEffect(playerID,safeIndex)
+  else if (myToken && myToken.id===playerID) applyCurseEffect(playerID,safeIndex)
+  setTimeout(()=>{
+    if (s && s.parentNode) s.remove()
+    db.ref("curse/wheel").remove()
+    if (isGM) db.ref("characters/"+playerID+"/curse").set(0)
+    else if (myToken && myToken.id===playerID) db.ref("characters/"+playerID+"/curse").set(0)
+    if(currentSheetPlayer===playerID){
+      curseLevel=0
+      document.querySelectorAll(".curseGem").forEach(g=>g.classList.remove("active"))
+    }
+    if (window.__curseWheelTriggeredFor === String(playerID).toLowerCase()) window.__curseWheelTriggeredFor = null
+    const tok=document.getElementById(playerID)
+    if(tok){
+      tok.classList.remove("cursed")
+      stopBloodEffect(tok)
+    }
+  },5000)
 }
 
 function applyCurseEffect(playerID, ri) {
@@ -2306,13 +2378,13 @@ function applyCurseEffect(playerID, ri) {
 /* ========================= */
 
 function activatePowerMode(playerID) { if(powerModeActive) return; powerModeActive=true; playSound("powerSound",0.75); const tok=document.getElementById(playerID); if(tok) tok.classList.add("powerReady","powerFull"); if(myToken&&myToken.id===playerID) showUsePowerBtn(playerID) }
-function showUsePowerBtn(playerID) { const ex=document.getElementById("usePowerBtn"); if(ex) ex.remove(); const btn=document.createElement("button"); btn.id="usePowerBtn"; btn.innerText="✨ USE POWER ✨"; btn.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:14px 40px;font-family:Cinzel;font-size:20px;letter-spacing:2px;background:linear-gradient(180deg,#8a6000,#4a3000);color:gold;border:2px solid gold;border-radius:10px;cursor:pointer;z-index:999999999;box-shadow:0 0 20px gold,0 0 40px orange;animation:powerBtnPulse 1s ease-in-out infinite alternate;text-shadow:0 0 10px gold;"; btn.onclick=()=>usePower(playerID); document.body.appendChild(btn) }
+function showUsePowerBtn(playerID) { const ex=document.getElementById("usePowerBtn"); if(ex) ex.remove(); const btn=document.createElement("button"); btn.id="usePowerBtn"; btn.innerText="LIBERER LE POUVOIR"; btn.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:14px 40px;font-family:Cinzel;font-size:20px;letter-spacing:2px;background:linear-gradient(180deg,#8a6000,#4a3000);color:gold;border:2px solid gold;border-radius:10px;cursor:pointer;z-index:999999999;box-shadow:0 0 20px gold,0 0 40px orange;animation:powerBtnPulse 1s ease-in-out infinite alternate;text-shadow:0 0 10px gold;"; btn.onclick=()=>usePower(playerID); document.body.appendChild(btn) }
 
 function usePower(playerID) {
   const btn=document.getElementById("usePowerBtn"); if(btn) btn.remove()
   db.ref("game/powerSound").set({ player:playerID, time:Date.now() }); playSound("powerSound",0.9); powerExplosion(); powerExplosion(); flashGold(); flashGold(); screenShakeHard()
   for(let i=0;i<30;i++) setTimeout(()=>{ const p=document.createElement("div"); p.style.cssText=`position:fixed;width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;border-radius:50%;background:gold;left:${Math.random()*100}%;top:${Math.random()*100}%;pointer-events:none;z-index:9999998;box-shadow:0 0 8px gold;animation:goldRise 1.5s ease-out forwards;`; document.body.appendChild(p); setTimeout(()=>p.remove(),1500) },i*60)
-  showNotification("✨ "+playerID.toUpperCase()+" LIBÈRE SON POUVOIR !"); addMJLog("✨ "+playerID.toUpperCase()+" utilise son pouvoir !"); db.ref("characters/"+playerID+"/corruption").set(0); powerModeActive=false
+  showNotification(playerID.toUpperCase()+" LIBERE SON POUVOIR !"); addMJLog(playerID.toUpperCase()+" utilise son pouvoir !"); db.ref("characters/"+playerID+"/corruption").set(0); powerModeActive=false
   const tok=document.getElementById(playerID); if(tok) setTimeout(()=>tok.classList.remove("powerReady","powerFull"),2000)
   if(currentSheetPlayer===playerID){ corruptionLevel=0; document.querySelectorAll(".corruptionPoint").forEach(pt=>pt.classList.remove("active")) }
 }
@@ -2519,7 +2591,7 @@ function renderMapElement(data) {
   const ex=document.getElementById("elem_"+data.id); if(ex) ex.remove(); if(!document.getElementById("map")) return
   const safeImage = sanitizeAssetName(data.image)
   const el=document.createElement("div"); el.id="elem_"+data.id; el.style.cssText=`position:absolute;left:${data.x}px;top:${data.y}px;width:90px;height:90px;cursor:${isGM?"grab":data.clickable?"pointer":"default"};z-index:5000;user-select:none;transition:opacity 0.4s;opacity:0;`
-  if(data.isRune){ const rs=document.createElement("div"); rs.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#c8a050;text-shadow:0 0 15px gold;background:rgba(30,15,5,0.85);border:2px solid rgba(200,160,80,0.6);border-radius:50%;animation:tokenRingPulse 2s ease-in-out infinite;pointer-events:none;"; rs.innerText="ᚱ"; el.appendChild(rs) }
+  if(data.isRune){ const rs=document.createElement("div"); rs.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#c8a050;text-shadow:0 0 15px gold;background:rgba(30,15,5,0.85);border:2px solid rgba(200,160,80,0.6);border-radius:50%;animation:tokenRingPulse 2s ease-in-out infinite;pointer-events:none;"; rs.innerText="áš±"; el.appendChild(rs) }
   else{ const img=document.createElement("img"); img.src="images/"+safeImage; img.style.cssText="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.8));pointer-events:none;"; el.appendChild(img) }
   if(isGM){ const rb=document.createElement("div"); rb.style.cssText="position:absolute;top:-8px;right:-8px;width:20px;height:20px;background:#cc0000;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;cursor:pointer;box-shadow:0 0 6px black;z-index:10;"; rb.innerText="✕"; rb.onclick=e=>{ e.stopPropagation(); cleanupMapElementDragHandlers(data.id); db.ref("elements/"+data.id).remove() }; el.appendChild(rb) }
   if(data.clickable){ el.onclick=()=>{ if(data.isRune&&data.runeHint){ unlockRuneHint(data.runeHint); flashGold(); el.style.filter="drop-shadow(0 0 20px gold) brightness(2)"; setTimeout(()=>el.style.filter="",600); cleanupMapElementDragHandlers(data.id); db.ref("elements/"+data.id).remove() } else if(!isGM){ const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999999;cursor:pointer;"; const bi=document.createElement("img"); bi.src="images/"+safeImage; bi.style.cssText="max-width:80vw;max-height:80vh;object-fit:contain;"; ov.appendChild(bi); ov.onclick=()=>ov.remove(); document.body.appendChild(ov) } } }
@@ -3609,3 +3681,5 @@ toggleMJLog = function () {
 toggleDiceLog = function () {
   toggleCollapsiblePanel("diceLogContent", "diceLogToggle", "diceLog")
 }
+
+

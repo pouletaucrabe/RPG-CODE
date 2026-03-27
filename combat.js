@@ -1,4 +1,4 @@
-"use strict"
+﻿"use strict"
 
 window.__combatOutcomeShowing = false
 window.__pendingLocalDefeat = false

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
   <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
@@ -126,17 +126,17 @@
   <button onclick="rollDice(20)"  class="diceImgBtn"><img src="images/D20.png"  alt="D20"  class="diceImg"></button>
   <button onclick="rollDice(100)" class="diceImgBtn"><img src="images/D100.png" alt="D100" class="diceImg"></button>
   <button id="mobD12" onclick="mobRoll(12)" style="display:none;" class="diceImgBtn mobDiceBtn">
-    <img src="images/D12.png" alt="D12 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
+    <img src="images/D12.png" alt="D12 Mob" class="diceImg"><span class="diceMobLabel">M</span>
   </button>
   <button id="mobD20" onclick="mobRoll(20)" style="display:none;" class="diceImgBtn mobDiceBtn">
-    <img src="images/D20.png" alt="D20 Mob" class="diceImg"><span class="diceMobLabel">👹</span>
+    <img src="images/D20.png" alt="D20 Mob" class="diceImg"><span class="diceMobLabel">M</span>
   </button>
 </div>
 
 <div id="diceResult"></div>
 <div id="diceLog">
   <div class="dice-log-head">
-    <span>🎲 Historique des dés</span>
+    <span>Historique des dés</span>
     <span id="diceLogToggle" onclick="toggleDiceLog()" class="mj-log-toggle" title="Déplier">▲</span>
   </div>
   <div id="diceLogContent" style="display:none;"></div>
@@ -483,8 +483,8 @@
     <button class="pnjTab active" onclick="openPNJTab('elemIndices', this)">📜</button>
     <button class="pnjTab" onclick="openPNJTab('elemObjets', this)">⚔</button>
     <button class="pnjTab" onclick="openPNJTab('elemEffets', this)">✨</button>
-    <button class="pnjTab" onclick="openPNJTab('elemCartes', this)">ᚦ</button>
-    <button class="pnjTab" onclick="openPNJTab('elemJeu', this)">ᚱ</button>
+    <button class="pnjTab" onclick="openPNJTab('elemCartes', this)">áš¦</button>
+    <button class="pnjTab" onclick="openPNJTab('elemJeu', this)">áš±</button>
     <button class="pnjTab" onclick="openPNJTab('elemFolie', this)">☾</button>
     <button class="pnjTab" onclick="openPNJTab('elemWanted', this)">🎯</button>
   </div>
@@ -891,3 +891,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
