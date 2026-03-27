@@ -881,6 +881,17 @@ function getCombatStatusEntries() {
     })
   }
 
+  const revealedWeakness = window.__combatRevealedWeaknessState
+  if (revealedWeakness && revealedWeakness.title) {
+    entries.push({
+      kind: "warn",
+      icon: "weakness.png",
+      title: "Faiblesse révélée",
+      text: revealedWeakness.title + " — " + (revealedWeakness.text || ""),
+      meta: String(revealedWeakness.mobName || "Mob")
+    })
+  }
+
   const bibiRage = window.__combatBibiRageState
   if (bibiRage && parseInt(bibiRage.turns, 10) > 0) {
     entries.push({
@@ -1229,6 +1240,20 @@ function resolvePlayerAttack(attack, options = {}) {
           }
           if (playerId === "ju" && attack.name === "Spider Sense") {
             db.ref("combat/mob/spiderSenseBuff").set({ source: "ju", active: true, damageMult: 1.1, time: Date.now() })
+            const weakness = (typeof getMobWeakness === "function") ? getMobWeakness(mob.name, mob.tier || "weak") : null
+            if (weakness) {
+              db.ref("combat/mob/revealedWeakness").set({
+                source: "ju",
+                mobName: String(mob.name || "Mob").toUpperCase(),
+                title: weakness.title,
+                text: weakness.text,
+                time: Date.now()
+              })
+              showNotification("Faiblesse révélée : " + weakness.title)
+              if (typeof addMJLog === "function") {
+                addMJLog("Spider Sense révèle : " + String(mob.name || "MOB").toUpperCase() + " — " + weakness.title)
+              }
+            }
             if (crit) db.ref("combat/mob/victoryLootBonus").set({ source: "ju", active: true, time: Date.now() })
           }
           if (playerId === "ju" && attack.name === "Petite merde" && crit) {

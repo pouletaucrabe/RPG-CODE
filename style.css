@@ -4185,8 +4185,76 @@ body {
     linear-gradient(135deg, rgba(255,80,110,0.16), transparent 55%);
 }
 
+.mobSpecialBlueWash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(110, 180, 255, 0.22), rgba(28, 80, 170, 0.18), rgba(8, 16, 38, 0.32));
+  opacity: 0;
+  animation: mobSpecialBlueFade 3.2s ease-in-out forwards;
+}
+
+.mobSpecialSparkles {
+  position: absolute;
+  inset: 6% 8% 10%;
+  width: 84%;
+  height: 84%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+  z-index: 1;
+}
+
+.mobSpecialSparkles--vampire {
+  filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.48)) drop-shadow(0 0 40px rgba(255, 255, 255, 0.2));
+  animation: mobSpecialSparklePulse 1.05s ease-in-out infinite alternate;
+}
+
+.mobSpecialQuoteFrame {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(560px, 74vw);
+  margin: 2px auto -146px auto;
+  pointer-events: none;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.12));
+}
+
+.mobSpecialQuoteWrap {
+  position: relative;
+  z-index: 2;
+  width: min(430px, 56vw);
+  min-height: 92px;
+  margin: 0 auto 18px auto;
+  padding: 8px 32px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.mobSpecialQuoteWrap--vampire {
+  color: #e9f5ff;
+  text-shadow: 0 0 16px rgba(120, 190, 255, 0.3), 0 0 4px rgba(0, 0, 0, 0.9);
+  transform: translateY(-78px);
+}
+
 .mobSpecialOverlay--witch {
   transform: rotate(-0.55deg);
+}
+
+.mobSpecialWickedWash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 90, 190, 0.26), transparent 24%),
+    radial-gradient(circle at 78% 26%, rgba(120, 255, 170, 0.24), transparent 24%),
+    linear-gradient(180deg, rgba(58, 255, 160, 0.12), rgba(255, 90, 190, 0.16), rgba(10, 12, 24, 0.4));
+  opacity: 0;
+  animation: mobSpecialWickedFade 6s ease-in-out forwards;
 }
 
 .mobSpecialOverlay--witch .mobSpecialBox::before {
@@ -4198,6 +4266,27 @@ body {
 
 .mobSpecialOverlay--witch .mobSpecialRing {
   border-style: dashed;
+}
+
+.mobSpecialImage--witch {
+  width: min(88vw, 1100px);
+  max-width: none;
+  height: auto;
+  right: 50%;
+  top: 50%;
+  transform: translate(50%, -50%);
+  opacity: 0.22;
+  filter: drop-shadow(0 0 34px rgba(255, 110, 200, 0.3)) drop-shadow(0 0 42px rgba(120, 255, 170, 0.24));
+  animation: mobSpecialWitchFloatLarge 3.4s ease-in-out infinite alternate;
+}
+
+.mobSpecialQuoteWrap--witch {
+  width: min(430px, 56vw);
+  min-height: 92px;
+  padding: 8px 32px 0;
+  transform: translateY(-96px);
+  color: #f2ecff;
+  text-shadow: 0 0 16px rgba(255, 90, 190, 0.32), 0 0 6px rgba(120, 255, 170, 0.22), 0 0 4px rgba(0, 0, 0, 0.92);
 }
 
 .mobSpecialOverlay--draugr .mobSpecialBox::before {
@@ -4249,6 +4338,35 @@ body {
 @keyframes mobSpecialGlyphFloat {
   0% { transform: translateY(0px) scale(0.92); opacity: 0.18; }
   100% { transform: translateY(-24px) scale(1.08); opacity: 0.34; }
+}
+
+@keyframes mobSpecialBlueFade {
+  0% { opacity: 0; }
+  18% { opacity: 0.9; }
+  72% { opacity: 0.65; }
+  100% { opacity: 0; }
+}
+
+@keyframes mobSpecialWickedFade {
+  0% { opacity: 0; }
+  18% { opacity: 0.92; }
+  72% { opacity: 0.68; }
+  100% { opacity: 0; }
+}
+
+@keyframes mobSpecialSparklePulse {
+  0% { opacity: 0.12; transform: scale(0.985); }
+  100% { opacity: 0.28; transform: scale(1.015); }
+}
+
+@keyframes mobSpecialWitchFloat {
+  0% { transform: translateY(0px) rotate(-2deg) scale(0.98); }
+  100% { transform: translateY(-14px) rotate(2deg) scale(1.02); }
+}
+
+@keyframes mobSpecialWitchFloatLarge {
+  0% { transform: translate(50%, -50%) scale(0.985); }
+  100% { transform: translate(50%, calc(-50% - 12px)) scale(1.02); }
 }
 
 @keyframes mobSpecialRuneDrift {

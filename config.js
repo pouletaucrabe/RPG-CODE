@@ -473,8 +473,8 @@ const mobSpecialAttacks = {
   loup: { name:"Hurlement de meute", icon:"🐺", dmgMin:8, dmgMax:14, effect:null, animation:"howl", flavor:"Un hurlement glacial annonce la morsure coordonnée." },
   draugr: { name:"WHAAAAAA", icon:"🪦", dmgMin:10, dmgMax:17, effect:"curse", animation:"spectral", flavor:"Le draugr hurle comme si la tombe venait de lui voler sa caution." },
   fantome: { name:"Traversée du linceul", icon:"👻", dmgMin:8, dmgMax:13, effect:null, animation:"spectral", flavor:"Le froid passe à travers l'armure et les excuses." },
-  vampire: { name:"Bella, where the hall have you been loca", icon:"🩸", dmgMin:12, dmgMax:20, effect:"curse", animation:"bloodmoon", flavor:"Le vampire scintille d'un charisme absolument interdit par la morale." },
-  witch: { name:"Défier la gravité", icon:"🧪", dmgMin:11, dmgMax:18, effect:"curse", animation:"arcane", flavor:"La sorcière décide que la physique est un avis, pas une règle." },
+  vampire: { name:"La vie en oah oah", icon:"🩸", dmgMin:12, dmgMax:20, effect:"curse", animation:"bloodmoon", flavor:"Si si je vous promets que je suis une dangereuse créature." },
+  witch: { name:"Défier la gravité", icon:"🧪", dmgMin:11, dmgMax:18, effect:"curse", animation:"arcane", flavor:"Regardez à l'Ouest.", },
   garde: { name:"J'ai pris une flèche dans le genou", icon:"🛡", dmgMin:10, dmgMax:16, effect:null, animation:"stone", flavor:"Le garde raconte encore son histoire, mais avec beaucoup plus d'impact." },
   bandit: { name:"Embuscade sale", icon:"🪓", dmgMin:8, dmgMax:15, effect:null, animation:"tavern", flavor:"Un coup bas, mal annoncé, mais très appliqué." },
   ogre: { name:"It's all ogre now", icon:"🌳", dmgMin:14, dmgMax:22, effect:null, animation:"stone", flavor:"L'ogre prononce sa catchphrase et tout le monde regrette d'être venu." },
@@ -532,15 +532,129 @@ function getMobAttacksForMob(mobName, mobTier) {
   return (mobAttacks[mobTier] || mobAttacks.weak).map(attack => ({ ...attack }))
 }
 
+const mobWeaknesses = {
+  gobelins:          { title:"Peur du feu", text:"Cèdent vite face aux flammes, à l'intimidation et aux démonstrations de puissance." },
+  loup:              { title:"Flancs exposés", text:"Détestent les attaques latérales et les bruits soudains qui cassent leur élan." },
+  draugr:            { title:"Lumière sacrée", text:"Le feu pur et les frappes sacrées dérèglent leur carcasse." },
+  fantome:           { title:"Ancrage sacré", text:"Les effets lumineux, sacrés ou très matériels percent leur voile." },
+  vampire: [
+    { title:"Peur des loups", text:"Le moindre rappel lupin suffit à fissurer sa superbe." },
+    { title:"Sensible aux odeurs", text:"Les parfums trop francs, l'ail ou une odeur humide lui coupent le style." },
+    { title:"Jalousie maladive", text:"Tout ce qui menace son grand roman romantique le fait perdre ses moyens." }
+  ],
+  witch: [
+    { title:"Menace de Glinda", text:"Le simple souvenir de sa grande rivale suffit à lui faire perdre sa superbe." },
+    { title:"Cause animale", text:"Dès qu'on évoque des bêtes maltraitées, sa colère brouille sa magie." },
+    { title:"Blessure d'orgueil", text:"Les moqueries et le ridicule public réveillent tout ce qu'elle essaie de dominer." }
+  ],
+  garde:             { title:"Discipline rigide", text:"Supporte mal les feintes et les attaques qui contournent sa garde." },
+  bandit:            { title:"Lâcheté", text:"Recule vite face aux gros dégâts, aux cris d'autorité et aux ripostes nettes." },
+  ogre:              { title:"Équilibre précaire", text:"Ses jambes et son centre de gravité sont son vrai point faible." },
+  dragon:            { title:"Gorge en feu", text:"Les frappes précises sur la tête, les ailes ou la gueule le font dérailler." },
+  liquorice:         { title:"Chaleur sèche", text:"Fond moralement et physiquement face au feu franc." },
+  valkyrie:          { title:"Orgueil martial", text:"Aime les duels nobles, mais déteste les pièges et les attaques sales." },
+  golem:             { title:"Fissures et résonance", text:"Les impacts lourds répétés et la foudre ouvrent sa pierre." },
+  pretre:            { title:"Foi vacillante", text:"Le silence, la corruption et la profanation sapent sa puissance." },
+  balraug:           { title:"Froid ancien", text:"Le froid, l'entrave et tout ce qui coupe son élan brûlant le gêne." },
+  fenrir:            { title:"Entraves", text:"Déteste être freiné, immobilisé ou forcé à reculer." },
+  jormungand:        { title:"Nuque du monde", text:"Les frappes précises sous la mâchoire et les décharges l'irritent fortement." },
+  kraken:            { title:"Tentacules coupés", text:"Les attaques tranchantes et le feu le rendent plus prudent." },
+  nhiddog:           { title:"Racines brûlées", text:"La lumière et le feu font mal à ce qui rampe sous la terre." },
+  roi:               { title:"Humiliation publique", text:"Craque plus vite quand son autorité est tournée au ridicule." },
+  tavernier:         { title:"Désordre", text:"Le chaos, les meubles qui volent et les attaques imprévisibles le dérèglent." },
+  soulard:           { title:"Vertige", text:"Supporte mal les frappes rapides et tout ce qui lui fait perdre l'appui." },
+  serveuse:          { title:"Espace réduit", text:"Ses grands gestes deviennent dangereux pour elle quand on la colle." },
+  marchand:          { title:"Panique comptable", text:"Dès qu'il perd le contrôle, toute sa confiance s'effondre." },
+  forgeron:          { title:"Refroidissement", text:"Le froid et les interruptions au rythme de frappe le punissent." },
+  forgeron1:         { title:"Acier cassant", text:"Les chocs soudains et le gel lui coupent son tempo." },
+  voyantepnj:        { title:"Brouillage", text:"Les actions imprévisibles brisent ses lectures d'avenir." },
+  "garde baldur":    { title:"Excès de confiance", text:"Une feinte bien placée ou une attaque dans le dos fissure sa tenue." },
+  "child baldur":    { title:"Fuite", text:"Le moindre gros impact ou cri d'autorité le fait hésiter." },
+  pnj1:              { title:"Peur simple", text:"Rien de subtil : une vraie pression suffit à le faire flancher." },
+  pnj2:              { title:"Peur simple", text:"Rien de subtil : une vraie pression suffit à le faire flancher." },
+  oldmessager:       { title:"Équilibre ancien", text:"Ses appuis sont mauvais, il supporte mal les charges." },
+  maire:             { title:"Pression publique", text:"Plus il est contredit frontalement, plus il se décompose." },
+  generalmelenchon:  { title:"Perte de tribune", text:"Silence, interruption et ridicule public sapent son élan." },
+  "jarl baldur":     { title:"Orgueil de chef", text:"A du mal à encaisser une riposte brillante ou une humiliation claire." },
+  marchand2:         { title:"Nerfs fragiles", text:"Dès que la scène sort de son contrôle, il perd ses moyens." },
+  gardedunord:       { title:"Froid retourné", text:"Supporte mal les attaques rapides qui cassent sa formation." },
+  garde2:            { title:"Formation brisée", text:"La garde tombe dès que le rythme du duel lui échappe." },
+  conseillerroinord: { title:"Déstabilisation", text:"Les surprises et les attaques peu orthodoxes lui font perdre son calme." },
+  intendantbrume:    { title:"Lumière nette", text:"Les effets francs, lumineux et directs percent sa brume politique." },
+  zombie:            { title:"Tête et feu", text:"Le feu et les frappes nettes à la tête restent la solution classique." },
+  zombie2:           { title:"Tête et feu", text:"Le feu et les frappes nettes à la tête restent la solution classique." },
+  troll:             { title:"Articulations", text:"Les genoux et les chevilles tiennent tout ce tas de muscles ensemble." },
+  cyclope:           { title:"Œil unique", text:"Toute pression sur sa vision le rend beaucoup moins fiable." },
+  serpentgeant:      { title:"Cou torsadé", text:"N'aime ni les entraves ni les attaques sur le milieu du corps." },
+  hydre:             { title:"Coordination", text:"Les attaques qui cassent son rythme ou frappent pendant qu'elle se divise la punissent." },
+  basilic:           { title:"Miroirs et éclats", text:"Ce qui retourne son regard contre lui le gêne énormément." },
+  odin:              { title:"Hubris divine", text:"Supporte mal les gestes imprévus et ceux qui défient sa lecture du destin." },
+  thor:              { title:"Contre-rythme", text:"Quand on casse son élan, sa force devient moins propre." },
+  freya:             { title:"Distraction du cœur", text:"Les charmes, la confusion et la rupture du tempo la troublent." },
+  heimdall:          { title:"Saturation", text:"Trop d'effets à la fois brouillent sa vigilance parfaite." },
+  "elo pion":        { title:"Fragile", text:"Une vraie pression suffit à l'écarter." },
+  "ju pion":         { title:"Fragile", text:"Une vraie pression suffit à l'écarter." },
+  "greg pion":       { title:"Fragile", text:"Une vraie pression suffit à l'écarter." }
+}
+
+function getMobWeakness(mobName, mobTier = "weak") {
+  const key = String(mobName || "").toLowerCase()
+  const weakness = mobWeaknesses[key]
+  if (weakness) {
+    const pool = Array.isArray(weakness)
+      ? weakness
+      : [
+          weakness,
+          {
+            title: weakness.title + " instable",
+            text: weakness.text + " Une pression continue finit par l'y forcer."
+          },
+          {
+            title: "Rupture de rythme",
+            text: weakness.text + " Si on casse son tempo, la faille devient évidente."
+          }
+        ]
+    const pick = pool[Math.floor(Math.random() * pool.length)] || weakness
+    return { ...pick }
+  }
+  const fallbackByTier = {
+    weak: [
+      { title:"Mauvaise défense", text:"Cède sous la pression et les attaques franches." },
+      { title:"Rythme cassé", text:"Perd ses moyens si on l'agresse sans lui laisser reprendre l'initiative." },
+      { title:"Panique rapide", text:"Une démonstration brutale suffit souvent à le faire hésiter." }
+    ],
+    medium: [
+      { title:"Rythme cassé", text:"Perd ses moyens quand on brise son tempo." },
+      { title:"Ouverture latérale", text:"Supporte mal les attaques qui changent brutalement d'angle." },
+      { title:"Pression continue", text:"Dès qu'on le force à répondre trop vite, sa garde descend." }
+    ],
+    high: [
+      { title:"Faute d'orgueil", text:"Déteste les ripostes brillantes et les coups humiliants." },
+      { title:"Concentration brisée", text:"Une interruption nette peut faire tomber tout son plan." },
+      { title:"Tempo retourné", text:"Si on l'oblige à subir le rythme, sa puissance devient moins propre." }
+    ],
+    boss: [
+      { title:"Ouverture rare", text:"Attend le moment où il surestime sa propre domination." },
+      { title:"Point de rupture", text:"Même un monstre finit par laisser une faille quand son enchaînement se dérègle." },
+      { title:"Excès de confiance", text:"Plus il pense avoir gagné, plus la contre-attaque a de valeur." }
+    ]
+  }
+  const fallbackPool = fallbackByTier[mobTier] || fallbackByTier.weak
+  const pick = fallbackPool[Math.floor(Math.random() * fallbackPool.length)] || fallbackPool[0]
+  return { ...pick }
+}
+
 const mobSpecialPresentations = {
   vampire: {
     scene: "vampire",
-    sound: "loca.mp3",
+    sound: "vampire spé.mp3",
     soundVolume: 0.58,
     image: "lune.png",
     kicker: "Moonlit menace",
     emphasis: "seductive",
-    particles: ["🩸", "✨", "🌙"]
+    particles: [],
+    sparkleImage: "paillettes.png",
+    quoteFrame: "cadre.png"
   },
   witch: {
     scene: "witch",
@@ -548,7 +662,9 @@ const mobSpecialPresentations = {
     soundVolume: 0.24,
     kicker: "Wicked resonance",
     emphasis: "floating",
-    particles: ["💚", "💗", "🫧"]
+    particles: [],
+    image: "witchspé.png",
+    quoteFrame: "cadre.png"
   },
   draugr: {
     scene: "draugr",

@@ -884,6 +884,7 @@ function endCombat() {
     db.ref("combat/mob/yuAggro").remove()
     db.ref("combat/mob/yuSkipNextTurn").remove()
     db.ref("combat/mob/spiderSenseBuff").remove()
+    db.ref("combat/mob/revealedWeakness").remove()
     db.ref("combat/mob/victoryLootBonus").remove()
     db.ref("combat/mob/attackMalus").remove()
     db.ref("combat/turnState").remove()

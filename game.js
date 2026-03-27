@@ -1989,12 +1989,30 @@ function showMobSpecialAttackEvent(data) {
 }
 
 function showMobSpecialAttackEvent(data) {
-  const style = typeof getMobAnimationStyle === "function" ? getMobAnimationStyle(data.animation) : { accent:"#ff9966", glow:"rgba(255,120,60,0.55)", bg:"radial-gradient(circle at center,rgba(70,15,0,0.94) 0%,rgba(10,0,0,0.98) 72%)" }
+  const baseStyle = typeof getMobAnimationStyle === "function" ? getMobAnimationStyle(data.animation) : { accent:"#ff9966", glow:"rgba(255,120,60,0.55)", bg:"radial-gradient(circle at center,rgba(70,15,0,0.94) 0%,rgba(10,0,0,0.98) 72%)" }
   const presentation = typeof getMobSpecialPresentation === "function" ? getMobSpecialPresentation(data.mobName) : null
   const scene = String((presentation && presentation.scene) || "").toLowerCase()
+  const style = scene === "vampire"
+    ? {
+        accent: "#8fd1ff",
+        glow: "rgba(143,209,255,0.55)",
+        bg: "radial-gradient(circle at center,rgba(26,52,98,0.86) 0%,rgba(8,18,42,0.94) 55%,rgba(2,6,18,0.99) 100%)"
+      }
+    : baseStyle
   const overlay = document.createElement("div")
   overlay.className = "mobSpecialOverlay" + (scene ? " mobSpecialOverlay--" + scene : "")
   overlay.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999999999;background:" + style.bg + ";opacity:0;transition:opacity 0.22s ease;"
+
+  if (scene === "vampire") {
+    const blueWash = document.createElement("div")
+    blueWash.className = "mobSpecialBlueWash"
+    overlay.appendChild(blueWash)
+  }
+  if (scene === "witch") {
+    const wickedWash = document.createElement("div")
+    wickedWash.className = "mobSpecialWickedWash"
+    overlay.appendChild(wickedWash)
+  }
 
   const stage = document.createElement("div")
   stage.className = "mobSpecialStage"
@@ -2016,6 +2034,15 @@ function showMobSpecialAttackEvent(data) {
     heroImage.src = typeof resolveImagePath === "function" ? resolveImagePath(presentation.image) : "images/" + presentation.image
     heroImage.alt = ""
     box.appendChild(heroImage)
+  }
+
+  if (presentation && presentation.sparkleImage) {
+    const sparkle = document.createElement("img")
+    sparkle.className = "mobSpecialSparkles" + (scene ? " mobSpecialSparkles--" + scene : "")
+    sparkle.src = typeof resolveImagePath === "function" ? resolveImagePath(presentation.sparkleImage) : "images/" + presentation.sparkleImage
+    sparkle.alt = ""
+    sparkle.onerror = () => sparkle.style.display = "none"
+    box.appendChild(sparkle)
   }
 
   if (presentation && Array.isArray(presentation.particles)) {
@@ -2053,10 +2080,12 @@ function showMobSpecialAttackEvent(data) {
     stage.appendChild(fissure)
   }
 
-  const icon = document.createElement("div")
-  icon.style.cssText = "position:relative;z-index:2;font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
-  icon.innerText = String(data.icon || "✦")
-  box.appendChild(icon)
+  if (scene !== "vampire") {
+    const icon = document.createElement("div")
+    icon.style.cssText = "position:relative;z-index:2;font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
+    icon.innerText = String(data.icon || "✦")
+    box.appendChild(icon)
+  }
 
   const mobName = document.createElement("div")
   mobName.style.cssText = "position:relative;z-index:2;font-family:Cinzel,serif;font-size:12px;letter-spacing:4px;color:" + style.accent + ";margin-bottom:10px;"
@@ -2077,10 +2106,23 @@ function showMobSpecialAttackEvent(data) {
   }
 
   if (data.flavor) {
+    let flavorHost = box
+    if (presentation && presentation.quoteFrame) {
+      const frame = document.createElement("img")
+      frame.className = "mobSpecialQuoteFrame" + (scene ? " mobSpecialQuoteFrame--" + scene : "")
+      frame.src = typeof resolveImagePath === "function" ? resolveImagePath(presentation.quoteFrame) : "images/" + presentation.quoteFrame
+      frame.alt = ""
+      frame.onerror = () => frame.style.display = "none"
+      box.appendChild(frame)
+      const quoteWrap = document.createElement("div")
+      quoteWrap.className = "mobSpecialQuoteWrap" + (scene ? " mobSpecialQuoteWrap--" + scene : "")
+      box.appendChild(quoteWrap)
+      flavorHost = quoteWrap
+    }
     const flavor = document.createElement("div")
     flavor.style.cssText = "position:relative;z-index:2;font-family:'IM Fell English',serif;font-size:clamp(18px,2.5vw,28px);line-height:1.45;color:#ffd7c2;max-width:620px;margin:0 auto 18px auto;"
     flavor.innerText = String(data.flavor)
-    box.appendChild(flavor)
+    flavorHost.appendChild(flavor)
   }
 
   const damage = document.createElement("div")
@@ -2096,18 +2138,19 @@ function showMobSpecialAttackEvent(data) {
     sceneAudio.play().catch(() => {})
   }
 
+  const impactSfx = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("pow.mp3") : "audio/pow.mp3")
+  setManagedAudioBaseVolume(impactSfx, 0.84)
+
   document.body.appendChild(overlay)
   setTimeout(() => { overlay.style.opacity = "1" }, 20)
+  setTimeout(() => { impactSfx.play().catch(() => {}) }, 80)
   setTimeout(() => {
     overlay.style.opacity = "0"
     setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 450)
     db.ref("game/mobAttackEvent").remove()
-  }, 3200)
+  }, 6000)
   screenShakeHard()
   if (!scene || ["draugr", "ogre", "melenchon", "balraug"].includes(scene)) screenShakeHard()
-  const impactSfx = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("pow.mp3") : "audio/pow.mp3")
-  setManagedAudioBaseVolume(impactSfx, 0.84)
-  impactSfx.play().catch(() => {})
 }
 
 // ─── mobAttackEvent ───
@@ -2555,11 +2598,13 @@ function updateCombatTokenStateVisuals() {
     const poisonTurns = parseInt(window.__combatPlayerPoisonState?.turns, 10) || 0
     const bleedTurns = parseInt(window.__combatPlayerBleedState?.turns, 10) || 0
     const malusTurns = parseInt(window.__combatAttackMalusState?.turns, 10) || 0
+    const revealedWeakness = window.__combatRevealedWeaknessState
     const badges = []
     if (activeActorId === "mob") badges.push({ kind: "warn", label: "TOUR", title: "C'est le tour du mob" })
     if (poisonTurns > 0) badges.push({ kind: "warn", label: "POI " + poisonTurns, title: "Poison actif" })
     if (bleedTurns > 0) badges.push({ kind: "warn", label: "SAI " + bleedTurns, title: "Saignement actif" })
     if (malusTurns > 0) badges.push({ kind: "warn", label: "ATK-" + (parseInt(window.__combatAttackMalusState?.amount, 10) || 1), title: "Attaque réduite" })
+    if (revealedWeakness && revealedWeakness.title) badges.push({ kind: "warn", label: "FAILLE", title: revealedWeakness.title + " — " + (revealedWeakness.text || "") })
     mobToken.classList.toggle("token--marked", badges.length > 0)
     setTokenStateBadges("mobToken", badges)
   }
@@ -2586,6 +2631,12 @@ db.ref("combat/mob/yuAggro").on("value", snap => {
 
 db.ref("combat/mob/spiderSenseBuff").on("value", snap => {
   window.__combatSpiderSenseBuffState = snap.val() || null
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+  if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
+})
+
+db.ref("combat/mob/revealedWeakness").on("value", snap => {
+  window.__combatRevealedWeaknessState = snap.val() || null
   if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
   if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
 })
