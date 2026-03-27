@@ -625,14 +625,18 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
     screenShake()
   } else if (meta.crit) {
     playSound("critSound", 0.95)
+    playSound("powSound", 0.9)
     flashGold()
     flashGold()
     screenShakeHard()
+    setTimeout(() => screenShake(), 180)
+    setTimeout(() => screenShakeHard(), 360)
     powerExplosion()
   } else {
-    playSound("powerSound", 0.62)
+    playSound("powSound", 0.84)
     flashGold()
     screenShake()
+    setTimeout(() => screenShake(), 160)
   }
 
   setTimeout(() => {

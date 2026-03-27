@@ -471,14 +471,14 @@ const mobSpecialAnimations = {
 const mobSpecialAttacks = {
   gobelins: { name:"Vol de mollets", icon:"🗡", dmgMin:7, dmgMax:12, effect:null, animation:"tavern", flavor:"Les gobelins se jettent en escadrille sur les tibias." },
   loup: { name:"Hurlement de meute", icon:"🐺", dmgMin:8, dmgMax:14, effect:null, animation:"howl", flavor:"Un hurlement glacial annonce la morsure coordonnée." },
-  draugr: { name:"WHAAAAAA", icon:"🪦", dmgMin:10, dmgMax:17, effect:"curse", animation:"spectral", flavor:"Le draugr hurle comme si la tombe venait de lui voler sa caution." },
+  draugr: { name:"WHAAAAAA", icon:"🪦", dmgMin:10, dmgMax:17, effect:"curse", animation:"spectral", flavor:"Le draugr s'exprime dans la langue des Dieux." },
   fantome: { name:"Traversée du linceul", icon:"👻", dmgMin:8, dmgMax:13, effect:null, animation:"spectral", flavor:"Le froid passe à travers l'armure et les excuses." },
   vampire: { name:"La vie en oah oah", icon:"🩸", dmgMin:12, dmgMax:20, effect:"curse", animation:"bloodmoon", flavor:"Si si je vous promets que je suis une dangereuse créature." },
   witch: { name:"Défier la gravité", icon:"🧪", dmgMin:11, dmgMax:18, effect:"curse", animation:"arcane", flavor:"Regardez à l'Ouest.", },
   garde: { name:"J'ai pris une flèche dans le genou", icon:"🛡", dmgMin:10, dmgMax:16, effect:null, animation:"stone", flavor:"Le garde raconte encore son histoire, mais avec beaucoup plus d'impact." },
   bandit: { name:"Embuscade sale", icon:"🪓", dmgMin:8, dmgMax:15, effect:null, animation:"tavern", flavor:"Un coup bas, mal annoncé, mais très appliqué." },
   ogre: { name:"It's all ogre now", icon:"🌳", dmgMin:14, dmgMax:22, effect:null, animation:"stone", flavor:"L'ogre prononce sa catchphrase et tout le monde regrette d'être venu." },
-  dragon: { name:"Fournaise royale", icon:"🐉", dmgMin:16, dmgMax:26, effect:"all", animation:"fire", flavor:"Un cône de flammes transforme l'air en punition." },
+  dragon: { name:"Thu'um draconique", icon:"🐉", dmgMin:16, dmgMax:26, effect:"all", animation:"fire", flavor:"Ne soyez pas si arrogants, humanoïdes." },
   liquorice: { name:"Réglisse cosmique", icon:"🍬", dmgMin:12, dmgMax:18, effect:null, animation:"arcane", flavor:"Une douceur démoniaque dont le goût reste une semaine dans l'âme." },
   valkyrie: { name:"Sentence d'Asgard", icon:"🪽", dmgMin:14, dmgMax:22, effect:null, animation:"divine", flavor:"La lance descend comme un verdict déjà signé." },
   golem: { name:"Écrasement tectonique", icon:"🪨", dmgMin:15, dmgMax:24, effect:null, animation:"stone", flavor:"Le sol oublie sa fonction de sol." },
@@ -535,7 +535,11 @@ function getMobAttacksForMob(mobName, mobTier) {
 const mobWeaknesses = {
   gobelins:          { title:"Peur du feu", text:"Cèdent vite face aux flammes, à l'intimidation et aux démonstrations de puissance." },
   loup:              { title:"Flancs exposés", text:"Détestent les attaques latérales et les bruits soudains qui cassent leur élan." },
-  draugr:            { title:"Lumière sacrée", text:"Le feu pur et les frappes sacrées dérèglent leur carcasse." },
+  draugr: [
+    { title:"Allergie à la poussière", text:"La poussière qu'il traîne depuis des siècles finit par devenir un vrai problème." },
+    { title:"Peur des Thu'um", text:"Le simple écho d'un cri nordique bien placé fait vibrer ses vieux os." },
+    { title:"Cryptomanie", text:"Dès qu'on menace son petit confort de caveau, toute sa concentration s'effondre." }
+  ],
   fantome:           { title:"Ancrage sacré", text:"Les effets lumineux, sacrés ou très matériels percent leur voile." },
   vampire: [
     { title:"Peur des loups", text:"Le moindre rappel lupin suffit à fissurer sa superbe." },
@@ -550,12 +554,20 @@ const mobWeaknesses = {
   garde:             { title:"Discipline rigide", text:"Supporte mal les feintes et les attaques qui contournent sa garde." },
   bandit:            { title:"Lâcheté", text:"Recule vite face aux gros dégâts, aux cris d'autorité et aux ripostes nettes." },
   ogre:              { title:"Équilibre précaire", text:"Ses jambes et son centre de gravité sont son vrai point faible." },
-  dragon:            { title:"Gorge en feu", text:"Les frappes précises sur la tête, les ailes ou la gueule le font dérailler." },
+  dragon: [
+    { title:"Peur des Thu'um", text:"Le moindre écho d'un cri draconique bien lancé réveille un instinct très ancien." },
+    { title:"Voleurs de trésors", text:"La simple idée qu'on touche à son butin suffit à lui faire perdre son calme." },
+    { title:"Ventre mou", text:"Sous toute cette majesté écailleuse, il reste une zone bien moins glorieuse à protéger." }
+  ],
   liquorice:         { title:"Chaleur sèche", text:"Fond moralement et physiquement face au feu franc." },
   valkyrie:          { title:"Orgueil martial", text:"Aime les duels nobles, mais déteste les pièges et les attaques sales." },
   golem:             { title:"Fissures et résonance", text:"Les impacts lourds répétés et la foudre ouvrent sa pierre." },
   pretre:            { title:"Foi vacillante", text:"Le silence, la corruption et la profanation sapent sa puissance." },
-  balraug:           { title:"Froid ancien", text:"Le froid, l'entrave et tout ce qui coupe son élan brûlant le gêne." },
+  balraug: [
+    { title:"Eau", text:"Tout ce qui évoque l'eau, l'extinction ou l'étouffement de la braise lui coupe l'élan." },
+    { title:"Peur du vide", text:"Le moindre rappel d'une chute sans fin fissure sa superbe infernale." },
+    { title:"Peur de la magie", text:"Les forces occultes qu'il ne contrôle pas lui inspirent une vraie méfiance." }
+  ],
   fenrir:            { title:"Entraves", text:"Déteste être freiné, immobilisé ou forcé à reculer." },
   jormungand:        { title:"Nuque du monde", text:"Les frappes précises sous la mâchoire et les décharges l'irritent fortement." },
   kraken:            { title:"Tentacules coupés", text:"Les attaques tranchantes et le feu le rendent plus prudent." },
@@ -672,7 +684,19 @@ const mobSpecialPresentations = {
     soundVolume: 0.5,
     kicker: "Crypt rupture",
     emphasis: "scream",
-    particles: ["☠", "🪦", "❄"]
+    particles: [],
+    image: "draugrspé.png",
+    quoteFrame: "cadre.png"
+  },
+  dragon: {
+    scene: "dragon",
+    sound: "dragonspé.mp3",
+    soundVolume: 0.62,
+    kicker: "Voix du feu",
+    emphasis: "royal",
+    particles: [],
+    image: "dragonspé.jpg",
+    quoteFrame: "cadre.png"
   },
   ogre: {
     scene: "ogre",
@@ -704,7 +728,9 @@ const mobSpecialPresentations = {
     soundVolume: 0.62,
     kicker: "Bridge of fire",
     emphasis: "boss",
-    particles: ["🔥", "☄", "🜂"]
+    particles: [],
+    image: "balrogspé.jpg",
+    quoteFrame: "cadre.png"
   }
 }
 

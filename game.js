@@ -2138,19 +2138,19 @@ function showMobSpecialAttackEvent(data) {
     sceneAudio.play().catch(() => {})
   }
 
-  const impactSfx = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("pow.mp3") : "audio/pow.mp3")
-  setManagedAudioBaseVolume(impactSfx, 0.84)
-
   document.body.appendChild(overlay)
   setTimeout(() => { overlay.style.opacity = "1" }, 20)
-  setTimeout(() => { impactSfx.play().catch(() => {}) }, 80)
+  setTimeout(() => { playSound("powSound", 0.84) }, 80)
+  setTimeout(() => screenShakeHard(), 70)
+  setTimeout(() => screenShake(), 210)
+  setTimeout(() => screenShakeHard(), 420)
   setTimeout(() => {
     overlay.style.opacity = "0"
     setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 450)
     db.ref("game/mobAttackEvent").remove()
   }, 6000)
   screenShakeHard()
-  if (!scene || ["draugr", "ogre", "melenchon", "balraug"].includes(scene)) screenShakeHard()
+  if (!scene || ["draugr", "ogre", "melenchon", "balraug", "dragon"].includes(scene)) screenShakeHard()
 }
 
 // ─── mobAttackEvent ───
