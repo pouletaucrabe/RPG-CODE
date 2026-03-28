@@ -508,7 +508,7 @@ const mobSpecialAttacks = {
   forgeron: { name:"Enclume du destin", icon:"🔨", dmgMin:12, dmgMax:19, effect:null, animation:"fire", flavor:"Chaque frappe résonne jusque dans la colonne vertébrale." },
   forgeron1: { name:"Reprise à chaud", icon:"⚒", dmgMin:11, dmgMax:18, effect:null, animation:"fire", flavor:"Le métal n'est pas le seul à plier." },
   maire: { name:"Discours d'urgence", icon:"📜", dmgMin:14, dmgMax:22, effect:null, animation:"royal", flavor:"Une allocution si longue qu'elle devient contondante." },
-  generalmelenchon: { name:"MAIS QUI ELLE EST CELLE LA", icon:"📣", dmgMin:18, dmgMax:27, effect:"all", animation:"royal", flavor:"Le général interpelle la réalité elle-même et la réalité prend des dégâts." }
+  generalmelenchon: { name:"MAIS QUI ELLE EST CELLE LA", icon:"📣", dmgMin:18, dmgMax:27, effect:"all", animation:"royal", flavor:"Humiliation gauchiste sans torticolis." }
 }
 
 function _getFallbackMobSpecialAttack(mobName, mobTier) {
@@ -586,7 +586,11 @@ const mobWeaknesses = {
   pnj2:              { title:"Peur simple", text:"Rien de subtil : une vraie pression suffit à le faire flancher." },
   oldmessager:       { title:"Équilibre ancien", text:"Ses appuis sont mauvais, il supporte mal les charges." },
   maire:             { title:"Pression publique", text:"Plus il est contredit frontalement, plus il se décompose." },
-  generalmelenchon:  { title:"Perte de tribune", text:"Silence, interruption et ridicule public sapent son élan." },
+  generalmelenchon: [
+    { title:"Peur des blondes", text:"Toute présence blonde le fait dérailler de sa ligne oratoire." },
+    { title:"Frites molles", text:"Une frite trop molle suffit à ruiner son autorité gastronomique." },
+    { title:"Il est sourd", text:"Les ordres, les objections et les nuances ont tendance à lui échapper complètement." }
+  ],
   "jarl baldur":     { title:"Orgueil de chef", text:"A du mal à encaisser une riposte brillante ou une humiliation claire." },
   marchand2:         { title:"Nerfs fragiles", text:"Dès que la scène sort de son contrôle, il perd ses moyens." },
   gardedunord:       { title:"Froid retourné", text:"Supporte mal les attaques rapides qui cassent sa formation." },
@@ -720,7 +724,9 @@ const mobSpecialPresentations = {
     soundVolume: 0.54,
     kicker: "Tribune de guerre",
     emphasis: "speech",
-    particles: ["📣", "🔥", "⚡"]
+    particles: [],
+    image: "melenchonspé.jpg",
+    quoteFrame: "cadre.png"
   },
   balraug: {
     scene: "balraug",

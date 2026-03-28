@@ -829,7 +829,7 @@ function buildPassTurnBlock(actorId, label) {
     }
     const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
     if (activeActorId && activeActorId !== actorId) {
-      showNotification("Tour actif : " + String(activeActorId || "").toUpperCase())
+      showNotification("Tour actif : " + (typeof getCombatActorLabel === "function" ? getCombatActorLabel(activeActorId) : String(activeActorId || "").toUpperCase()))
       return
     }
     showNotification((label || String(actorId || "").toUpperCase()) + " passe son tour.")
@@ -852,13 +852,12 @@ function getCombatStatusEntries() {
     mob2: "MOB 2",
     mob3: "MOB 3"
   }
-
   if (turnState && turnState.phase === "active" && currentActorId) {
     entries.push({
       kind: "buff",
       icon: "impact_ring.png",
       title: "Tour actif",
-      text: (actorLabelMap[currentActorId] || String(currentActorId).toUpperCase()) + " joue maintenant",
+      text: (actorLabelMap[currentActorId] || (typeof getCombatActorLabel === "function" ? getCombatActorLabel(currentActorId) : String(currentActorId).toUpperCase())) + " joue maintenant",
       meta: "Round " + (turnState.round || 1)
     })
   }
@@ -1385,7 +1384,7 @@ function togglePlayerAttacks() {
     return
   }
   if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && activeActorId && activeActorId !== playerId && !(isGM && window.__combatPreviewPlayerId)) {
-    showNotification("Tour actif : " + String(activeActorId || "").toUpperCase())
+    showNotification("Tour actif : " + (typeof getCombatActorLabel === "function" ? getCombatActorLabel(activeActorId) : String(activeActorId || "").toUpperCase()))
     return
   }
   if (hud.style.display === "none" || !hud.style.display) { hud.style.display = "flex"; hud.style.alignItems = "flex-start" }
@@ -1546,7 +1545,7 @@ function renderAllMobPanels() {
   const active = MOB_SLOTS.filter(s => activeMobSlots[s]); if (!active.length || !combatActive) return
 
   const container = document.createElement("div"); container.id = "mobAttackPanel"
-  container.style.cssText = "position:fixed;top:calc(96px + 38vh - 92px);right:22px;width:320px;display:flex;flex-direction:column;gap:10px;z-index:9999999;max-height:42vh;overflow-y:auto;padding:4px;"
+  container.style.cssText = "position:fixed;top:calc(96px + 38vh - 132px);right:22px;width:320px;display:flex;flex-direction:column;gap:10px;z-index:9999999;max-height:48vh;overflow-y:auto;padding:4px;"
 
   // Grab & drop pour le MJ
   if (isGM) {
@@ -1848,7 +1847,7 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
   const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
   const slotId = String(slot || "mob")
   if (activeActorId && activeActorId !== slotId) {
-    showNotification("Tour actif : " + String(activeActorId || "").toUpperCase())
+    showNotification("Tour actif : " + (typeof getCombatActorLabel === "function" ? getCombatActorLabel(activeActorId) : String(activeActorId || "").toUpperCase()))
     return
   }
   if (attack.special && mobData.specialUsed) { showNotification("⚠ Attaque spéciale déjà utilisée"); return }

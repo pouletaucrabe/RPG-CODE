@@ -2068,10 +2068,9 @@ function showMobSpecialAttackEvent(data) {
   }
 
   if (scene === "melenchon") {
-    const banner = document.createElement("div")
-    banner.className = "mobSpecialBanner"
-    banner.innerText = "TRIBUNE"
-    stage.appendChild(banner)
+    const crowd = document.createElement("div")
+    crowd.className = "mobSpecialCrowd"
+    stage.appendChild(crowd)
   }
 
   if (scene === "balraug") {
@@ -2080,7 +2079,7 @@ function showMobSpecialAttackEvent(data) {
     stage.appendChild(fissure)
   }
 
-  if (scene !== "vampire") {
+  if (!["vampire", "melenchon"].includes(scene)) {
     const icon = document.createElement("div")
     icon.style.cssText = "position:relative;z-index:2;font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
     icon.innerText = String(data.icon || "✦")
@@ -2640,6 +2639,7 @@ db.ref("combat/mob/revealedWeakness").on("value", snap => {
   if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
   if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
 })
+
 
 db.ref("combat/mob/bibiRage").on("value", snap => {
   window.__combatBibiRageState = snap.val() || null
