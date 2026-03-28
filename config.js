@@ -553,7 +553,11 @@ const mobWeaknesses = {
   ],
   garde:             { title:"Discipline rigide", text:"Supporte mal les feintes et les attaques qui contournent sa garde." },
   bandit:            { title:"Lâcheté", text:"Recule vite face aux gros dégâts, aux cris d'autorité et aux ripostes nettes." },
-  ogre:              { title:"Équilibre précaire", text:"Ses jambes et son centre de gravité sont son vrai point faible." },
+  ogre: [
+    { title:"Effrayé par les petites personnes", text:"Les petites silhouettes trop sûres d'elles troublent profondément sa logique d'ogre." },
+    { title:"Ne résiste pas à un oignon", text:"Un simple oignon détourne instantanément toute sa concentration." },
+    { title:"Déteste qu'on lui parle trop", text:"Les longs discours et les remarques incessantes lui font perdre ses moyens." }
+  ],
   dragon: [
     { title:"Peur des Thu'um", text:"Le moindre écho d'un cri draconique bien lancé réveille un instinct très ancien." },
     { title:"Voleurs de trésors", text:"La simple idée qu'on touche à son butin suffit à lui faire perdre son calme." },
@@ -562,7 +566,11 @@ const mobWeaknesses = {
   liquorice:         { title:"Chaleur sèche", text:"Fond moralement et physiquement face au feu franc." },
   valkyrie:          { title:"Orgueil martial", text:"Aime les duels nobles, mais déteste les pièges et les attaques sales." },
   golem:             { title:"Fissures et résonance", text:"Les impacts lourds répétés et la foudre ouvrent sa pierre." },
-  pretre:            { title:"Foi vacillante", text:"Le silence, la corruption et la profanation sapent sa puissance." },
+  pretre: [
+    { title:"Déstabilisé par les enfants", text:"La présence des enfants fait vaciller son masque et brouille sa contenance." },
+    { title:"Regard lubrique", text:"Un simple trouble charnel suffit à le déconcentrer et à fissurer son autorité." },
+    { title:"Peur de Dieu", text:"L'idée d'un vrai jugement divin le glace bien plus qu'il ne l'admet." }
+  ],
   balraug: [
     { title:"Eau", text:"Tout ce qui évoque l'eau, l'extinction ou l'étouffement de la braise lui coupe l'élan." },
     { title:"Peur du vide", text:"Le moindre rappel d'une chute sans fin fissure sa superbe infernale." },
@@ -708,15 +716,19 @@ const mobSpecialPresentations = {
     soundVolume: 0.56,
     kicker: "Heavy impact",
     emphasis: "slam",
-    particles: ["🧅", "💥", "🌫"]
+    particles: [],
+    image: "ogrespé.jpg",
+    quoteFrame: "cadre.png"
   },
   pretre: {
     scene: "pretre",
     sound: "osana.mp3",
-    soundVolume: 0.52,
+    soundVolume: 0.9,
     kicker: "Liturgie trouble",
     emphasis: "ritual",
-    particles: ["🕯", "✨", "📿"]
+    particles: [],
+    image: "pretrespé.png",
+    quoteFrame: "cadre.png"
   },
   generalmelenchon: {
     scene: "melenchon",

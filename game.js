@@ -2013,6 +2013,21 @@ function showMobSpecialAttackEvent(data) {
     wickedWash.className = "mobSpecialWickedWash"
     overlay.appendChild(wickedWash)
   }
+  if (scene === "ogre") {
+    const ogreWash = document.createElement("div")
+    ogreWash.className = "mobSpecialOgreWash"
+    overlay.appendChild(ogreWash)
+  }
+  if (scene === "pretre") {
+    const divineWash = document.createElement("div")
+    divineWash.className = "mobSpecialDivineWash"
+    overlay.appendChild(divineWash)
+  }
+  if (scene === "melenchon") {
+    const tricolorWash = document.createElement("div")
+    tricolorWash.className = "mobSpecialTricolorWash"
+    overlay.appendChild(tricolorWash)
+  }
 
   const stage = document.createElement("div")
   stage.className = "mobSpecialStage"
@@ -2079,7 +2094,7 @@ function showMobSpecialAttackEvent(data) {
     stage.appendChild(fissure)
   }
 
-  if (!["vampire", "melenchon"].includes(scene)) {
+  if (!["vampire", "melenchon", "ogre", "pretre"].includes(scene)) {
     const icon = document.createElement("div")
     icon.style.cssText = "position:relative;z-index:2;font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
     icon.innerText = String(data.icon || "✦")
@@ -2137,12 +2152,26 @@ function showMobSpecialAttackEvent(data) {
     sceneAudio.play().catch(() => {})
   }
 
+  const impactFlash = document.createElement("div")
+  impactFlash.style.cssText = "position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at center, rgba(255,255,255,0.22), rgba(255,255,255,0.06) 28%, transparent 62%);mix-blend-mode:screen;"
+  overlay.appendChild(impactFlash)
+
   document.body.appendChild(overlay)
   setTimeout(() => { overlay.style.opacity = "1" }, 20)
   setTimeout(() => { playSound("powSound", 0.84) }, 80)
-  setTimeout(() => screenShakeHard(), 70)
-  setTimeout(() => screenShake(), 210)
-  setTimeout(() => screenShakeHard(), 420)
+  setTimeout(() => {
+    impactFlash.style.transition = "opacity 0.12s ease"
+    impactFlash.style.opacity = "1"
+    setTimeout(() => {
+      impactFlash.style.transition = "opacity 0.4s ease"
+      impactFlash.style.opacity = "0"
+    }, 90)
+  }, 75)
+  setTimeout(() => screenShakeHard(), 40)
+  setTimeout(() => screenShakeHard(), 150)
+  setTimeout(() => screenShake(), 310)
+  setTimeout(() => screenShakeHard(), 520)
+  setTimeout(() => screenShake(), 760)
   setTimeout(() => {
     overlay.style.opacity = "0"
     setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 450)
@@ -3972,6 +4001,44 @@ function hideIntroLayers() {
     introBox.style.visibility = ""
     introBox.style.pointerEvents = ""
   }
+}
+
+function resetAllPlayerStats() {
+  if (!isGM) return
+  if (!confirm("Réinitialiser les stats des joueurs au niveau 1 sans changer la map ni les positions ?")) return
+
+  const initChars = {}
+  ;["greg", "ju", "elo", "bibi"].forEach(pid => {
+    const s = getPlayerStatsAtLevel(pid, 1)
+    initChars[pid] = {
+      lvl: 1,
+      xp: 0,
+      hp: s.hp,
+      poids: s.poids,
+      force: s.force,
+      charme: s.charme,
+      perspi: s.perspi,
+      chance: s.chance,
+      defense: s.defense,
+      curse: 0,
+      corruption: 0,
+      freePoints: 0,
+      gold: 0,
+      inventaire: "",
+      notes: ""
+    }
+  })
+
+  const ops = Object.keys(initChars).map(pid => db.ref("characters/" + pid).set(initChars[pid]))
+  Promise.allSettled(ops).then(results => {
+    const failed = results.filter(r => r.status === "rejected")
+    if (failed.length) {
+      showNotification("⚠ Reset stats incomplet")
+      return
+    }
+    showNotification("Stats joueurs réinitialisées")
+    if (typeof addMJLog === "function") addMJLog("RESET — stats joueurs remises au niveau 1")
+  })
 }
 
 function showIntroLayer() {

@@ -4077,6 +4077,23 @@ body {
   100% { transform: scale(1.04); opacity: 1; }
 }
 
+@keyframes mobSpecialStageSurge {
+  0% { transform: scale(0.985); }
+  18% { transform: scale(1); }
+  72% { transform: scale(1.012); }
+  100% { transform: scale(1.018); }
+}
+
+@keyframes mobSpecialFrameEnter {
+  0% { opacity: 0; transform: translateY(18px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mobSpecialQuoteEnter {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 .mobSpecialOverlay {
   overflow: hidden;
   backdrop-filter: blur(6px);
@@ -4087,6 +4104,7 @@ body {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
+  animation: mobSpecialStageSurge 6s ease-in-out forwards;
 }
 
 .mobSpecialBox::before {
@@ -4220,6 +4238,9 @@ body {
   pointer-events: none;
   object-fit: contain;
   filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.12));
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  animation: mobSpecialFrameEnter 0.6s ease-out 0.38s forwards;
 }
 
 .mobSpecialQuoteWrap {
@@ -4233,6 +4254,8 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
+  opacity: 0;
+  animation: mobSpecialQuoteEnter 0.55s ease-out 0.5s forwards;
 }
 
 .mobSpecialQuoteWrap--vampire {
@@ -4255,6 +4278,37 @@ body {
     linear-gradient(180deg, rgba(58, 255, 160, 0.12), rgba(255, 90, 190, 0.16), rgba(10, 12, 24, 0.4));
   opacity: 0;
   animation: mobSpecialWickedFade 6s ease-in-out forwards;
+}
+
+.mobSpecialOgreWash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 28% 36%, rgba(124, 214, 88, 0.18), transparent 22%),
+    radial-gradient(circle at 72% 68%, rgba(86, 150, 54, 0.22), transparent 24%),
+    radial-gradient(circle at 50% 50%, rgba(58, 98, 32, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(32, 56, 18, 0.16), rgba(10, 18, 8, 0.42));
+  opacity: 0;
+  filter: blur(6px);
+  animation: mobSpecialOgreFade 6s ease-in-out forwards;
+}
+
+.mobSpecialTricolorWash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      rgba(40, 92, 255, 0.42) 0%,
+      rgba(40, 92, 255, 0.34) 30%,
+      rgba(255, 255, 255, 0.24) 42%,
+      rgba(255, 255, 255, 0.24) 58%,
+      rgba(235, 28, 28, 0.34) 70%,
+      rgba(235, 28, 28, 0.42) 100%);
+  opacity: 0;
+  filter: saturate(1.12) blur(1px);
+  animation: mobSpecialTricolorFade 6s ease-in-out forwards;
 }
 
 .mobSpecialOverlay--witch .mobSpecialBox::before {
@@ -4351,10 +4405,51 @@ body {
   transform: scale(1.08);
 }
 
+.mobSpecialQuoteWrap--ogre {
+  width: min(430px, 56vw);
+  min-height: 92px;
+  padding: 8px 32px 0;
+  transform: translateY(-96px);
+  color: #fff2df;
+  text-shadow: 0 0 16px rgba(170, 220, 120, 0.2), 0 0 6px rgba(110, 170, 80, 0.16), 0 0 4px rgba(0, 0, 0, 0.95);
+}
+
 .mobSpecialOverlay--pretre .mobSpecialBox::before {
   background:
     linear-gradient(180deg, rgba(255,230,170,0.18), rgba(120,40,20,0.14)),
     radial-gradient(circle at 50% 10%, rgba(255,245,200,0.25), transparent 18%);
+}
+
+.mobSpecialDivineWash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255,255,255,0.92), rgba(255,251,232,0.72) 16%, rgba(255,244,205,0.34) 28%, rgba(255,235,185,0.12) 40%, transparent 58%),
+    radial-gradient(circle at 50% 38%, rgba(255,255,255,0.34), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,247,220,0.1) 24%, rgba(80,50,28,0.08) 100%);
+  opacity: 1;
+  animation: mobSpecialDivineGlow 2.1s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.mobSpecialImage--pretre {
+  width: min(72vw, 760px);
+  max-width: none;
+  height: auto;
+  display: block;
+  margin: -8px auto 18px auto;
+  opacity: 0.94;
+  filter: drop-shadow(0 0 18px rgba(255,241,189,0.28));
+  animation: mobSpecialPreacherFloat 5.4s ease-in-out infinite alternate;
+}
+
+.mobSpecialQuoteWrap--pretre {
+  width: min(430px, 56vw);
+  min-height: 92px;
+  padding: 8px 32px 0;
+  transform: translateY(-90px);
+  color: #fff3df;
+  text-shadow: 0 0 18px rgba(255,229,150,0.24), 0 0 6px rgba(140,110,60,0.18), 0 0 4px rgba(0,0,0,0.95);
 }
 
 .mobSpecialOverlay--melenchon .mobSpecialBox::before {
@@ -4458,6 +4553,20 @@ body {
   100% { opacity: 0; }
 }
 
+@keyframes mobSpecialOgreFade {
+  0% { opacity: 0; transform: scale(1); }
+  18% { opacity: 0.88; transform: scale(1.02); }
+  72% { opacity: 0.64; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.06); }
+}
+
+@keyframes mobSpecialTricolorFade {
+  0% { opacity: 0; }
+  12% { opacity: 0.96; }
+  70% { opacity: 0.78; }
+  100% { opacity: 0; }
+}
+
 @keyframes mobSpecialSparklePulse {
   0% { opacity: 0.12; transform: scale(0.985); }
   100% { opacity: 0.28; transform: scale(1.015); }
@@ -4527,6 +4636,16 @@ body {
   50% { transform: translateX(3px); }
   75% { transform: translateX(-2px); }
   100% { transform: translateX(2px); }
+}
+
+@keyframes mobSpecialDivineGlow {
+  0% { opacity: 0.9; filter: saturate(0.98) brightness(1.04); }
+  100% { opacity: 1; filter: saturate(1.04) brightness(1.18); }
+}
+
+@keyframes mobSpecialPreacherFloat {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-8px) scale(1.018); }
 }
 
 @keyframes mobSpecialCrowdPulse {

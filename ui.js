@@ -839,6 +839,36 @@ function buildPassTurnBlock(actorId, label) {
   return block
 }
 
+function buildMobPassTurnBlock(actorId, label) {
+  const block = document.createElement("div")
+  block.style.cssText = "padding:6px 8px;margin-top:8px;background:rgba(24,16,16,0.45);border:1px solid rgba(190,140,90,0.28);border-radius:6px;cursor:pointer;"
+  const title = document.createElement("div")
+  title.style.cssText = "font-family:Cinzel,serif;font-size:10px;color:#f0c99d;font-weight:bold;letter-spacing:0.5px;"
+  title.innerText = "Passer le tour"
+  block.appendChild(title)
+  const desc = document.createElement("div")
+  desc.style.cssText = "margin-top:4px;font-size:9px;line-height:1.35;color:#d6b79e;"
+  desc.innerText = (label || String(actorId || "").toUpperCase()) + " termine son action sans attaquer."
+  block.appendChild(desc)
+  block.title = "Terminer le tour de " + (label || String(actorId || "").toUpperCase())
+  block.onclick = () => {
+    const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
+    if (turnState && turnState.phase === "rolling") {
+      showNotification("Terminez d'abord les jets d'initiative.")
+      return
+    }
+    const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
+    if (activeActorId && activeActorId !== actorId) {
+      showNotification("Tour actif : " + (typeof getCombatActorLabel === "function" ? getCombatActorLabel(activeActorId) : String(activeActorId || "").toUpperCase()))
+      return
+    }
+    showNotification((label || String(actorId || "").toUpperCase()) + " passe son tour.")
+    if (typeof addMJLog === "function") addMJLog((label || String(actorId || "").toUpperCase()) + " passe son tour.")
+    if (typeof advanceCombatTurn === "function") advanceCombatTurn()
+  }
+  return block
+}
+
 function getCombatStatusEntries() {
   const entries = []
   const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
@@ -1367,7 +1397,7 @@ function showCombatHUD() {
       box.appendChild(bibiBlock)
     }
   }
-  if (player === "bibi") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
+  box.appendChild(buildPassTurnBlock(player, player.toUpperCase()))
   if (player === "greg") box.appendChild(buildPassTurnBlock("bibi", "BIBI"))
   renderCombatStatusPanel()
   if (hud) hud.style.display = "none"
@@ -1685,6 +1715,7 @@ function buildMobSubPanel(mobData, slot) {
       targetRow.appendChild(btn)
     })
     panel.appendChild(targetRow)
+    panel.appendChild(buildMobPassTurnBlock(String(slot || "mob"), String(mobData.name || "MOB").toUpperCase()))
   } else {
     // Vue lecture seule pour les joueurs
     atks.forEach(atk => {
@@ -1732,6 +1763,17 @@ function buildMobSubPanel(mobData, slot) {
       sRow.appendChild(sDesc)
       panel.appendChild(sRow)
     }
+    const passRow = document.createElement("div")
+    passRow.style.cssText = "padding:6px 8px;margin-top:8px;background:rgba(24,16,16,0.28);border:1px solid rgba(190,140,90,0.16);border-radius:6px;opacity:0.82;"
+    const passTitle = document.createElement("div")
+    passTitle.style.cssText = "font-family:Cinzel,serif;font-size:10px;color:#d8c0a0;"
+    passTitle.innerText = "Passer le tour"
+    const passDesc = document.createElement("div")
+    passDesc.style.cssText = "margin-top:4px;font-size:9px;line-height:1.35;color:#bba28d;"
+    passDesc.innerText = String(mobData.name || "MOB").toUpperCase() + " peut aussi choisir de ne pas agir."
+    passRow.appendChild(passTitle)
+    passRow.appendChild(passDesc)
+    panel.appendChild(passRow)
   }
 
   return panel
