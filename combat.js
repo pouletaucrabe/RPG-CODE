@@ -78,6 +78,7 @@ function getInitiativeParticipants() {
 
 function initCombatTurnState() {
   if (!isGM) return
+  window.__lastCombatPhase = null
   const participants = getInitiativeParticipants()
   db.ref("combat/turnState").set({
     phase: "rolling",
@@ -238,9 +239,14 @@ function renderCombatInitiativeOverlay(state) {
   grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(164px,1fr));gap:14px;"
   box.appendChild(grid)
 
-  const entries = state.phase === "active"
+  let entries = state.phase === "active"
     ? (Array.isArray(state.order) ? state.order : [])
     : (Array.isArray(state.participants) ? state.participants : [])
+
+  // Joueur : pendant la phase de jet, n'affiche que sa propre carte
+  if (!isGM && state.phase === "rolling" && myToken) {
+    entries = entries.filter(e => String(e.id || "") === String(myToken.id || ""))
+  }
 
   entries.forEach((entry, idx) => {
     const card = document.createElement("div")
@@ -1258,6 +1264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.__combatTurnState = data || null
     if (!data || !combatActive) {
       window.__skippingDeadCombatTurn = ""
+      window.__lastCombatPhase = null
       closeCombatInitiativeOverlay()
       const initiativeToggle = document.getElementById("combatInitiativeToggle"); if (initiativeToggle) initiativeToggle.remove()
       window.__combatInitiativeHidden = false
@@ -1285,6 +1292,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     window.__skippingDeadCombatTurn = ""
+
+    // Auto-fermer quand tous les dés sont tirés (transition rolling → active)
+    const prevPhase = window.__lastCombatPhase || null
+    window.__lastCombatPhase = data.phase
+    if (data.phase === "active" && prevPhase === "rolling") {
+      window.__combatInitiativeHidden = true
+      closeCombatInitiativeOverlay()
+      renderCombatInitiativeToggle(data)
+      if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+      if (isGM && typeof finalizeCombatInitiativeIfReady === "function") finalizeCombatInitiativeIfReady(data)
+      return
+    }
+
     renderCombatInitiativeOverlay(data)
     if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
     if (isGM && typeof setCombatPreviewPlayer === "function" && data.phase === "active") {

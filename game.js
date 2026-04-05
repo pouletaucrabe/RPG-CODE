@@ -1152,14 +1152,16 @@ function updateThuumButton() {
 
 function getThuumEntryState(word) {
   if (combatActive) {
-    return isThuumUsedThisCombat(word) ? "Deja utilise pour ce combat" : "Utilisable en combat"
+    if (isThuumUsedThisCombat(word)) return "Déjà utilisé pour ce combat"
+    if (!hasThuumUseAccess(word)) return "En combat : autorisation MJ requise"
+    return "Autorisé par le MJ"
   }
-  return hasThuumUseAccess(word) ? "Autorise par le MJ hors combat" : "Hors combat : autorisation MJ requise"
+  return hasThuumUseAccess(word) ? "Autorisé par le MJ hors combat" : "Hors combat : autorisation MJ requise"
 }
 
 function canUseThuumNow(word) {
   if (!hasUnlockedThuum(word)) return false
-  if (combatActive) return !isThuumUsedThisCombat(word)
+  if (combatActive) return !isThuumUsedThisCombat(word) && hasThuumUseAccess(word)
   return hasThuumUseAccess(word)
 }
 
@@ -1510,7 +1512,11 @@ function usePlayerThuum(forcedWord) {
   const def = activeWord ? getThuumDef(activeWord) : null
   if (!activeWord || !def || !hasUnlockedThuum(activeWord)) return
   if (combatActive && isThuumUsedThisCombat(activeWord)) {
-    showNotification(activeWord + " est deja utilise pour ce combat")
+    showNotification(activeWord + " est déjà utilisé pour ce combat")
+    return
+  }
+  if (combatActive && !hasThuumUseAccess(activeWord)) {
+    showNotification("Le MJ doit autoriser " + activeWord + " en combat")
     return
   }
 
@@ -1535,6 +1541,7 @@ function usePlayerThuum(forcedWord) {
   }
 
   db.ref("combat/usedThuum/" + playerId + "/" + activeWord).set(true)
+  db.ref("game/playerThuumAccess/" + playerId + "/" + activeWord).remove()
   db.ref("game/thuumCast").set({
     playerId,
     word: activeWord,
@@ -1591,10 +1598,10 @@ db.ref("combat/mob").on("value", snap => {
   activeMobSlots["mob"] = !!data
 
   // Barre HP panneau MJ
-  const topBar  = document.getElementById("mobHPBarTop")
+  const topBar  = document.getElementById("mobHPBarTopFill")
   const topText = document.getElementById("mobHPTopText")
   if (topBar && topText && data) {
-    const pct = Math.max(0, (data.hp / data.maxHP) * 100)
+    const pct = Math.max(0, Math.min(100, (data.hp / data.maxHP) * 100))
     topBar.style.width = pct + "%"
     topText.innerText  = data.name.toUpperCase() + "  " + data.hp + " / " + data.maxHP + "  (Niv " + (data.lvl || "?") + ")"
     topBar.style.background = pct > 60 ? "linear-gradient(90deg,#3cff6b,#0b8a3a)" : pct > 30 ? "linear-gradient(90deg,#ffb347,#ff7b00)" : "linear-gradient(90deg,#ff4040,#8b0000)"
@@ -1638,6 +1645,13 @@ db.ref("combat/mob").on("value", snap => {
         (mobAttackPanel.style.display === "none" && mobAttackToggle.style.display === "none")
       if (typeof renderAllMobPanels === "function" && mobPanelBroken) {
         setTimeout(() => renderAllMobPanels(), 40)
+      } else {
+        const spFill = document.getElementById("subPanelHPFill_mob")
+        if (spFill) {
+          const spPct = Math.max(0, Math.min(100, (data.hp / data.maxHP) * 100))
+          spFill.style.width = spPct + "%"
+          spFill.style.background = spPct > 50 ? "#44ff44" : spPct > 25 ? "#ffaa00" : "#ff3333"
+        }
       }
       if (lastMobHP !== null && data.hp < lastMobHP) { flashRed(); screenShake() }
       if (data.hp <= 0 && combatActive && !window.__combatOutcomeShowing) { showVictory() }
@@ -4317,6 +4331,9 @@ function enterPlayerPreview(playerId) {
   // Stats combat (recharge le listener pour le bon joueur)
   if ((combatActive || gameState === "COMBAT") && typeof loadPlayerCombatStats === "function") {
     loadPlayerCombatStats()
+  }
+  if ((combatActive || gameState === "COMBAT") && typeof showCombatHUD === "function") {
+    showCombatHUD()
   }
 
   // Bouton Thu'um

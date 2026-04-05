@@ -1422,11 +1422,12 @@ function togglePlayerAttacks() {
   const playerId = getCombatHUDPlayerId()
   const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
   const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
-  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && turnState && turnState.phase === "rolling" && !(isGM && window.__combatPreviewPlayerId)) {
+  const isPreviewMode = !!(isGM && window.__combatPreviewPlayerId) || !!window._previewSavedMyToken
+  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && turnState && turnState.phase === "rolling" && !isPreviewMode) {
     showNotification("Terminez d'abord les jets d'initiative.")
     return
   }
-  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && activeActorId && activeActorId !== playerId && !(isGM && window.__combatPreviewPlayerId)) {
+  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && activeActorId && activeActorId !== playerId && !isPreviewMode) {
     showNotification("Tour actif : " + (typeof getCombatActorLabel === "function" ? getCombatActorLabel(activeActorId) : String(activeActorId || "").toUpperCase()))
     return
   }
@@ -1628,7 +1629,7 @@ function buildMobSubPanel(mobData, slot) {
 
   const pct = Math.max(0,Math.min(100,((mobData.hp||0)/(mobData.maxHP||1))*100))
   const hpWrap = document.createElement("div"); hpWrap.style.cssText = "width:100%;height:6px;background:rgba(80,0,0,0.5);border-radius:3px;margin-bottom:8px;"
-  const hpFill = document.createElement("div"); hpFill.style.cssText = `width:${pct}%;height:100%;background:${pct>50?"#44ff44":pct>25?"#ffaa00":"#ff3333"};border-radius:3px;transition:width 0.3s;`; hpWrap.appendChild(hpFill); panel.appendChild(hpWrap)
+  const hpFill = document.createElement("div"); hpFill.id = "subPanelHPFill_"+slot; hpFill.style.cssText = `width:${pct}%;height:100%;background:${pct>50?"#44ff44":pct>25?"#ffaa00":"#ff3333"};border-radius:3px;transition:width 0.3s;`; hpWrap.appendChild(hpFill); panel.appendChild(hpWrap)
 
   const tier = mobData.tier||"weak", atks = typeof getMobAttacksForMob === "function" ? getMobAttacksForMob(mobData.name, tier) : (mobAttacks[tier]||mobAttacks.weak), mobLvl = mobData.lvl||1
   const getRange = (attack, lvl, mobTier) => {

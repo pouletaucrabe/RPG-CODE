@@ -755,7 +755,7 @@
     <div id="gmDamageTopRow">
     <div id="mobHPDisplay">
       <div id="mobHPBarTop"><span id="mobHPTopText">— / —</span></div>
-      <div id="mobHPBarTopContainer"><div id="mobHPBarTop"></div></div>
+      <div id="mobHPBarTopContainer"><div id="mobHPBarTopFill"></div></div>
     </div>
       <button id="gmDamageToggle" type="button" onclick="toggleGMDamageControls()" aria-label="Afficher ou masquer les contrôles">◀</button>
     </div>
@@ -878,11 +878,11 @@
 <!-- 3. Utilitaires (pas de dépendances Firebase) -->
 <script src="utils.js?v=2"></script>
 <!-- 4. Logique principale + Firebase listeners -->
-<script src="game.js?v=4"></script>
+<script src="game.js?v=6"></script>
 <!-- 5. Interface utilisateur -->
-<script src="ui.js?v=3"></script>
+<script src="ui.js?v=4"></script>
 <!-- 6. Combat -->
-<script src="combat.js?v=2"></script>
+<script src="combat.js?v=3"></script>
 <script>
 function safeStartIntro(event) {
   if (event) {
