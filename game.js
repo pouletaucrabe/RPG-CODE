@@ -762,6 +762,16 @@ window.THUUMS = {
     buttonImage: "images/runeskraa.png",
     combatDamageByRank: rank => ({ main: 8 + rank * 4, splash: 3 + rank * 2 }),
     outsideCombatMessage: "SKRAA retentit hors combat"
+  },
+  REIHKT: {
+    word: "REIHKT",
+    words: ["REIHKT", "MUUR", "ZAAL"],
+    translation: "Terreur • Paralysie • Effondrement",
+    description: "Brise la volonté de la cible et réduit sa défense.",
+    unlockMap: "epouventail.jpg",
+    buttonImage: "images/runeskraa.png",
+    combatDamageByRank: rank => ({ main: 6 + rank * 3, splash: 0 }),
+    outsideCombatMessage: "REIHKT retentit hors combat"
   }
 }
 
@@ -1401,7 +1411,7 @@ function showThuumUnlockCinematic(data) {
   setTimeout(() => {
     screen.classList.remove("active")
     setTimeout(() => { screen.style.display = "none" }, 600)
-  }, 4200)
+  }, 6200)
 }
 
 function playThuumCastEffect(data) {
@@ -1452,6 +1462,7 @@ function grantThuumToPlayer(playerId, word) {
   if (!isGM) return
   const def = getThuumDef(word)
   if (!def) return
+  document.querySelectorAll(".gmSection").forEach(s => s.style.display = "none")
   if (currentMap !== def.unlockMap) {
     showNotification(word + " ne peut etre revele que sur " + def.unlockMap)
     return
@@ -1484,6 +1495,7 @@ function grantThuumToPlayer(playerId, word) {
 
 function grantThuumUseToPlayer(playerId, word) {
   if (!isGM) return
+  document.querySelectorAll(".gmSection").forEach(s => s.style.display = "none")
   db.ref("game/playerThuumAccess/" + playerId + "/" + word).set({
     allowed: true,
     time: Date.now()
@@ -1876,6 +1888,18 @@ db.ref("game/highPNJName").on("value", snap => {
   if (!data || !data.name) return
   if (gameState !== "GAME" && gameState !== "COMBAT") return
   showHighPNJScroll(data.name)
+})
+
+// ─── fly swarm listener ───
+db.ref("events/flySwarm").on("value", snap => {
+  const data = snap.val()
+  if (!data || !data.active) {
+    if (document.getElementById("flySwarmOverlay") && typeof resetFlySwarmPresentation === "function") resetFlySwarmPresentation()
+    return
+  }
+  if (gameState !== "GAME" && gameState !== "COMBAT") return
+  if (currentMap !== "epouventail.jpg") return
+  if (typeof showFlySwarmEffect === "function") showFlySwarmEffect()
 })
 
 // ─── aurora ───
@@ -2763,6 +2787,7 @@ db.ref("game/thuumUnlockEvent").on("value", snap => {
   const data = snap.val()
   if (!data || !data.time) return
   if (data.time <= window.__lastThuumUnlockTime) return
+  if (Date.now() - data.time > 8000) { db.ref("game/thuumUnlockEvent").remove(); return } // purge donnée obsolète
   window.__lastThuumUnlockTime = data.time
   showThuumUnlockCinematic(data)
   setTimeout(updateThuumButton, 250)
@@ -2803,6 +2828,19 @@ db.ref("game/mapAudio").on("value", snap => {
 })
 
 }) // fin DOMContentLoaded
+
+/* ========================= */
+/* FLY SWARM                 */
+/* ========================= */
+
+function triggerFlySwarm() {
+  db.ref("events/flySwarm").set({ active: true, time: Date.now() })
+  document.querySelectorAll(".gmSection").forEach(s => s.style.display = "none")
+}
+
+function stopFlySwarm() {
+  db.ref("events/flySwarm").remove()
+}
 
 /* ========================= */
 /* TOKENS                    */

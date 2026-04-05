@@ -231,6 +231,7 @@
 <audio id="whisperHit"><source src="audio/whisper hit.mp3" type="audio/mpeg"></audio>
 <audio id="thuumSound"><source src="audio/thuum.mp3" type="audio/mpeg"></audio>
 <audio id="criSound"><source src="audio/cri.mp3" type="audio/mpeg"></audio>
+<audio id="flySwarmSound" loop><source src="audio/tremblement.mp3" type="audio/mpeg"></audio>
 
 <div id="audioSliders" style="position:fixed;top:12px;right:18px;z-index:1000000002;display:flex;flex-direction:column;gap:6px;padding:8px 10px;background:rgba(0,0,0,0.45);border:1px solid rgba(212,168,53,0.35);border-radius:10px;backdrop-filter:blur(4px);">
   <label style="display:flex;align-items:center;gap:8px;font-family:Cinzel,serif;font-size:12px;color:#f0d8a0;letter-spacing:1px;">
@@ -525,6 +526,9 @@
     <div class="panel-divider elem-stack">
       <button onclick="triggerAurora()" class="elem-full-btn elem-effect-aurora">🌌 Déclencher Aurore</button>
       <button onclick="cemeteryEventDone=false;triggerCemeteryEvent()" class="elem-full-btn elem-effect-cemetery">⚡ Sort Cimetière</button>
+      <div class="spacer-8"></div>
+      <button onclick="triggerFlySwarm()" class="elem-full-btn elem-effect-flyswarm">🪰 Essaim de Mouches</button>
+      <button onclick="stopFlySwarm()" class="elem-full-btn elem-effect-flyswarm-stop">✕ Arrêter Essaim</button>
     </div>
   </div>
   <div id="elemCartes" class="pnjTabContent">
@@ -539,6 +543,17 @@
       <button onclick="grantThuumUseToPlayer('ju','SKRAA')" class="thuum-use-btn">Autoriser SKRAA hors combat a JU</button>
       <button onclick="grantThuumUseToPlayer('elo','SKRAA')" class="thuum-use-btn">Autoriser SKRAA hors combat a ELO</button>
       <button onclick="grantThuumUseToPlayer('bibi','SKRAA')" class="thuum-use-btn last">Autoriser SKRAA hors combat a BIBI</button>
+      <div class="spacer-8"></div>
+      <div class="elem-title-gold">CRI DE MOUCHES - REIHKT</div>
+      <button onclick="grantThuumToPlayer('greg','REIHKT')" class="thuum-grant-btn">Donner REIHKT a GREG</button>
+      <button onclick="grantThuumToPlayer('ju','REIHKT')" class="thuum-grant-btn">Donner REIHKT a JU</button>
+      <button onclick="grantThuumToPlayer('elo','REIHKT')" class="thuum-grant-btn">Donner REIHKT a ELO</button>
+      <button onclick="grantThuumToPlayer('bibi','REIHKT')" class="thuum-grant-btn last">Donner REIHKT a BIBI</button>
+      <div class="spacer-8"></div>
+      <button onclick="grantThuumUseToPlayer('greg','REIHKT')" class="thuum-use-btn">Autoriser REIHKT hors combat a GREG</button>
+      <button onclick="grantThuumUseToPlayer('ju','REIHKT')" class="thuum-use-btn">Autoriser REIHKT hors combat a JU</button>
+      <button onclick="grantThuumUseToPlayer('elo','REIHKT')" class="thuum-use-btn">Autoriser REIHKT hors combat a ELO</button>
+      <button onclick="grantThuumUseToPlayer('bibi','REIHKT')" class="thuum-use-btn last">Autoriser REIHKT hors combat a BIBI</button>
     </div>
   </div>
   <div id="elemJeu" class="pnjTabContent">
@@ -715,7 +730,7 @@
   <div id="thuumUnlockInner">
     <img id="thuumUnlockImage" src="images/thuum.png" alt="Thuum">
     <div id="thuumUnlockTitle">Nouveau Cri de Mouches appris : SKRAA</div>
-    <div id="thuumUnlockWords">SKRAA - VORTH - NAAK</div>
+    <div id="thuumUnlockWords">SKRAA - REIHKT - NAAK</div>
     <div id="thuumUnlockPlayer"></div>
   </div>
 </div>
@@ -863,9 +878,9 @@
 <!-- 3. Utilitaires (pas de dépendances Firebase) -->
 <script src="utils.js?v=2"></script>
 <!-- 4. Logique principale + Firebase listeners -->
-<script src="game.js?v=3"></script>
+<script src="game.js?v=4"></script>
 <!-- 5. Interface utilisateur -->
-<script src="ui.js?v=2"></script>
+<script src="ui.js?v=3"></script>
 <!-- 6. Combat -->
 <script src="combat.js?v=2"></script>
 <script>
