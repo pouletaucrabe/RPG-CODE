@@ -1280,7 +1280,7 @@ function renderPlayerRuneEntry(panel) {
 
   const icon = document.createElement("div")
   icon.style.cssText = "width:58px;height:58px;display:flex;align-items:center;justify-content:center;font-family:'Cinzel Decorative','Cinzel',serif;font-size:28px;color:#c8a050;"
-  icon.innerText = "áš±"
+  icon.innerText = "ᚱ"
   entry.appendChild(icon)
 
   const text = document.createElement("div")
@@ -1445,7 +1445,7 @@ function playThuumCastEffect(data) {
       }, 1700)
     }
   }
-  showNotification("áš¦ " + (data.word || "SKRAA") + " - " + (data.playerId || "").toUpperCase())
+  showNotification("ᚦ " + (data.word || "SKRAA") + " - " + (data.playerId || "").toUpperCase())
 }
 
 function grantThuumToPlayer(playerId, word) {
@@ -1889,7 +1889,7 @@ db.ref("events/aurora").on("value", snap => {
     }
     return
   }
-  if (!gameStarted || gameState === GAME_STATE.MENU) return
+  if (gameState !== "GAME" && gameState !== "COMBAT") return
   showAuroraEvent()
 })
 
@@ -1935,58 +1935,6 @@ db.ref("game/powerSound").on("value", snap => {
   }
   db.ref("game/powerSound").remove()
 })
-
-function showMobSpecialAttackEvent(data) {
-  const style = typeof getMobAnimationStyle === "function" ? getMobAnimationStyle(data.animation) : { accent:"#ff9966", glow:"rgba(255,120,60,0.55)", bg:"radial-gradient(circle at center,rgba(70,15,0,0.94) 0%,rgba(10,0,0,0.98) 72%)" }
-  const overlay = document.createElement("div")
-  overlay.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999999999;background:" + style.bg + ";opacity:0;transition:opacity 0.22s ease;"
-
-  const ring = document.createElement("div")
-  ring.style.cssText = "position:absolute;width:min(70vw,520px);height:min(70vw,520px);border-radius:50%;border:2px solid " + style.accent + ";box-shadow:0 0 60px " + style.glow + ", inset 0 0 50px rgba(255,255,255,0.05);animation:mobSpecialPulse 0.9s ease-in-out infinite alternate;"
-  overlay.appendChild(ring)
-
-  const box = document.createElement("div")
-  box.style.cssText = "position:relative;z-index:1;width:min(760px,88vw);padding:36px 34px;border:1px solid " + style.accent + ";border-radius:18px;background:linear-gradient(180deg,rgba(8,8,10,0.78),rgba(0,0,0,0.9));box-shadow:0 0 80px " + style.glow + ";text-align:center;"
-  overlay.appendChild(box)
-
-  const icon = document.createElement("div")
-  icon.style.cssText = "font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
-  icon.innerText = String(data.icon || "✦")
-  box.appendChild(icon)
-
-  const mobName = document.createElement("div")
-  mobName.style.cssText = "font-family:Cinzel,serif;font-size:12px;letter-spacing:4px;color:" + style.accent + ";margin-bottom:10px;"
-  mobName.innerText = String(data.mobName || "")
-  box.appendChild(mobName)
-
-  const title = document.createElement("div")
-  title.style.cssText = "font-family:'Cinzel Decorative',serif;font-size:clamp(26px,3.8vw,42px);color:#fff3df;text-shadow:0 0 22px " + style.accent + ";margin-bottom:14px;"
-  title.innerText = String(data.attackName || "")
-  box.appendChild(title)
-
-  if (data.flavor) {
-    const flavor = document.createElement("div")
-    flavor.style.cssText = "font-family:'IM Fell English',serif;font-size:clamp(18px,2.5vw,28px);line-height:1.45;color:#ffd7c2;max-width:620px;margin:0 auto 18px auto;"
-    flavor.innerText = String(data.flavor)
-    box.appendChild(flavor)
-  }
-
-  const damage = document.createElement("div")
-  damage.style.cssText = "font-family:Cinzel,serif;font-size:30px;font-weight:bold;color:" + style.accent + ";text-shadow:0 0 18px " + style.accent + ";"
-  damage.innerText = "→ " + String(data.target || "") + "  •  -" + clampInteger(data.dmg, 0, 9999) + " HP"
-  box.appendChild(damage)
-
-  document.body.appendChild(overlay)
-  setTimeout(() => { overlay.style.opacity = "1" }, 20)
-  setTimeout(() => {
-    overlay.style.opacity = "0"
-    setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 450)
-    db.ref("game/mobAttackEvent").remove()
-  }, 3200)
-  screenShakeHard()
-  screenShakeHard()
-  playSound("powerSound", 0.58)
-}
 
 function showMobSpecialAttackEvent(data) {
   const baseStyle = typeof getMobAnimationStyle === "function" ? getMobAnimationStyle(data.animation) : { accent:"#ff9966", glow:"rgba(255,120,60,0.55)", bg:"radial-gradient(circle at center,rgba(70,15,0,0.94) 0%,rgba(10,0,0,0.98) 72%)" }
@@ -3941,6 +3889,45 @@ function rollStat(stat) {
 /* GAME STATE                */
 /* ========================= */
 
+function refreshActivePNJs() {
+  db.ref("game/storyImage").once("value", snap => {
+    const image = snap.val()
+    if (image && typeof showStoryImage === "function") showStoryImage(image)
+  })
+  db.ref("game/storyImage2").once("value", snap => {
+    const image = snap.val()
+    const box2 = document.getElementById("storyImage2")
+    const img2 = document.getElementById("storyImageContent2")
+    if (!image || !box2 || !img2) return
+    img2.src = (typeof resolvePNJImageSrc === "function") ? resolvePNJImageSrc(image) : "images/" + image
+    box2.style.opacity = "0"; box2.style.left = "0"; box2.style.right = "auto"; box2.style.transform = ""; box2.style.display = "flex"
+    if (!pnjSlotOrder.includes(2)) pnjSlotOrder.push(2)
+    updatePNJPositions()
+    setTimeout(() => { box2.style.opacity = "1" }, 60)
+  })
+  db.ref("game/storyImage3").once("value", snap => {
+    const image = snap.val()
+    const box3 = document.getElementById("storyImage3")
+    const img3 = document.getElementById("storyImageContent3")
+    if (!image || !box3 || !img3) return
+    img3.src = (typeof resolvePNJImageSrc === "function") ? resolvePNJImageSrc(image) : "images/" + image
+    box3.style.opacity = "0"; box3.style.right = "0"; box3.style.left = "auto"; box3.style.transform = ""; box3.style.display = "flex"
+    if (!pnjSlotOrder.includes(3)) pnjSlotOrder.push(3)
+    updatePNJPositions()
+    setTimeout(() => { box3.style.opacity = "1" }, 60)
+  })
+  db.ref("game/highPNJName").once("value", snap => {
+    const data = snap.val()
+    if (data && data.name && typeof showHighPNJScroll === "function") showHighPNJScroll(data.name)
+  })
+  db.ref("game/cemeterySpell").once("value", snap => {
+    const data = snap.val()
+    if (!data) return
+    if (data.active && !data.glipheShown && typeof ensureCemeteryGlyphIntro === "function") { ensureCemeteryGlyphIntro(); return }
+    if (data.glipheShown && !data.freed && typeof renderSpellDiceGame === "function") renderSpellDiceGame(data)
+  })
+}
+
   function setGameState(state) {
     gameState = state
   if (state !== "GAME" && state !== "COMBAT" && typeof cleanupRuneChallengeUI === "function") cleanupRuneChallengeUI()
@@ -3966,9 +3953,11 @@ function rollStat(stat) {
       // Ne montrer le menu de sélection que si le joueur n'a pas encore choisi
       if (!myToken) document.getElementById("playerSelect").style.display = "block"
       setTimeout(updateThuumButton, 500)
+      setTimeout(refreshActivePNJs, 150)
       break
-      case "COMBAT":
-        break
+    case "COMBAT":
+      setTimeout(refreshActivePNJs, 150)
+      break
     }
     if (state !== "GAME") closeMapLoreBookOverlay()
     setTimeout(updateMadnessVisibility, 30)
@@ -4065,6 +4054,8 @@ function startGame() {
       db.ref("game/worldMapFogTopLeftHidden").set(false)
       db.ref("game/mapLoreBook").remove(); db.ref("game/readLoreBooks").remove()
       db.ref("events/aurora").remove()
+      auroraActive = false
+      if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
       db.ref("game/shop").remove()
   db.ref("game/highPNJName").remove(); db.ref("game/runeChallenge").remove()
   db.ref("game/cemeterySpell").remove()
@@ -4220,6 +4211,15 @@ document.addEventListener("click", e => {
   else { document.getElementById("dialogueBox").style.display = "none"; showTavern() }
 })
 
+// Fermer le panel de preview si clic en dehors
+document.addEventListener("click", e => {
+  const btn = document.getElementById("playerPreviewBtn")
+  if (btn && !btn.contains(e.target)) {
+    const panel = document.getElementById("playerPreviewPanel")
+    if (panel) panel.classList.remove("open")
+  }
+})
+
 /* ========================= */
 /* GM                        */
 /* ========================= */
@@ -4238,6 +4238,83 @@ function requestGM() {
   else showNotification("Accès refusé")
 }
 
+function togglePlayerPreviewPanel() {
+  const panel = document.getElementById("playerPreviewPanel")
+  if (panel) panel.classList.toggle("open")
+}
+
+function enterPlayerPreview(playerId) {
+  if (!isGM) return
+  const panel = document.getElementById("playerPreviewPanel")
+  if (panel) panel.classList.remove("open")
+
+  window._previewSavedMyToken = myToken
+  isGM = false
+  myToken = document.getElementById(playerId)
+
+  // UI MJ générale
+  document.getElementById("gmBar").style.display  = "none"
+  document.getElementById("mjLog").style.display  = "none"
+  document.getElementById("playerPreviewBtn").style.display = "none"
+  document.querySelectorAll(".gmSection").forEach(s => s.style.display = "none")
+
+  // UI MJ combat (pas des gmSection)
+  const gdp = document.getElementById("gmDamagePanel"); if (gdp) gdp.style.display = "none"
+  const gcp = document.getElementById("gmCombatPanel"); if (gcp) gcp.style.display = "none"
+
+  // Bandeau
+  const banner = document.getElementById("playerPreviewBanner")
+  const names  = { greg:"Greg", ju:"Yu", elo:"Elo", bibi:"Bibi" }
+  document.getElementById("previewPlayerName").innerText = names[playerId] || playerId
+  banner.style.display = "flex"
+
+  // Token sélectionné
+  document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer"))
+  if (myToken) myToken.classList.add("selectedPlayer")
+
+  // Fiche personnage
+  document.getElementById("characterSheet").style.display = "none"
+  if (typeof openCharacterSheet === "function") openCharacterSheet(playerId)
+
+  // Stats combat (recharge le listener pour le bon joueur)
+  if ((combatActive || gameState === "COMBAT") && typeof loadPlayerCombatStats === "function") {
+    loadPlayerCombatStats()
+  }
+
+  // Bouton Thu'um
+  if (typeof updateThuumButton === "function") updateThuumButton()
+}
+
+function exitPlayerPreview() {
+  isGM = true
+  myToken = window._previewSavedMyToken || null
+  window._previewSavedMyToken = null
+
+  // UI MJ générale
+  document.getElementById("gmBar").style.display  = "flex"
+  document.getElementById("mjLog").style.display  = "block"
+  document.getElementById("playerPreviewBtn").style.display = "block"
+  document.getElementById("playerPreviewBanner").style.display = "none"
+  document.getElementById("characterSheet").style.display = "none"
+
+  // UI MJ combat
+  if (combatActive || gameState === "COMBAT") {
+    const gdp = document.getElementById("gmDamagePanel"); if (gdp) gdp.style.display = "block"
+    const gcp = document.getElementById("gmCombatPanel"); if (gcp) gcp.style.display = "flex"
+  }
+
+  // Token sélectionné
+  document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer"))
+  if (myToken) myToken.classList.add("selectedPlayer")
+
+  // Restaurer les stats combat sur le token MJ (si applicable)
+  if ((combatActive || gameState === "COMBAT") && myToken && typeof loadPlayerCombatStats === "function") {
+    loadPlayerCombatStats()
+  }
+
+  if (typeof updateThuumButton === "function") updateThuumButton()
+}
+
 function activateGM(fromFirebaseRole = false) {
   if (isGM) return
   isGM = true
@@ -4245,6 +4322,8 @@ function activateGM(fromFirebaseRole = false) {
   document.getElementById("mjLog").style.display     = "block"
   const gmSaveBar = document.getElementById("gmSaveBar")
   if (gmSaveBar) gmSaveBar.style.display = "none"
+  const previewBtn = document.getElementById("playerPreviewBtn")
+  if (previewBtn) previewBtn.style.display = "block"
   ensureMadnessGMButton()
   updateThuumButton()
   showNotification(fromFirebaseRole ? "🎲 Mode MJ activé (Firebase)" : "🎲 Mode MJ activé")

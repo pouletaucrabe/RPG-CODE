@@ -956,27 +956,27 @@ const curseWheelChoices = [
 /* ========================= */
 
 const runeAlphabet = {
-  "A":"áš¨","B":"á›’","C":"áš²","D":"á›ž","E":"á›–","F":"áš ","G":"áš·","H":"ášº",
-  "I":"á›","J":"á›ƒ","K":"áš²","L":"á›š","M":"á›—","N":"áš¾","O":"á›Ÿ","P":"á›ˆ",
-  "Q":"áš²","R":"áš±","S":"á›Š","T":"á›","U":"áš¢","V":"áš¢","W":"áš¹","X":"á›‰",
-  "Y":"á›ƒ","Z":"á›‰",
-  "a":"áš¨","b":"á›’","c":"áš²","d":"á›ž","e":"á›–","f":"áš ","g":"áš·","h":"ášº",
-  "i":"á›","j":"á›ƒ","k":"áš²","l":"á›š","m":"á›—","n":"áš¾","o":"á›Ÿ","p":"á›ˆ",
-  "q":"áš²","r":"áš±","s":"á›Š","t":"á›","u":"áš¢","v":"áš¢","w":"áš¹","x":"á›‰",
-  "y":"á›ƒ","z":"á›‰",
+  "A":"ᚨ","B":"ᛒ","C":"ᚲ","D":"ᛞ","E":"ᛖ","F":"ᚠ","G":"ᚷ","H":"ᚺ",
+  "I":"ᛁ","J":"ᛃ","K":"ᚲ","L":"ᛚ","M":"ᛗ","N":"ᚾ","O":"ᛟ","P":"ᛈ",
+  "Q":"ᚲ","R":"ᚱ","S":"ᛊ","T":"ᛏ","U":"ᚢ","V":"ᚢ","W":"ᚹ","X":"ᛉ",
+  "Y":"ᛃ","Z":"ᛉ",
+  "a":"ᚨ","b":"ᛒ","c":"ᚲ","d":"ᛞ","e":"ᛖ","f":"ᚠ","g":"ᚷ","h":"ᚺ",
+  "i":"ᛁ","j":"ᛃ","k":"ᚲ","l":"ᛚ","m":"ᛗ","n":"ᚾ","o":"ᛟ","p":"ᛈ",
+  "q":"ᚲ","r":"ᚱ","s":"ᛊ","t":"ᛏ","u":"ᚢ","v":"ᚢ","w":"ᚹ","x":"ᛉ",
+  "y":"ᛃ","z":"ᛉ",
   "é":"ᛖ","è":"ᛖ","ê":"ᛖ","à":"ᚨ","â":"ᚨ","ô":"ᛟ","î":"ᛁ","û":"ᚢ","ç":"ᚲ",
   "É":"ᛖ","È":"ᛖ","À":"ᚨ"
 }
 
 const runeHints = [
-  { id:"hint1", runes:"áš¨=A  á›š=L  á›–=E  áš¢=U", desc:"Fragment I"    },
-  { id:"hint2", runes:"á›=I  á›–=E  áš±=R  á›Š=S", desc:"Fragment II"   },
-  { id:"hint3", runes:"á›ž=D  á›–=E  áš¨=A  á›Ÿ=O", desc:"Fragment III"  },
-  { id:"hint4", runes:"á›’=B  áš±=R  áš¨=A  áš¢=V", desc:"Fragment IV"   },
-  { id:"hint5", runes:"á›=T  áš±=R  á›=I  áš¾=N", desc:"Fragment V"    },
-  { id:"hint6", runes:"á›Ÿ=O  á›ž=D  á›=I  áš¾=N", desc:"Fragment VI"   },
-  { id:"hint7", runes:"áš¹=W  á›Š=S  á›Ÿ=O  á›—=M", desc:"Fragment VII"  },
-  { id:"hint8", runes:"áš·=G  áš¨=A  á›ˆ=P",       desc:"Fragment VIII" }
+  { id:"hint1", runes:"ᚨ=A  ᛚ=L  ᛖ=E  ᚢ=U", desc:"Fragment I"    },
+  { id:"hint2", runes:"ᛁ=I  ᛖ=E  ᚱ=R  ᛊ=S", desc:"Fragment II"   },
+  { id:"hint3", runes:"ᛞ=D  ᛖ=E  ᚨ=A  ᛟ=O", desc:"Fragment III"  },
+  { id:"hint4", runes:"ᛒ=B  ᚱ=R  ᚨ=A  ᚢ=V", desc:"Fragment IV"   },
+  { id:"hint5", runes:"ᛏ=T  ᚱ=R  ᛁ=I  ᚾ=N", desc:"Fragment V"    },
+  { id:"hint6", runes:"ᛟ=O  ᛞ=D  ᛁ=I  ᚾ=N", desc:"Fragment VI"   },
+  { id:"hint7", runes:"ᚹ=W  ᛊ=S  ᛟ=O  ᛗ=M", desc:"Fragment VII"  },
+  { id:"hint8", runes:"ᚷ=G  ᚨ=A  ᛈ=P",       desc:"Fragment VIII" }
 ]
 
 const secretMessage = "A la lueur des aurores, les braves trinquent avec Odin au sommet de l'Arbre."
@@ -998,7 +998,7 @@ const playerPowerSounds = {
 /* ========================= */
 
 const ODIN_VISIONS = [
-  "Odin vous voit. Son Å“il unique suit votre route depuis Asgard.",
+  "Odin vous voit. Son œil unique suit votre route depuis Asgard.",
   "Le Père de Tous vous accorde son soutien. Portez-le dignement.",
   "Vos noms sont gravés dans le bois d'Yggdrasil.",
   "Les corbeaux ont rapporté vos actes. Odin est satisfait.",
@@ -1152,7 +1152,7 @@ const ALLY_PNJS = [
         label:    "Malédiction ancienne",
         type:     "malus",
         icon:     "🌑",
-        desc:     "Elle maudit l'ennemi en son cÅ“ur. D20 : sur 10+, le mob perd tout avantage ce combat.",
+        desc:     "Elle maudit l'ennemi en son cœur. D20 : sur 10+, le mob perd tout avantage ce combat.",
         dice:     20,
         threshold: 10,
         dialogue: "Tu portes désormais mon sceau.",

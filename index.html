@@ -249,6 +249,22 @@
 </div>
 
 <!-- BARRE MJ -->
+<!-- PRÉVISUALISATION VUE JOUEUR -->
+<div id="playerPreviewBtn">
+  <button id="playerPreviewToggle" onclick="togglePlayerPreviewPanel()" title="Prévisualiser la vue joueur">👁</button>
+  <div id="playerPreviewPanel">
+    <div class="preview-panel-title">Vue joueur</div>
+    <button onclick="enterPlayerPreview('greg')">Greg</button>
+    <button onclick="enterPlayerPreview('ju')">Yu</button>
+    <button onclick="enterPlayerPreview('elo')">Elo</button>
+    <button onclick="enterPlayerPreview('bibi')">Bibi</button>
+  </div>
+</div>
+<div id="playerPreviewBanner">
+  <span>👁 Vue de : <strong id="previewPlayerName"></strong></span>
+  <button onclick="exitPlayerPreview()">✕ Quitter</button>
+</div>
+
 <div id="gmBar">
   <button class="gmIcon" onclick="toggleGMSection('gmCharacters')" title="Personnages (P)"><img src="images/ficheicone.png" alt="Fiches"></button>
   <button class="gmIcon" onclick="toggleGMSection('mapMenu')"      title="Maps (M)"><img src="images/mapicon.png" alt="Maps"></button>

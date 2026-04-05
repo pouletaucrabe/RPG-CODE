@@ -534,25 +534,29 @@ function getPlayerSpecialPresentation(playerId) {
       scene: "greg",
       kicker: "FINISHER",
       accent: "#d9b37c",
-      glow: "rgba(217,179,124,0.38)"
+      glow: "rgba(217,179,124,0.38)",
+      image: "gregspé.jpg"
     },
     ju: {
       scene: "yu",
       kicker: "RIPOSTE",
       accent: "#8fc9ff",
-      glow: "rgba(143,201,255,0.34)"
+      glow: "rgba(143,201,255,0.34)",
+      image: "juspé.png"
     },
     elo: {
       scene: "elo",
       kicker: "INCANTATION",
       accent: "#9cf2cf",
-      glow: "rgba(156,242,207,0.34)"
+      glow: "rgba(156,242,207,0.34)",
+      image: "elospé.jpg"
     },
     bibi: {
       scene: "bibi",
       kicker: "RAGE CANINE",
       accent: "#ffd28d",
-      glow: "rgba(255,210,141,0.34)"
+      glow: "rgba(255,210,141,0.34)",
+      image: "bibispé.png"
     }
   }
   return map[key] || map.greg
@@ -572,6 +576,15 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
   const stage = document.createElement("div")
   stage.className = "playerSpecialStage"
   overlay.appendChild(stage)
+
+  if (presentation.image) {
+    const heroImage = document.createElement("img")
+    heroImage.className = "playerSpecialImage playerSpecialImage--" + presentation.scene
+    heroImage.src = "images/" + presentation.image
+    heroImage.alt = ""
+    heroImage.onerror = () => heroImage.style.display = "none"
+    stage.appendChild(heroImage)
+  }
 
   const ring = document.createElement("img")
   ring.src = "images/impact_ring.png"
@@ -2246,7 +2259,7 @@ function _buildShop(partyLvl, runeCard, activeItems, shopTitle) {
 /* RUNE CHALLENGE            */
 /* ========================= */
 
-function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"á›«":c==="."?"á›¬":c==="'"?"'":c) }).join("") }
+function encodeToRunes(text, rev) { const r=rev||[]; return text.split("").map(c=>{ if(r.includes(c.toUpperCase())) return c; return runeAlphabet[c]||(c===" "?" ":c===","?"᛫":c==="."?"᛬":c==="'"?"'":c) }).join("") }
 function openRuneChallenge() {
   if(!isGM) return
   _state.runeJustOpened=false
@@ -2285,7 +2298,7 @@ function updateRuneMenuBtn(active) { const l=document.getElementById("runeLaunch
 function renderRuneChallenge(data) {
   const uh=data.unlockedHints||[], rev=data.revealedLetters||[], enc=encodeToRunes(secretMessage,rev), dec=decodeRuneProgress(secretMessage,rev)
   const ov=document.createElement("div"); ov.id="runeChallengeOverlay"; ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,5,2,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999990;opacity:0;transition:opacity 0.6s ease;overflow-y:auto;padding:20px 0;"
-  const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;color:#c8a050;letter-spacing:6px;margin-bottom:6px;text-shadow:0 0 20px gold;"; t.innerText="áš±áš¢áš¾á›–á›Š á›žá›– á›š'áš¨áš¾áš²á›á›–áš¾"; ov.appendChild(t)
+  const t=document.createElement("div"); t.style.cssText="font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;color:#c8a050;letter-spacing:6px;margin-bottom:6px;text-shadow:0 0 20px gold;"; t.innerText="ᚱᚢᚾᛖᛊ ᛞᛖ ᛚ'ᚨᚾᚲᛁᛖᚾ"; ov.appendChild(t)
   const st=document.createElement("div"); st.style.cssText="font-family:'IM Fell English',serif;font-size:14px;color:#8a6830;margin-bottom:24px;letter-spacing:2px;"; st.innerText="Déchiffrez le message des anciens..."; ov.appendChild(st)
   const mb=document.createElement("div"); mb.style.cssText="background:url('images/roc.png') center/100% 100% no-repeat;padding:50px 70px;max-width:700px;width:90vw;text-align:center;margin-bottom:24px;border-radius:4px;"
   const rt=document.createElement("div"); rt.style.cssText="font-size:32px;color:#ffe8a0;line-height:2.2;letter-spacing:6px;font-family:serif;word-break:break-word;font-weight:bold;"; rt.innerText=enc; mb.appendChild(rt); ov.appendChild(mb)
@@ -2661,7 +2674,7 @@ function renderMapElement(data) {
   const ex=document.getElementById("elem_"+data.id); if(ex) ex.remove(); if(!document.getElementById("map")) return
   const safeImage = sanitizeAssetName(data.image)
   const el=document.createElement("div"); el.id="elem_"+data.id; el.style.cssText=`position:absolute;left:${data.x}px;top:${data.y}px;width:90px;height:90px;cursor:${isGM?"grab":data.clickable?"pointer":"default"};z-index:5000;user-select:none;transition:opacity 0.4s;opacity:0;`
-  if(data.isRune){ const rs=document.createElement("div"); rs.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#c8a050;text-shadow:0 0 15px gold;background:rgba(30,15,5,0.85);border:2px solid rgba(200,160,80,0.6);border-radius:50%;animation:tokenRingPulse 2s ease-in-out infinite;pointer-events:none;"; rs.innerText="áš±"; el.appendChild(rs) }
+  if(data.isRune){ const rs=document.createElement("div"); rs.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#c8a050;text-shadow:0 0 15px gold;background:rgba(30,15,5,0.85);border:2px solid rgba(200,160,80,0.6);border-radius:50%;animation:tokenRingPulse 2s ease-in-out infinite;pointer-events:none;"; rs.innerText="ᚱ"; el.appendChild(rs) }
   else{ const img=document.createElement("img"); img.src="images/"+safeImage; img.style.cssText="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.8));pointer-events:none;"; el.appendChild(img) }
   if(isGM){ const rb=document.createElement("div"); rb.style.cssText="position:absolute;top:-8px;right:-8px;width:20px;height:20px;background:#cc0000;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;cursor:pointer;box-shadow:0 0 6px black;z-index:10;"; rb.innerText="✕"; rb.onclick=e=>{ e.stopPropagation(); cleanupMapElementDragHandlers(data.id); db.ref("elements/"+data.id).remove() }; el.appendChild(rb) }
   if(data.clickable){ el.onclick=()=>{ if(data.isRune&&data.runeHint){ unlockRuneHint(data.runeHint); flashGold(); el.style.filter="drop-shadow(0 0 20px gold) brightness(2)"; setTimeout(()=>el.style.filter="",600); cleanupMapElementDragHandlers(data.id); db.ref("elements/"+data.id).remove() } else if(!isGM){ const ov=document.createElement("div"); ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999999;cursor:pointer;"; const bi=document.createElement("img"); bi.src="images/"+safeImage; bi.style.cssText="max-width:80vw;max-height:80vh;object-fit:contain;"; ov.appendChild(bi); ov.onclick=()=>ov.remove(); document.body.appendChild(ov) } } }
@@ -3714,10 +3727,6 @@ function _renderDocument(data) {
   img.onerror = () => img.style.opacity = "0.3"
   overlay.appendChild(img)
 
-  if (data.title) {
-    const label = document.createElement("div"); label.style.cssText = "position:absolute;bottom:8%;left:50%;transform:translateX(-50%);font-family:'Cinzel Decorative','Cinzel',serif;font-size:18px;color:#f0e8c8;letter-spacing:3px;text-shadow:0 0 8px rgba(200,150,50,0.6),1px 1px 4px black;pointer-events:none;background:rgba(8,20,24,0.8);border:1px solid rgba(160,120,40,0.4);border-radius:3px;padding:5px 18px;white-space:nowrap;"
-    label.innerText = data.title; overlay.appendChild(label)
-  }
 
   document.body.appendChild(overlay)
   setTimeout(() => overlay.style.opacity = "1", 30)
