@@ -1818,6 +1818,7 @@ db.ref("game/endSession").on("value", snap => {
   const data = snap.val()
   if (!data || !data.time) return
   if (isGM) return
+  if (Date.now() - data.time > 5 * 60 * 1000) return  // signal > 5 min → ignorer
   const snd  = document.getElementById("endingSound")
   const bg   = document.getElementById("endSessionBg")
   const logo = document.getElementById("endSessionLogo")
@@ -4200,6 +4201,7 @@ function startEndSession() {
     snd.pause(); snd.currentTime = 0
     bg.style.display = "none"
     logo.style.display = "none"
+    db.ref("game/endSession").remove()
     document.removeEventListener("keydown", closeEndSession)
   }
   document.addEventListener("keydown", closeEndSession)
