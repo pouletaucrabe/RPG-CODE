@@ -142,10 +142,10 @@
         ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
         "claimedBy": {
           ".write": "auth != null && root.child('profiles').child(auth.uid).child('playerId').isString()",
-          ".validate": "newData.isString() && !data.exists() && newData.val() === root.child('profiles').child(auth.uid).child('playerId').val() && parent.child('active').val() === true"
+          ".validate": "newData.isString() && !data.exists() && newData.val() === root.child('profiles').child(auth.uid).child('playerId').val() && newData.parent().child('active').val() === true"
         },
         "claimedAt": {
-          ".write": "auth != null && root.child('profiles').child(auth.uid).child('playerId').isString() && parent.child('claimedBy').val() === root.child('profiles').child(auth.uid).child('playerId').val()",
+          ".write": "auth != null && root.child('profiles').child(auth.uid).child('playerId').isString() && data.parent().child('claimedBy').val() === root.child('profiles').child(auth.uid).child('playerId').val()",
           ".validate": "newData.isNumber() && newData.val() > 0"
         }
       },
