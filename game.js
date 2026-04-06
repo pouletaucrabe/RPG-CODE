@@ -1816,14 +1816,23 @@ db.ref(".info/connected").on("value", snap => {
 // ─── endSession — signal fin de session pour les joueurs ───
 db.ref("game/endSession").on("value", snap => {
   const data = snap.val()
-  if (!data || !data.time) return
-  if (isGM) return
-  if (!gameStarted) return                              // pas encore en jeu → ignorer
-  if (Date.now() - data.time > 5 * 60 * 1000) return  // signal > 5 min → ignorer
   const snd  = document.getElementById("endingSound")
   const bg   = document.getElementById("endSessionBg")
   const logo = document.getElementById("endSessionLogo")
+  if (isGM) return
+
+  // Signal supprimé (GM a appuyé sur Espace) → fermer chez les joueurs aussi
+  if (!data || !data.time) {
+    if (snd) { snd.pause(); snd.currentTime = 0 }
+    if (bg)   bg.style.display = "none"
+    if (logo) logo.style.display = "none"
+    return
+  }
+
+  if (!gameStarted) return
+  if (Date.now() - data.time > 5 * 60 * 1000) return
   if (!snd || !bg || !logo) return
+
   stopAllMusic()
   setManagedAudioBaseVolume(snd, 1, "music")
   snd.currentTime = 0
@@ -1837,8 +1846,10 @@ db.ref("game/newGame").on("value", snap => {
   if (!data || !data.time) return
   if (isGM) return  // le MJ gère lui-même
   if (!gameStarted) {
-    // Joueur sur l'écran d'intro — flaguer pour cinématique si signal récent (< 30 min)
-    if (Date.now() - data.time < 30 * 60 * 1000) window.isNewGame = true
+    // Joueur sur l'écran d'intro — flaguer pour cinématique si signal récent et pas déjà vu
+    const seenKey = "rpg_seen_newgame_" + data.time
+    const alreadySeen = localStorage.getItem(seenKey) === "1"
+    if (!alreadySeen && Date.now() - data.time < 30 * 60 * 1000) window.isNewGame = true
     return
   }
   // Réinitialiser l'état local et revenir à l'écran d'intro
@@ -4295,8 +4306,14 @@ function startGame() {
     calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   })
   setTimeout(() => {
-    if (window.isNewGame) { window.isNewGame = false; playOpeningCinematic(startDialogue) }
-    else showTavern()
+    if (window.isNewGame) {
+      window.isNewGame = false
+      // Marquer ce signal comme vu pour ne pas rejouer la cinématique au prochain refresh
+      db.ref("game/newGame").once("value", s => {
+        const d = s.val(); if (d && d.time) { try { localStorage.setItem("rpg_seen_newgame_" + d.time, "1") } catch(e) {} }
+      })
+      playOpeningCinematic(startDialogue)
+    } else showTavern()
   }, 1500)
 }
 

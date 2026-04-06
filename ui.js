@@ -1079,7 +1079,8 @@ function resolvePlayerAttack(attack, options = {}) {
     return
   }
   const activeActorId = typeof getCurrentCombatActorId === "function" ? getCurrentCombatActorId() : null
-  if (activeActorId && activeActorId !== playerId) {
+  const gregControlsBibi = (playerId === "bibi" && getCombatHUDPlayerId() === "greg") || (playerId === "greg" && activeActorId === "bibi")
+  if (activeActorId && activeActorId !== playerId && !gregControlsBibi) {
     showNotification("Ce n'est pas encore le tour de " + playerId.toUpperCase() + ".")
     return
   }
@@ -1434,7 +1435,8 @@ function togglePlayerAttacks() {
     showNotification("Terminez d'abord les jets d'initiative.")
     return
   }
-  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && activeActorId && activeActorId !== playerId && !isPreviewMode) {
+  const isGregControllingBibi = playerId === "greg" && activeActorId === "bibi"
+  if ((hud.style.display === "none" || !hud.style.display) && combatActive && playerId && activeActorId && activeActorId !== playerId && !isPreviewMode && !isGregControllingBibi) {
     showNotification("Tour actif : " + (typeof getCombatActorLabel === "function" ? getCombatActorLabel(activeActorId) : String(activeActorId || "").toUpperCase()))
     return
   }
