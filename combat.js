@@ -134,6 +134,20 @@ function finalizeCombatInitiativeIfReady(state) {
   const participants = Array.isArray(state.participants) ? state.participants : []
   const rolls = state.rolls || {}
   if (!participants.length) return
+
+  // Auto-roll mob dice dès que tous les joueurs ont rollé
+  const players = participants.filter(e => e.type === "player")
+  const mobs    = participants.filter(e => e.type === "mob")
+  const allPlayersReady = players.every(e => Number.isFinite(parseInt(rolls[e.id], 10)))
+  if (allPlayersReady) {
+    mobs.forEach(entry => {
+      if (!Number.isFinite(parseInt(rolls[entry.id], 10))) {
+        const roll = Math.floor(Math.random() * 12) + 1
+        db.ref("combat/turnState/rolls/" + entry.id).set(roll)
+      }
+    })
+  }
+
   const allReady = participants.every(entry => Number.isFinite(parseInt(rolls[entry.id], 10)))
   if (!allReady) return
   const order = participants
@@ -399,6 +413,7 @@ function launchFromMobMenu() {
 function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
   if (combatActive || combatStarting) return
   combatStarting = true; combatActive = true
+  if (typeof addSessionLog === "function") addSessionLog("⚔ Combat démarré — " + mainMob + (extraMobs.length ? " + " + extraMobs.join(", ") : ""))
   window.__playerCombatSpecialsUsed = {}
   window.__playerCombatFlags = {}
   db.ref("game/storyImage").remove()
@@ -785,6 +800,7 @@ function spawnEloSummonToken(data) {
 
 function showVictory() {
   window.__combatOutcomeShowing = true
+  if (typeof addSessionLog === "function") addSessionLog("🏆 Victoire !")
   if (isGM) {
     db.ref("game/combatOutcome").set({ type: "victory", time: Date.now() })
     setTimeout(() => db.ref("game/combatOutcome").remove(), 1500)
@@ -832,6 +848,7 @@ function showVictory() {
 function showDefeat() {
   if (window.__combatOutcomeShowing) return
   window.__combatOutcomeShowing = true
+  if (typeof addSessionLog === "function") addSessionLog("💀 Défaite")
   window.__pendingLocalDefeat = true
   combatActive = true
   setGameState("COMBAT")
@@ -1293,6 +1310,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     window.__skippingDeadCombatTurn = ""
 
+    // Réinitialise le verrou d'attaque quand le tour change
+    if (data.phase === "active" && !isGM) window.__playerAttackResolving = false
+
     // Auto-fermer quand tous les dés sont tirés (transition rolling → active)
     const prevPhase = window.__lastCombatPhase || null
     window.__lastCombatPhase = data.phase
@@ -1301,7 +1321,7 @@ document.addEventListener("DOMContentLoaded", () => {
       closeCombatInitiativeOverlay()
       renderCombatInitiativeToggle(data)
       if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
-      if (isGM && typeof finalizeCombatInitiativeIfReady === "function") finalizeCombatInitiativeIfReady(data)
+      if (typeof showCombatHUD === "function") showCombatHUD()
       return
     }
 

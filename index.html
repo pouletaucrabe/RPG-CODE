@@ -1,13 +1,14 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-  <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="color-scheme" content="only light">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English&display=swap" rel="stylesheet">
+  <!-- ⬇ Changer ce numéro force le rechargement de TOUS les fichiers pour tous les joueurs -->
+  <script>window.GAME_V = "20260406.1"</script>
+  <link rel="stylesheet" href="fonts/fonts.css">
   <title>RPG Test</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css?v=3">
+  <script>document.write('<link rel="stylesheet" href="style.css?v='+GAME_V+'">')</script>
   <style>
     #playerCodeBtn, #playerCodeBtn * {
       color: #ffd700 !important;
@@ -232,6 +233,12 @@
 <audio id="thuumSound"><source src="audio/thuum.mp3" type="audio/mpeg"></audio>
 <audio id="criSound"><source src="audio/cri.mp3" type="audio/mpeg"></audio>
 <audio id="flySwarmSound" loop><source src="audio/tremblement.mp3" type="audio/mpeg"></audio>
+<audio id="endingSound"><source src="audio/ending.mp3" type="audio/mpeg"></audio>
+
+<!-- Fin de session — image de fond transparente -->
+<div id="endSessionBg" style="display:none;position:fixed;inset:0;z-index:9999990;pointer-events:none;background:url('images/end.jpg') center/cover no-repeat;mix-blend-mode:multiply;"></div>
+<!-- Fin de session — logo en bas à gauche, opaque, au-dessus de tout -->
+<div id="endSessionLogo" style="display:none;position:fixed;bottom:0;left:0;z-index:9999999;pointer-events:none;"><img src="images/ending.png" style="display:block;max-height:40vh;width:auto;"></div>
 
 <div id="audioSliders" style="position:fixed;top:12px;right:18px;z-index:1000000002;display:flex;flex-direction:column;gap:6px;padding:8px 10px;background:rgba(0,0,0,0.45);border:1px solid rgba(212,168,53,0.35);border-radius:10px;backdrop-filter:blur(4px);">
   <label style="display:flex;align-items:center;gap:8px;font-family:Cinzel,serif;font-size:12px;color:#f0d8a0;letter-spacing:1px;">
@@ -284,6 +291,26 @@
   <button onclick="openCharacterSheet('bibi')">Bibi</button>
   <button onclick="showSaveMenu()">Sauvegarder</button>
   <button onclick="resetAllPlayerStats()">Reset stats</button>
+  <button onclick="openSessionLog()">Journal</button>
+  <button onclick="startEndSession()" style="background:linear-gradient(#3a0a0a,#1a0404);border-color:#8a2020;color:#ffaaaa;">Fin de session</button>
+</div>
+
+<!-- JOURNAL DE SESSION -->
+<div id="sessionLogPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:480px;max-width:94vw;max-height:75vh;background:rgba(6,14,18,0.97);border:1px solid #1e5a66;box-shadow:0 0 0 1px #8a6520,0 0 40px rgba(0,0,0,0.9);border-radius:3px;z-index:99999999;display:none;flex-direction:column;font-family:Cinzel,serif;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(30,90,102,0.4);flex-shrink:0;">
+    <span style="font-size:11px;letter-spacing:3px;color:#1e8a9a;">JOURNAL DE SESSION</span>
+    <div style="display:flex;gap:8px;">
+      <button onclick="clearSessionLog()" style="font-size:10px;padding:3px 8px;background:rgba(180,40,40,0.3);color:#ffaaaa;border:1px solid rgba(200,60,60,0.4);border-radius:3px;cursor:pointer;font-family:Cinzel,serif;">Effacer</button>
+      <button onclick="closeSessionLog()" style="font-size:10px;padding:3px 8px;background:rgba(30,90,102,0.3);color:#a0d8e0;border:1px solid rgba(30,90,102,0.4);border-radius:3px;cursor:pointer;font-family:Cinzel,serif;">✕</button>
+    </div>
+  </div>
+  <div id="sessionLogContent" style="overflow-y:auto;padding:10px 14px;flex:1;display:flex;flex-direction:column;gap:4px;"></div>
+</div>
+
+<!-- INDICATEUR DE CONNEXION FIREBASE -->
+<div id="firebaseConnectionDot" title="Connexion Firebase" style="position:fixed;bottom:12px;left:12px;z-index:1000000001;display:flex;align-items:center;gap:6px;font-family:Cinzel,serif;font-size:10px;color:#888;pointer-events:none;">
+  <span id="firebaseDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;box-shadow:0 0 4px #555;transition:background 0.4s,box-shadow 0.4s;"></span>
+  <span id="firebaseDotLabel">...</span>
 </div>
 
 <div id="xpMenu" class="gmSection">
@@ -872,17 +899,17 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <!-- 1. Données statiques -->
-<script src="config.js?v=1"></script>
+<script>document.write('<script src="config.js?v='+GAME_V+'"><\/script>')</script>
 <!-- 2. Variables d'état -->
-<script src="state.js?v=1"></script>
+<script>document.write('<script src="state.js?v='+GAME_V+'"><\/script>')</script>
 <!-- 3. Utilitaires (pas de dépendances Firebase) -->
-<script src="utils.js?v=2"></script>
+<script>document.write('<script src="utils.js?v='+GAME_V+'"><\/script>')</script>
 <!-- 4. Logique principale + Firebase listeners -->
-<script src="game.js?v=6"></script>
+<script>document.write('<script src="game.js?v='+GAME_V+'"><\/script>')</script>
 <!-- 5. Interface utilisateur -->
-<script src="ui.js?v=4"></script>
+<script>document.write('<script src="ui.js?v='+GAME_V+'"><\/script>')</script>
 <!-- 6. Combat -->
-<script src="combat.js?v=3"></script>
+<script>document.write('<script src="combat.js?v='+GAME_V+'"><\/script>')</script>
 <script>
 function safeStartIntro(event) {
   if (event) {

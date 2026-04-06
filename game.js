@@ -607,11 +607,7 @@ function updateMapLoreBookVisibility() {
 function applyMapLoreBookReward(entry, playerId) {
   if (!entry || !entry.reward || !playerId) return
   const reward = entry.reward
-  const path = "characters/" + playerId + "/" + reward.stat
-  db.ref(path).once("value", snap => {
-    const current = parseInt(snap.val(), 10) || 0
-    db.ref(path).set(current + reward.amount)
-  })
+  db.ref("characters/" + playerId + "/" + reward.stat).transaction(current => (parseInt(current, 10) || 0) + reward.amount)
   showNotification("📖 " + playerId.toUpperCase() + " gagne +" + reward.amount + " " + reward.label)
 }
 
@@ -1534,12 +1530,14 @@ function usePlayerThuum(forcedWord) {
       outsideCombat: true
     })
     setTimeout(() => db.ref("game/thuumCast").remove(), 1500)
+    addSessionLog("ᚱ " + playerId.toUpperCase() + " utilise " + activeWord + " (hors combat)")
     showNotification(def.outsideCombatMessage || (activeWord + " retentit hors combat"))
     closePlayerPowersPanel()
     updateThuumButton()
     return
   }
 
+  addSessionLog("ᚱ " + playerId.toUpperCase() + " utilise " + activeWord + " en combat")
   db.ref("combat/usedThuum/" + playerId + "/" + activeWord).set(true)
   db.ref("game/playerThuumAccess/" + playerId + "/" + activeWord).remove()
   db.ref("game/thuumCast").set({
@@ -1753,7 +1751,7 @@ db.ref("game/map").on("value", snap => {
   const isFirst = firstMapLoad
   if (isFirst) firstMapLoad = false
   currentMap = mapName
-  if (previousMap && previousMap !== mapName) closeMapLoreBookOverlay()
+  if (previousMap && previousMap !== mapName) { closeMapLoreBookOverlay(); if (isGM) addSessionLog("🗺 Carte : " + (mapNames[mapName] || mapName)) }
   if (typeof stopBifrostFlashSound === "function") stopBifrostFlashSound()
   updateMadnessUI(window.groupMadness || 0)
   updateWorldMapFogTopLeft()
@@ -1806,6 +1804,31 @@ db.ref("game/map").on("value", snap => {
   }, 2200)
 })
 
+// ─── Connexion Firebase ───
+db.ref(".info/connected").on("value", snap => {
+  const connected = !!snap.val()
+  const dot   = document.getElementById("firebaseDot")
+  const label = document.getElementById("firebaseDotLabel")
+  if (dot) { dot.style.background = connected ? "#44ff88" : "#ff4444"; dot.style.boxShadow = connected ? "0 0 6px #44ff88" : "0 0 6px #ff4444" }
+  if (label) label.textContent = connected ? "connecté" : "déconnecté"
+})
+
+// ─── endSession — signal fin de session pour les joueurs ───
+db.ref("game/endSession").on("value", snap => {
+  const data = snap.val()
+  if (!data || !data.time) return
+  if (isGM) return
+  const snd  = document.getElementById("endingSound")
+  const bg   = document.getElementById("endSessionBg")
+  const logo = document.getElementById("endSessionLogo")
+  if (!snd || !bg || !logo) return
+  stopAllMusic()
+  setManagedAudioBaseVolume(snd, 1, "music")
+  snd.currentTime = 0
+  snd.play().catch(() => {})
+  setTimeout(() => { bg.style.display = "block"; logo.style.display = "block" }, 3700)
+})
+
 // ─── newGame — signal nouvelle partie ───
 db.ref("game/newGame").on("value", snap => {
   const data = snap.val()
@@ -1815,7 +1838,7 @@ db.ref("game/newGame").on("value", snap => {
   // Réinitialiser l'état local et revenir à l'écran d'intro
   if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
   gameStarted = false
-  window.isNewGame = false
+  window.isNewGame = true
   combatActive = false
   combatStarting = false
   window.__combatOutcomeShowing = false
@@ -3203,12 +3226,11 @@ function changeMap(mapName, customAudio) {
 function giveXP(amount) {
   if (!isGM) return
   ;["greg", "ju", "elo"].forEach(player => {
-    db.ref("characters/" + player + "/xp").once("value", snap => {
-      db.ref("characters/" + player + "/xp").set((parseInt(snap.val()) || 0) + amount)
-    })
+    db.ref("characters/" + player + "/xp").transaction(current => (parseInt(current, 10) || 0) + amount)
   })
   showXPMessage(amount)
   addMJLog("⭐ MJ donne " + amount + " XP au groupe")
+  addSessionLog("⭐ +" + amount + " XP donné au groupe")
   setTimeout(syncBibiLevel, 1000)
 }
 
@@ -4082,6 +4104,107 @@ function resetAllPlayerStats() {
   })
 }
 
+/* ========================= */
+/* JOURNAL DE SESSION        */
+/* ========================= */
+
+function addSessionLog(text) {
+  const t = new Date()
+  const hh = t.getHours().toString().padStart(2,"0")
+  const mm = t.getMinutes().toString().padStart(2,"0")
+  db.ref("game/sessionLog").push({ text: String(text), time: Date.now(), display: hh + ":" + mm })
+}
+
+function openSessionLog() {
+  const panel = document.getElementById("sessionLogPanel")
+  if (!panel) return
+  if (panel.style.display === "flex") { closeSessionLog(); return }
+  panel.style.display = "flex"
+  const content = document.getElementById("sessionLogContent")
+  content.innerHTML = ""
+  db.ref("game/sessionLog").orderByChild("time").limitToLast(80).once("value", snap => {
+    const entries = []
+    snap.forEach(child => entries.unshift(child.val()))
+    entries.forEach(e => {
+      const row = document.createElement("div")
+      row.style.cssText = "font-size:11px;color:#c8d8d0;letter-spacing:0.5px;padding:3px 0;border-bottom:1px solid rgba(30,90,102,0.15);"
+      const ts = document.createElement("span")
+      ts.style.cssText = "color:#1e8a9a;margin-right:8px;font-size:10px;"
+      ts.textContent = "[" + (e.display || "--:--") + "]"
+      const msg = document.createElement("span")
+      msg.textContent = e.text
+      row.appendChild(ts); row.appendChild(msg)
+      content.appendChild(row)
+    })
+    if (!entries.length) { content.innerHTML = '<div style="color:#555;font-size:11px;text-align:center;padding:20px;">Aucune entrée</div>' }
+  })
+  // Mise à jour en temps réel
+  if (panel.__logListener) db.ref("game/sessionLog").off("child_added", panel.__logListener)
+  panel.__logListener = db.ref("game/sessionLog").orderByChild("time").startAt(Date.now()).on("child_added", snap => {
+    const e = snap.val(); if (!e) return
+    const row = document.createElement("div")
+    row.style.cssText = "font-size:11px;color:#c8d8d0;letter-spacing:0.5px;padding:3px 0;border-bottom:1px solid rgba(30,90,102,0.15);"
+    const ts = document.createElement("span"); ts.style.cssText = "color:#1e8a9a;margin-right:8px;font-size:10px;"; ts.textContent = "[" + (e.display || "--:--") + "]"
+    const msg = document.createElement("span"); msg.textContent = e.text
+    row.appendChild(ts); row.appendChild(msg)
+    content.insertBefore(row, content.firstChild)
+    const empty = content.querySelector(".logEmpty"); if (empty) empty.remove()
+  })
+}
+
+function closeSessionLog() {
+  const panel = document.getElementById("sessionLogPanel")
+  if (!panel) return
+  if (panel.__logListener) { db.ref("game/sessionLog").off("child_added", panel.__logListener); panel.__logListener = null }
+  panel.style.display = "none"
+}
+
+function clearSessionLog() {
+  if (!isGM) return
+  if (!confirm("Effacer tout le journal de session ?")) return
+  db.ref("game/sessionLog").remove()
+  const content = document.getElementById("sessionLogContent")
+  if (content) content.innerHTML = '<div class="logEmpty" style="color:#555;font-size:11px;text-align:center;padding:20px;">Aucune entrée</div>'
+}
+
+function startEndSession() {
+  if (!isGM) return
+
+  const snd = document.getElementById("endingSound")
+  const bg  = document.getElementById("endSessionBg")
+  const logo = document.getElementById("endSessionLogo")
+  if (!snd || !bg || !logo) return
+
+  addSessionLog("🌙 Fin de session")
+  db.ref("game/endSession").set({ time: Date.now() })
+
+  // Stopper toute musique en cours
+  stopAllMusic()
+
+  // Lancer ending.mp3 géré par le système audio
+  setManagedAudioBaseVolume(snd, 1, "music")
+  snd.currentTime = 0
+  snd.play().catch(() => {})
+
+  // À 3,7s : afficher end.jpg en transparence + ending.png opaque
+  const trigger = setTimeout(() => {
+    bg.style.display = "block"
+    logo.style.display = "block"
+  }, 3700)
+
+  // Space uniquement pour fermer — aucun clic ni Escape
+  function closeEndSession(e) {
+    if (e.code !== "Space") return
+    e.preventDefault()
+    clearTimeout(trigger)
+    snd.pause(); snd.currentTime = 0
+    bg.style.display = "none"
+    logo.style.display = "none"
+    document.removeEventListener("keydown", closeEndSession)
+  }
+  document.addEventListener("keydown", closeEndSession)
+}
+
 function showIntroLayer() {
   const intro = document.getElementById("intro")
   const introBox = document.getElementById("introBox")
@@ -4225,11 +4348,22 @@ function startIntro() {
     start.style.visibility = "hidden"
     showIntroLayer()
     const music = document.getElementById("music"); music.volume = 0; music.play().catch(() => {})
-    music.__baseVolume = 1
-    music.__audioChannel = "music"
-    const targetVolume = (typeof getUserMusicVolume === "function") ? getUserMusicVolume() : 0.8
-    let v = 0
-    const fade = setInterval(() => { if (v < targetVolume) { v = Math.min(targetVolume, v + 0.05); music.volume = v } else clearInterval(fade) }, 200)
+    if (typeof setManagedAudioBaseVolume === "function") {
+      setManagedAudioBaseVolume(music, 0, "music")
+      const fade = setInterval(() => {
+        const base = parseFloat(music.__baseVolume) || 0
+        if (base < 1) {
+          const newBase = Math.min(1, base + 0.05)
+          music.__baseVolume = newBase
+          music.volume = (typeof getScaledAudioVolume === "function") ? getScaledAudioVolume(newBase, "music") : newBase
+        } else clearInterval(fade)
+      }, 200)
+    } else {
+      music.__baseVolume = 1; music.__audioChannel = "music"
+      const targetVolume = (typeof getUserMusicVolume === "function") ? getUserMusicVolume() : 0.8
+      let v = 0
+      const fade = setInterval(() => { if (v < targetVolume) { v = Math.min(targetVolume, v + 0.05); music.volume = v } else clearInterval(fade) }, 200)
+    }
   }, 2000)
 }
 

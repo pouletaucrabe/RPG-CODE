@@ -1088,8 +1088,14 @@ function resolvePlayerAttack(attack, options = {}) {
     showNotification("Spéciale déjà utilisée dans ce combat.")
     return
   }
-  if (window.__playerAttackResolving) return
+  if (window.__playerAttackResolving) {
+    showNotification("Attaque en cours, patientez...")
+    return
+  }
   window.__playerAttackResolving = true
+  // Sécurité : réinitialise le verrou après 8s si jamais il reste bloqué
+  clearTimeout(window.__playerAttackResolvingTimeout)
+  window.__playerAttackResolvingTimeout = setTimeout(() => { window.__playerAttackResolving = false }, 8000)
   const statKey = getAttackStatKey(attack.stat)
   const diceMax = Math.max(2, parseInt(attack.dice, 10) || 20)
 
@@ -1108,6 +1114,7 @@ function resolvePlayerAttack(attack, options = {}) {
     const statValue = parseInt(data[statKey], 10) || 0
     const roll = Math.floor(Math.random() * diceMax) + 1
     const total = roll + statValue
+    if (typeof addSessionLog === "function") addSessionLog("⚔ " + playerId.toUpperCase() + " — " + attack.name + " (D" + diceMax + " → " + roll + (roll === diceMax ? " CRITIQUE" : roll === 1 ? " ÉCHEC" : "") + ")")
     showDiceAnimation(playerId, diceMax, roll)
 
     setTimeout(() => {
@@ -2328,6 +2335,7 @@ function showRuneBubble(dialogue, letter, rune) { const ex=document.getElementBy
 /* ========================= */
 
 function toggleCurse(level) {
+  if (!isGM) return
   const targetId = currentSheetPlayer || (myToken && myToken.id)
   if (!targetId) return
   const previousLevel = curseLevel
@@ -2364,6 +2372,7 @@ function saveCurse() {
   db.ref("characters/" + targetId + "/curse").set(curseLevel)
 }
 function setCorruption(level) {
+  if (!isGM) return
   const targetId = currentSheetPlayer || (myToken && myToken.id)
   if (!targetId) return
   corruptionLevel = level
@@ -3108,12 +3117,6 @@ function toggleGMShortcutHelp() {
 
 function openAllyPNJPanel() {
   if (!isGM || !combatActive) return
-  // Uniquement en combat de world boss
-  const worldBosses = ["balraug","fenrir","jormungand","kraken","nhiddog","roi","odin","thor","freya"]
-  if (!worldBosses.includes(currentMob)) {
-    showNotification("⚠ Les divinités n'interviennent que lors des combats de World Boss !")
-    return
-  }
   const existing = document.getElementById("allyPNJPanel")
   if (existing) {
     existing.remove()

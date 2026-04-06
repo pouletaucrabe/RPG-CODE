@@ -111,10 +111,19 @@ function showXPMessage(amount) {
 }
 
 function typeWriter(text, element, speed = 60) {
-  element.innerHTML = ""
+  // Cancel any animation already running on this element
+  if (element.__typeWriterTimer) { clearTimeout(element.__typeWriterTimer); element.__typeWriterTimer = null }
+  element.textContent = ""
+  const chars = Array.from(String(text || ""))   // split by Unicode code point, not UTF-16 unit
   let i = 0
   function type() {
-    if (i < text.length) { element.innerHTML += text.charAt(i); i++; setTimeout(type, speed) }
+    if (i < chars.length) {
+      element.textContent += chars[i]
+      i++
+      element.__typeWriterTimer = setTimeout(type, speed)
+    } else {
+      element.__typeWriterTimer = null
+    }
   }
   type()
 }
@@ -666,7 +675,12 @@ function stopMenuSparks() {
 /* BANDEROLE LIEU            */
 /* ========================= */
 
+let __showLocationDebounce = null
 function showLocation(name) {
+  if (__showLocationDebounce) { clearTimeout(__showLocationDebounce); __showLocationDebounce = null }
+  __showLocationDebounce = setTimeout(() => { __showLocationDebounce = null; _showLocationImpl(name) }, 120)
+}
+function _showLocationImpl(name) {
   const banner = document.getElementById("locationBanner")
   const paper  = document.getElementById("locationPaper")
   const text   = document.getElementById("locationText")
