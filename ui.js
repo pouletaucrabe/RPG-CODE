@@ -1147,6 +1147,14 @@ function resolvePlayerAttack(attack, options = {}) {
               statBonus: statValue
             })
             showPlayerAttackImpact(playerId, attack, outcome, { crit, fail, special: isSpecial })
+            if (typeof addCombatLog === "function") {
+              const critTag = crit ? " ✨ CRIT" : fail ? " ☠ ÉCHEC" : ""
+              addCombatLog(
+                playerId.toUpperCase() + " — " + attack.name +
+                " (D" + diceMax + ": " + roll + critTag + ")" +
+                " → +" + outcome.amount + " PV à " + targetId.toUpperCase()
+              )
+            }
             if (typeof advanceCombatTurn === "function") advanceCombatTurn()
             window.__playerAttackResolving = false
           }, () => {
@@ -1326,8 +1334,14 @@ function resolvePlayerAttack(attack, options = {}) {
             multiplier
           })
           showPlayerAttackImpact(playerId, attack, outcome, { crit, fail, special: isSpecial })
-          if (typeof addMJLog === "function") {
-            addMJLog(playerId.toUpperCase() + " — " + attack.name + " → " + String(mob.name || "MOB").toUpperCase() + " : -" + damage + " HP")
+          if (typeof addCombatLog === "function") {
+            const statLabel = String(attack.stat || "").toUpperCase()
+            const critTag = crit ? " ✨ CRIT" : fail ? " ☠ ÉCHEC" : ""
+            addCombatLog(
+              playerId.toUpperCase() + " — " + attack.name +
+              " (D" + diceMax + ": " + roll + " + " + statLabel + " " + statValue + " = " + total + ")" + critTag +
+              " → -" + damage + " PV à " + String(mob.name || "MOB").toUpperCase()
+            )
           }
           if (isSpecial) markPlayerCombatSpecialUsed(playerId)
           showCombatHUD()

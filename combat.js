@@ -178,11 +178,11 @@ function advanceCombatTurn() {
     nextRound += 1
   }
   const nextActor = order[nextIndex] ? order[nextIndex].id : ""
-  db.ref("combat/turnState").update({
-    currentIndex: nextIndex,
-    currentActorId: nextActor,
-    round: nextRound
-  })
+  const updates = {}
+  updates["combat/turnState/currentIndex"]   = nextIndex
+  updates["combat/turnState/currentActorId"] = nextActor
+  updates["combat/turnState/round"]          = nextRound
+  db.ref("/").update(updates)
 }
 
 function closeCombatInitiativeOverlay() {

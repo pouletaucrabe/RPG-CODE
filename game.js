@@ -1845,13 +1845,7 @@ db.ref("game/newGame").on("value", snap => {
   const data = snap.val()
   if (!data || !data.time) return
   if (isGM) return  // le MJ gère lui-même
-  if (!gameStarted) {
-    // Joueur sur l'écran d'intro — flaguer pour cinématique si signal récent et pas déjà vu
-    const seenKey = "rpg_seen_newgame_" + data.time
-    const alreadySeen = localStorage.getItem(seenKey) === "1"
-    if (!alreadySeen && Date.now() - data.time < 30 * 60 * 1000) window.isNewGame = true
-    return
-  }
+  if (!gameStarted) return
   // Réinitialiser l'état local et revenir à l'écran d'intro
   if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
   gameStarted = false
@@ -4306,14 +4300,24 @@ function startGame() {
     calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
   })
   setTimeout(() => {
-    if (window.isNewGame) {
-      window.isNewGame = false
-      // Marquer ce signal comme vu pour ne pas rejouer la cinématique au prochain refresh
-      db.ref("game/newGame").once("value", s => {
-        const d = s.val(); if (d && d.time) { try { localStorage.setItem("rpg_seen_newgame_" + d.time, "1") } catch(e) {} }
+    if (isGM) {
+      // MJ : cinématique si newGame() vient d'être appelé
+      if (window.isNewGame) { window.isNewGame = false; playOpeningCinematic(startDialogue) }
+      else showTavern()
+    } else {
+      // Joueur : lire Firebase directement pour éviter la race condition auth
+      db.ref("game/newGame").once("value", snap => {
+        const d = snap.val()
+        const seenKey = d && d.time ? "rpg_seen_newgame_" + d.time : null
+        const isNew = seenKey && !localStorage.getItem(seenKey) && Date.now() - d.time < 30 * 60 * 1000
+        if (isNew) {
+          try { localStorage.setItem(seenKey, "1") } catch(e) {}
+          playOpeningCinematic(startDialogue)
+        } else {
+          showTavern()
+        }
       })
-      playOpeningCinematic(startDialogue)
-    } else showTavern()
+    }
   }, 1500)
 }
 

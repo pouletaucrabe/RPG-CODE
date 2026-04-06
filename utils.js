@@ -84,6 +84,25 @@ function addMJLog(text) {
   log.prepend(entry)
 }
 
+function addCombatLog(text) {
+  const content = document.getElementById("diceLogContent")
+  if (!content) return
+  const entry = document.createElement("div")
+  entry.className = "logEntry logCombat"
+  entry.innerText = text
+  content.prepend(entry)
+  addMJLog(text)
+  while (content.children.length > 30) content.removeChild(content.lastChild)
+  // Auto-expand dice log panel during combat
+  if (content.style.display === "none") {
+    const btn = document.getElementById("diceLogToggle")
+    const log = document.getElementById("diceLog")
+    content.style.display = "block"
+    if (btn) btn.innerText = "▼"
+    if (log) log.style.maxHeight = "260px"
+  }
+}
+
 function addDiceLog(player, dice, result) {
   const log = document.getElementById("diceLog")
   const content = document.getElementById("diceLogContent") || log

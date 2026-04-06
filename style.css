@@ -1499,6 +1499,7 @@ html, body {
 .logMJ { color: var(--gold); }
 .logCrit { color: var(--gold); text-shadow: 0 0 8px gold; }
 .logFail { color: #ff5050; text-shadow: 0 0 8px red; }
+.logCombat { color: #c8e8ff; font-size: 11px; letter-spacing: 0.2px; }
 
 .mjEntry--combat {
   display: flex;
