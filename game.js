@@ -1836,7 +1836,11 @@ db.ref("game/newGame").on("value", snap => {
   const data = snap.val()
   if (!data || !data.time) return
   if (isGM) return  // le MJ gère lui-même
-  if (!gameStarted) return  // pas encore en jeu
+  if (!gameStarted) {
+    // Joueur sur l'écran d'intro — flaguer pour cinématique si signal récent (< 30 min)
+    if (Date.now() - data.time < 30 * 60 * 1000) window.isNewGame = true
+    return
+  }
   // Réinitialiser l'état local et revenir à l'écran d'intro
   if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
   gameStarted = false
