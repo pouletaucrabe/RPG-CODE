@@ -1818,6 +1818,7 @@ db.ref("game/endSession").on("value", snap => {
   const data = snap.val()
   if (!data || !data.time) return
   if (isGM) return
+  if (!gameStarted) return                              // pas encore en jeu → ignorer
   if (Date.now() - data.time > 5 * 60 * 1000) return  // signal > 5 min → ignorer
   const snd  = document.getElementById("endingSound")
   const bg   = document.getElementById("endSessionBg")
@@ -3643,7 +3644,8 @@ function newGame() {
       { label: "game/map", promise: db.ref("game/map").set("taverne.jpg") },
       { label: "game/groupMadness", promise: db.ref("game/groupMadness").set(0) },
       { label: "game/worldMapFogTopLeftHidden", promise: db.ref("game/worldMapFogTopLeftHidden").set(false) },
-      { label: "game/newGame", promise: db.ref("game/newGame").set({ time: Date.now() }) }
+      { label: "game/newGame", promise: db.ref("game/newGame").set({ time: Date.now() }) },
+      { label: "game/endSession", promise: db.ref("game/endSession").remove() }
     ]
 
     Object.keys(initChars).forEach(pid => {
