@@ -2022,6 +2022,12 @@ function showMobSpecialAttackEvent(data) {
         glow: "rgba(143,209,255,0.55)",
         bg: "radial-gradient(circle at center,rgba(26,52,98,0.86) 0%,rgba(8,18,42,0.94) 55%,rgba(2,6,18,0.99) 100%)"
       }
+    : scene === "loup"
+    ? {
+        accent: "#a8c8f0",
+        glow: "rgba(140,190,240,0.6)",
+        bg: "radial-gradient(circle at 50% 40%,rgba(12,22,44,0.96) 0%,rgba(6,12,26,0.98) 55%,rgba(2,5,12,1) 100%)"
+      }
     : baseStyle
   const overlay = document.createElement("div")
   overlay.className = "mobSpecialOverlay" + (scene ? " mobSpecialOverlay--" + scene : "")
@@ -2116,6 +2122,15 @@ function showMobSpecialAttackEvent(data) {
     const fissure = document.createElement("div")
     fissure.className = "mobSpecialFissure"
     stage.appendChild(fissure)
+  }
+
+  if (scene === "loup") {
+    const moonWash = document.createElement("div")
+    moonWash.className = "mobSpecialMoonWash"
+    overlay.appendChild(moonWash)
+    const moonDisc = document.createElement("div")
+    moonDisc.className = "mobSpecialMoonDisc"
+    overlay.appendChild(moonDisc)
   }
 
   if (!["vampire", "melenchon", "ogre", "pretre"].includes(scene)) {
@@ -4487,7 +4502,6 @@ function enterPlayerPreview(playerId) {
 
   // UI MJ combat (pas des gmSection)
   const gdp = document.getElementById("gmDamagePanel"); if (gdp) gdp.style.display = "none"
-  const gcp = document.getElementById("gmCombatPanel"); if (gcp) gcp.style.display = "none"
 
   // Bandeau
   const banner = document.getElementById("playerPreviewBanner")
@@ -4530,7 +4544,6 @@ function exitPlayerPreview() {
   // UI MJ combat
   if (combatActive || gameState === "COMBAT") {
     const gdp = document.getElementById("gmDamagePanel"); if (gdp) gdp.style.display = "block"
-    const gcp = document.getElementById("gmCombatPanel"); if (gcp) gcp.style.display = "flex"
   }
 
   // Token sélectionné

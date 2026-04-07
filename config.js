@@ -534,7 +534,11 @@ function getMobAttacksForMob(mobName, mobTier) {
 
 const mobWeaknesses = {
   gobelins:          { title:"Peur du feu", text:"Cèdent vite face aux flammes, à l'intimidation et aux démonstrations de puissance." },
-  loup:              { title:"Flancs exposés", text:"Détestent les attaques latérales et les bruits soudains qui cassent leur élan." },
+  loup: [
+    { title:"Gooner",              text:"Un regard trop insistant ou une posture trop attrayante le paralyse complètement." },
+    { title:"Hurle à la lune",     text:"Quand la lune est couverte ou qu'on détourne son attention du ciel, son élan s'effondre." },
+    { title:"Peur des chasseurs",  text:"Le moindre geste ou odeur de chasseur aguerri déclenche une fuite instinctive." }
+  ],
   draugr: [
     { title:"Allergie à la poussière", text:"La poussière qu'il traîne depuis des siècles finit par devenir un vrai problème." },
     { title:"Peur des Thu'um", text:"Le simple écho d'un cri nordique bien placé fait vibrer ses vieux os." },
@@ -621,6 +625,22 @@ const mobWeaknesses = {
   "greg pion":       { title:"Fragile", text:"Une vraie pression suffit à l'écarter." }
 }
 
+/**
+ * DA par mob — couleur accent + tint de fond.
+ * Chaque mob qui a une entrée ici reçoit une classe CSS `mobPanel--{key}`
+ * sur son sous-panel de combat pour appliquer la direction artistique.
+ * Les mobs sans entrée conservent le style par défaut (rouge sombre).
+ */
+const mobThemes = {
+  loup:      { key: "loup" },
+  // à compléter mob par mob
+}
+
+function getMobTheme(mobName) {
+  const key = String(mobName || "").toLowerCase()
+  return mobThemes[key] || null
+}
+
 function getMobWeakness(mobName, mobTier = "weak") {
   const key = String(mobName || "").toLowerCase()
   const weakness = mobWeaknesses[key]
@@ -669,6 +689,16 @@ function getMobWeakness(mobName, mobTier = "weak") {
 }
 
 const mobSpecialPresentations = {
+  loup: {
+    scene: "loup",
+    sound: "loup.mp3",
+    soundVolume: 0.72,
+    kicker: "Meute unie",
+    emphasis: "howl",
+    particles: [],
+    image: "loupspé.jpg",
+    quoteFrame: "cadre.png"
+  },
   vampire: {
     scene: "vampire",
     sound: "vampire spé.mp3",

@@ -1485,29 +1485,6 @@ function togglePlayerAttacks() {
   }
 }
 
-function showGMCombatPanel() {
-  if (!isGM) return
-  if (window.__gmMiniRefs) Object.keys(window.__gmMiniRefs).forEach(cleanupGMPlayerSheetListener)
-  const panel = document.getElementById("gmCombatPanel"); panel.innerHTML = ""
-  ;[{ id:"elo",name:"ELO" }, { id:"ju",name:"YU" }, { id:"greg",name:"GREG" }].forEach(p => {
-    const row = document.createElement("div")
-    row.className = "gmCombatRow"
-
-    const btn = document.createElement("button"); btn.className = "gmAttackButton"; btn.innerText = p.name
-    btn.onclick = () => openGMPlayerSheet(p.id)
-    row.appendChild(btn)
-
-    const testBtn = document.createElement("button")
-    testBtn.className = "gmPlayerTestBtn"
-    testBtn.dataset.playerId = p.id
-    testBtn.innerText = "Test HUD"
-    testBtn.onclick = () => setCombatPreviewPlayer(p.id)
-    row.appendChild(testBtn)
-
-    panel.appendChild(row)
-  })
-  panel.style.display = "flex"
-}
 
 function openGMPlayerSheet(playerID) {
   const panel = document.getElementById("gmCombatPanel")

@@ -620,7 +620,7 @@ function _startCombatSequence(mob, tierMob) {
             }
           })
 
-          showGMCombatPanel()
+
           loadPlayerCombatStats()
           if (isGM) {
             document.getElementById("gmDamagePanel").style.display = "block"
