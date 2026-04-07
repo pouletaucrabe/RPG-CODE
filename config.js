@@ -469,14 +469,14 @@ const mobSpecialAnimations = {
 }
 
 const mobSpecialAttacks = {
-  gobelins: { name:"Vol de mollets", icon:"🗡", dmgMin:7, dmgMax:12, effect:null, animation:"tavern", flavor:"Les gobelins se jettent en escadrille sur les tibias." },
+  gobelins: { name:"Les sournoiseries du gobelin", icon:"💣", dmgMin:7, dmgMax:12, effect:null, animation:"tavern", flavor:"Une pluie de bombes artisanales mal fabriquées, mais avec enthousiasme." },
   loup: { name:"Hurlement de meute", icon:"🐺", dmgMin:8, dmgMax:14, effect:null, animation:"howl", flavor:"Un hurlement glacial annonce la morsure coordonnée." },
   draugr: { name:"WHAAAAAA", icon:"🪦", dmgMin:10, dmgMax:17, effect:"curse", animation:"spectral", flavor:"Le draugr s'exprime dans la langue des Dieux." },
   fantome: { name:"Traversée du linceul", icon:"👻", dmgMin:8, dmgMax:13, effect:null, animation:"spectral", flavor:"Le froid passe à travers l'armure et les excuses." },
   vampire: { name:"La vie en oah oah", icon:"🩸", dmgMin:12, dmgMax:20, effect:"curse", animation:"bloodmoon", flavor:"Si si je vous promets que je suis une dangereuse créature." },
   witch: { name:"Défier la gravité", icon:"🧪", dmgMin:11, dmgMax:18, effect:"curse", animation:"arcane", flavor:"Regardez à l'Ouest.", },
   garde: { name:"J'ai pris une flèche dans le genou", icon:"🛡", dmgMin:10, dmgMax:16, effect:null, animation:"stone", flavor:"Le garde raconte encore son histoire, mais avec beaucoup plus d'impact." },
-  bandit: { name:"Embuscade sale", icon:"🪓", dmgMin:8, dmgMax:15, effect:null, animation:"tavern", flavor:"Un coup bas, mal annoncé, mais très appliqué." },
+  bandit: { name:"Tres tres vilain", icon:"🪓", dmgMin:8, dmgMax:15, effect:null, animation:"tavern", flavor:"Un coup bas, mal annoncé, mais très appliqué." },
   ogre: { name:"It's all ogre now", icon:"🌳", dmgMin:14, dmgMax:22, effect:null, animation:"stone", flavor:"L'ogre prononce sa catchphrase et tout le monde regrette d'être venu." },
   dragon: { name:"Thu'um draconique", icon:"🐉", dmgMin:16, dmgMax:26, effect:"all", animation:"fire", flavor:"Ne soyez pas si arrogants, humanoïdes." },
   liquorice: { name:"Réglisse cosmique", icon:"🍬", dmgMin:12, dmgMax:18, effect:null, animation:"arcane", flavor:"Une douceur démoniaque dont le goût reste une semaine dans l'âme." },
@@ -533,7 +533,11 @@ function getMobAttacksForMob(mobName, mobTier) {
 }
 
 const mobWeaknesses = {
-  gobelins:          { title:"Peur du feu", text:"Cèdent vite face aux flammes, à l'intimidation et aux démonstrations de puissance." },
+  gobelins: [
+    { title:"Peur de se faire voler", text:"La menace de perdre ses biens ou son butin le paralyse instantanément." },
+    { title:"Achetable",              text:"Une pièce d'or bien placée suffit à retourner sa loyauté sans crier gare." },
+    { title:"Dragueur",               text:"Un regard ou un compliment appuyé détourne son attention plus sûrement qu'une attaque." }
+  ],
   loup: [
     { title:"Gooner",              text:"Un regard trop insistant ou une posture trop attrayante le paralyse complètement." },
     { title:"Hurle à la lune",     text:"Quand la lune est couverte ou qu'on détourne son attention du ciel, son élan s'effondre." },
@@ -556,7 +560,11 @@ const mobWeaknesses = {
     { title:"Blessure d'orgueil", text:"Les moqueries et le ridicule public réveillent tout ce qu'elle essaie de dominer." }
   ],
   garde:             { title:"Discipline rigide", text:"Supporte mal les feintes et les attaques qui contournent sa garde." },
-  bandit:            { title:"Lâcheté", text:"Recule vite face aux gros dégâts, aux cris d'autorité et aux ripostes nettes." },
+  bandit: [
+    { title:"Paperasse",  text:"La simple mention d'un formulaire de déclaration de vol le paralyse. Il aurait dû régulariser sa situation." },
+    { title:"Autographe", text:"Lui demander un autographe le désarme complètement — il a toujours rêvé d'être célèbre." },
+    { title:"Reçu",       text:"Exiger un reçu pour le vol en cours le plonge dans une crise administrative dont il ne se remet pas." }
+  ],
   ogre: [
     { title:"Effrayé par les petites personnes", text:"Les petites silhouettes trop sûres d'elles troublent profondément sa logique d'ogre." },
     { title:"Ne résiste pas à un oignon", text:"Un simple oignon détourne instantanément toute sa concentration." },
@@ -689,6 +697,25 @@ function getMobWeakness(mobName, mobTier = "weak") {
 }
 
 const mobSpecialPresentations = {
+  bandit: {
+    scene: "bandit",
+    sound: "bandit.mp3",
+    soundVolume: 0.68,
+    kicker: "Coupe gorge",
+    emphasis: "sneak",
+    particles: [],
+    quoteFrame: "cadre.png",
+    slideImages: ["banditspé.jpg","banditspé1.jpg","banditspé2.jpg","banditspé3.jpg"]
+  },
+  gobelins: {
+    scene: "gobelins",
+    sound: "gobelinspé.mp3",
+    soundVolume: 0.7,
+    kicker: "Pluie de ferraille",
+    emphasis: "chaos",
+    particles: [],
+    quoteFrame: "cadre.png"
+  },
   loup: {
     scene: "loup",
     sound: "loup.mp3",

@@ -2028,6 +2028,18 @@ function showMobSpecialAttackEvent(data) {
         glow: "rgba(140,190,240,0.6)",
         bg: "radial-gradient(circle at 50% 40%,rgba(12,22,44,0.96) 0%,rgba(6,12,26,0.98) 55%,rgba(2,5,12,1) 100%)"
       }
+    : scene === "gobelins"
+    ? {
+        accent: "#b8e060",
+        glow: "rgba(140,200,60,0.55)",
+        bg: "radial-gradient(circle at center,rgba(18,30,8,0.96) 0%,rgba(5,12,2,0.98) 60%,rgba(2,6,1,1) 100%)"
+      }
+    : scene === "bandit"
+    ? {
+        accent: "#c8a060",
+        glow: "rgba(180,130,60,0.55)",
+        bg: "radial-gradient(circle at center,rgba(14,10,4,0.97) 0%,rgba(4,3,1,0.99) 55%,rgba(0,0,0,1) 100%)"
+      }
     : baseStyle
   const overlay = document.createElement("div")
   overlay.className = "mobSpecialOverlay" + (scene ? " mobSpecialOverlay--" + scene : "")
@@ -2133,6 +2145,69 @@ function showMobSpecialAttackEvent(data) {
     overlay.appendChild(moonDisc)
   }
 
+  if (scene === "bandit" && presentation && Array.isArray(presentation.slideImages) && presentation.slideImages.length) {
+    // Positions éparpillées : [left%, top%, rotation]
+    const positions = [
+      [10,  6,  -6],
+      [62, 4,   5],
+      [12,  50, -4],
+      [64, 48,  7]
+    ]
+    presentation.slideImages.forEach((src, i) => {
+      const [l, t, r] = positions[i] || [10 + i * 22, 10 + i * 18, 0]
+      const wrap = document.createElement("div")
+      wrap.style.cssText = "position:absolute;left:" + l + "%;top:" + t + "%;transform:rotate(" + r + "deg);z-index:0;pointer-events:none;"
+      const img = document.createElement("img")
+      img.className = "mobSpecialBanditImg"
+      img.alt = ""
+      img.src = (typeof resolveImagePath === "function") ? resolveImagePath(src) : "images/" + src
+      img.style.animationDelay = (i * 0.1) + "s"
+      wrap.appendChild(img)
+      overlay.appendChild(wrap)
+    })
+  }
+
+  if (scene === "gobelins") {
+    const bombXs = [18, 46, 72]
+    bombXs.forEach((xPct, i) => {
+      const bomb = document.createElement("img")
+      bomb.className = "mobSpecialBomb"
+      bomb.src = "images/bombe.png"
+      bomb.alt = ""
+      bomb.onerror = () => bomb.style.display = "none"
+      bomb.style.left = xPct + "%"
+      bomb.style.animationDelay = (i * 0.3) + "s"
+      overlay.appendChild(bomb)
+
+      const expl = document.createElement("div")
+      expl.className = "mobSpecialExplosion"
+      expl.style.left = xPct + "%"
+      expl.style.animationDelay = (0.48 + i * 0.3) + "s"
+      overlay.appendChild(expl)
+
+      // Fumée principale
+      const smoke = document.createElement("div")
+      smoke.className = "mobSpecialSmoke"
+      smoke.style.left = xPct + "%"
+      smoke.style.animationDelay = (0.62 + i * 0.3) + "s"
+      overlay.appendChild(smoke)
+
+      // 2e nuage plus large
+      const smoke2 = document.createElement("div")
+      smoke2.className = "mobSpecialSmoke mobSpecialSmoke--wide"
+      smoke2.style.left = xPct + "%"
+      smoke2.style.animationDelay = (0.74 + i * 0.3) + "s"
+      overlay.appendChild(smoke2)
+
+      // Son bombe au moment de l'impact
+      setTimeout(() => {
+        const bSnd = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("bombe.mp3") : "audio/bombe.mp3")
+        if (typeof setManagedAudioBaseVolume === "function") setManagedAudioBaseVolume(bSnd, 0.68)
+        bSnd.play().catch(() => {})
+      }, 480 + i * 300)
+    })
+  }
+
   if (!["vampire", "melenchon", "ogre", "pretre"].includes(scene)) {
     const icon = document.createElement("div")
     icon.style.cssText = "position:relative;z-index:2;font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
@@ -2211,19 +2286,29 @@ function showMobSpecialAttackEvent(data) {
   setTimeout(() => screenShake(), 310)
   setTimeout(() => screenShakeHard(), 520)
   setTimeout(() => screenShake(), 760)
+  if (scene === "gobelins") {
+    setTimeout(() => screenShakeHard(), 480)
+    setTimeout(() => screenShakeHard(), 780)
+    setTimeout(() => screenShakeHard(), 1080)
+  }
   setTimeout(() => {
     overlay.style.opacity = "0"
     setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 450)
     db.ref("game/mobAttackEvent").remove()
   }, 6000)
   screenShakeHard()
-  if (!scene || ["draugr", "ogre", "melenchon", "balraug", "dragon"].includes(scene)) screenShakeHard()
+  if (!scene || ["draugr", "ogre", "melenchon", "balraug", "dragon", "gobelins"].includes(scene)) screenShakeHard()
 }
 
 // ─── mobAttackEvent ───
 db.ref("game/mobAttackEvent").on("value", snap => {
   const data = snap.val()
   if (!data) return
+  // Ignorer données résiduelles d'une session précédente (> 8s)
+  if (!data.time || Date.now() - data.time > 8000) {
+    db.ref("game/mobAttackEvent").remove()
+    return
+  }
   if (data.special) {
     showMobSpecialAttackEvent(data)
     return
@@ -2445,6 +2530,8 @@ db.ref("game/combatOutcome").on("value", snap => {
   }
 
   if (data.type === "defeat") {
+    // Ignorer un outcome trop vieux (données résiduelles)
+    if (data.time && Date.now() - data.time > 15000) return
     const localId = getLocalPlayerId()
     if (!localId) return
     if (data.player && String(data.player).toLowerCase() !== localId) return
@@ -4063,12 +4150,14 @@ function refreshActivePNJs() {
       break
     case "GAME":
       document.getElementById("camera").style.display = "block"
+      document.body.classList.remove("in-combat")
       // Ne montrer le menu de sélection que si le joueur n'a pas encore choisi
       if (!myToken) document.getElementById("playerSelect").style.display = "block"
       setTimeout(updateThuumButton, 500)
       setTimeout(refreshActivePNJs, 150)
       break
     case "COMBAT":
+      document.body.classList.add("in-combat")
       setTimeout(refreshActivePNJs, 150)
       break
     }

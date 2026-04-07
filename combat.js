@@ -906,8 +906,8 @@ function endCombat() {
     if (token && map) { map.appendChild(token); token.style.position = "absolute" }
   })
 
-  document.getElementById("gmCombatPanel").style.display  = "none"
-  document.getElementById("gmDamagePanel").style.display  = "none"
+  const gcp = document.getElementById("gmCombatPanel"); if (gcp) gcp.style.display = "none"
+  const gdp = document.getElementById("gmDamagePanel"); if (gdp) gdp.style.display = "none"
   stopBossFireEffect()
 
   const atkPanel = document.getElementById("mobAttackPanel"); if (atkPanel) atkPanel.remove()
@@ -921,12 +921,11 @@ function endCombat() {
   const allyViewer = document.getElementById("allyViewerPanel"); if (allyViewer) allyViewer.remove()
   const ab = document.getElementById("addMobButtons"); if (ab) { ab.innerHTML = ""; delete ab.dataset.built }
 
-  const arena = document.getElementById("combatArena")
-  arena.style.display = "none"; arena.style.position = "relative"; arena.style.width = ""; arena.style.height = ""
-  document.getElementById("combatGrid").style.display   = "none"
-  document.getElementById("combatFilter").style.display = "none"
-  document.getElementById("mobD12").style.display       = "none"
-  document.getElementById("mobD20").style.display       = "none"
+  const arena = document.getElementById("combatArena"); if (arena) { arena.style.display = "none"; arena.style.position = "relative"; arena.style.width = ""; arena.style.height = "" }
+  const cg = document.getElementById("combatGrid"); if (cg) cg.style.display = "none"
+  const cf = document.getElementById("combatFilter"); if (cf) cf.style.display = "none"
+  const md12 = document.getElementById("mobD12"); if (md12) md12.style.display = "none"
+  const md20 = document.getElementById("mobD20"); if (md20) md20.style.display = "none"
   closeCombatInitiativeOverlay()
   const initiativeToggle = document.getElementById("combatInitiativeToggle"); if (initiativeToggle) initiativeToggle.remove()
   window.__combatInitiativeHidden = false
