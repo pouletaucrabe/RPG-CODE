@@ -2855,11 +2855,18 @@ db.ref("game/thuumCast").on("value", snap => {
   playThuumCastEffect(data)
 })
 
-// ─── allyAction — PNJ allié en combat ───
+// ─── allyBroadcast — cinématique invocation alliée (visible par tous) ───
+db.ref("combat/allyBroadcast").on("value", snap => {
+  const data = snap.val()
+  if (!data) return
+  if (typeof showAllyActionResult === "function") showAllyActionResult(data)
+})
+
+// ─── allyAction — PNJ allié en combat (legacy, gardé pour compatibilité) ───
 db.ref("game/allyAction").on("value", snap => {
   const data = snap.val()
   if (!data) return
-  showAllyActionResult(data)
+  if (typeof showAllyActionResult === "function") showAllyActionResult(data)
 })
 
 // ─── mapAudio — musique spécifique à la map ───

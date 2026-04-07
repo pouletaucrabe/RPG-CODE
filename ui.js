@@ -3286,7 +3286,23 @@ function _executeAllyAction(pnj, action, targetId, panel) {
   db.ref("combat/usedAllies/"+action.id).set(true)
   db.ref("game/playerAllyAccess").remove()
   if (panel) panel.remove()
-  _allyInvocationCinematic(pnj, action, targetId)
+  // Broadcast à tous les clients via Firebase
+  db.ref("combat/allyBroadcast").set({
+    pnjId: pnj.id,
+    actionId: action.id,
+    targetId: targetId || null,
+    time: Date.now()
+  })
+}
+
+function showAllyActionResult(data) {
+  if (!data || !data.pnjId || !data.actionId) return
+  if (Date.now() - (data.time || 0) > 30000) return // Ignorer les événements trop anciens
+  const pnj = (typeof ALLY_PNJS !== "undefined" ? ALLY_PNJS : []).find(p => p.id === data.pnjId)
+  if (!pnj) return
+  const action = (pnj.actions || []).find(a => a.id === data.actionId)
+  if (!action) return
+  _allyInvocationCinematic(pnj, action, data.targetId || null)
 }
 
 function _allyInvocationCinematic(pnj, action, targetId) {
@@ -3459,6 +3475,7 @@ function _applyAllyResult(pnj, action, roll, targetId) {
     db.ref("game/storyImage").remove()
     db.ref("game/highPNJName").remove()
     db.ref("game/allyAction").remove()
+    db.ref("combat/allyBroadcast").remove()
   }, 7000)
 }
 

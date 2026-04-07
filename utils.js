@@ -84,10 +84,12 @@ function addMJLog(text) {
   log.prepend(entry)
 }
 
-function pushCombatHit(from, to, amount, type) {
+function pushCombatHit(from, to, amount, type, detail) {
   const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
   const round = turnState ? (parseInt(turnState.round, 10) || 1) : 1
-  db.ref("combat/hits").push({ from, to, amount: parseInt(amount, 10) || 0, type, round, time: Date.now() })
+  const entry = { from, to, amount: parseInt(amount, 10) || 0, type, round, time: Date.now() }
+  if (detail) entry.detail = String(detail)
+  db.ref("combat/hits").push(entry)
 }
 
 function addCombatLog(text) {

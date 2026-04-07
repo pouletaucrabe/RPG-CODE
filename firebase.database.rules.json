@@ -93,6 +93,7 @@
         }
       },
       "eloSummon": { ".write": "auth != null" },
+      "allyBroadcast": { ".write": "auth != null" },
       "hits": {
         "$hitId": {
           ".write": "auth != null",

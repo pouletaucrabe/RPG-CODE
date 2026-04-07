@@ -932,6 +932,7 @@ function endCombat() {
     ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
     db.ref("combat/eloSummon").remove()
     db.ref("combat/hits").remove()
+    db.ref("combat/allyBroadcast").remove()
     db.ref("combat/mob/playerPoison").remove()
     db.ref("combat/mob/playerBleed").remove()
     db.ref("combat/mob/bibiRage").remove()
