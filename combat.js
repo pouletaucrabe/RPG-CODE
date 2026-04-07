@@ -883,6 +883,7 @@ function showDefeat() {
   fadeMusicOut(() => {})
 
   const screen = document.getElementById("defeatScreen")
+  if (!screen) { console.error("defeatScreen element not found"); return }
   screen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;opacity:1;"
   document.body.appendChild(screen)
   flashRed(); screenShakeHard()

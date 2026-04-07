@@ -475,12 +475,12 @@ const mobSpecialAttacks = {
   fantome: { name:"Traversée du linceul", icon:"👻", dmgMin:8, dmgMax:13, effect:null, animation:"spectral", flavor:"Le froid passe à travers l'armure et les excuses." },
   vampire: { name:"La vie en oah oah", icon:"🩸", dmgMin:12, dmgMax:20, effect:"curse", animation:"bloodmoon", flavor:"Si si je vous promets que je suis une dangereuse créature." },
   witch: { name:"Défier la gravité", icon:"🧪", dmgMin:11, dmgMax:18, effect:"curse", animation:"arcane", flavor:"Regardez à l'Ouest.", },
-  garde: { name:"J'ai pris une flèche dans le genou", icon:"🛡", dmgMin:10, dmgMax:16, effect:null, animation:"stone", flavor:"Le garde raconte encore son histoire, mais avec beaucoup plus d'impact." },
+  garde: { name:"J'ai pris une flèche dans le genou", icon:"🛡", dmgMin:10, dmgMax:16, effect:null, animation:"stone", flavor:"Le garde raconte son histoire et la pitié vous envahie." },
   bandit: { name:"Tres tres vilain", icon:"🪓", dmgMin:8, dmgMax:15, effect:null, animation:"tavern", flavor:"Un coup bas, mal annoncé, mais très appliqué." },
   ogre: { name:"It's all ogre now", icon:"🌳", dmgMin:14, dmgMax:22, effect:null, animation:"stone", flavor:"L'ogre prononce sa catchphrase et tout le monde regrette d'être venu." },
   dragon: { name:"Thu'um draconique", icon:"🐉", dmgMin:16, dmgMax:26, effect:"all", animation:"fire", flavor:"Ne soyez pas si arrogants, humanoïdes." },
-  liquorice: { name:"Réglisse cosmique", icon:"🍬", dmgMin:12, dmgMax:18, effect:null, animation:"arcane", flavor:"Une douceur démoniaque dont le goût reste une semaine dans l'âme." },
-  valkyrie: { name:"Sentence d'Asgard", icon:"🪽", dmgMin:14, dmgMax:22, effect:null, animation:"divine", flavor:"La lance descend comme un verdict déjà signé." },
+  liquorice: { name:"Bonbon piégé", icon:"🍬", dmgMin:12, dmgMax:18, effect:null, animation:"arcane", flavor:"Quiconque ose y goûter s'assèche instantanément." },
+  valkyrie: { name:"Chute de lance", icon:"🪽", dmgMin:14, dmgMax:22, effect:null, animation:"divine", flavor:"La lance traverse le ciel comme un verdict déjà signé." },
   golem: { name:"Écrasement tectonique", icon:"🪨", dmgMin:15, dmgMax:24, effect:null, animation:"stone", flavor:"Le sol oublie sa fonction de sol." },
   pretre: { name:"Mon cierge est allumé, la cire prête à couler", icon:"📿", dmgMin:16, dmgMax:24, effect:"curse", animation:"divine", flavor:"Le sermon dérape immédiatement vers quelque chose de très peu canonique." },
   fenrir: { name:"Mâchoire du crépuscule", icon:"🌘", dmgMin:16, dmgMax:25, effect:null, animation:"howl", flavor:"Fenrir choisit une cible comme on choisit la fin du monde." },
@@ -559,7 +559,11 @@ const mobWeaknesses = {
     { title:"Cause animale", text:"Dès qu'on évoque des bêtes maltraitées, sa colère brouille sa magie." },
     { title:"Blessure d'orgueil", text:"Les moqueries et le ridicule public réveillent tout ce qu'elle essaie de dominer." }
   ],
-  garde:             { title:"Discipline rigide", text:"Supporte mal les feintes et les attaques qui contournent sa garde." },
+  garde: [
+    { title:"Vision rognée par son casque", text:"Son champ de vision réduit le rend aveugle sur les côtés — un simple pas de côté suffit à le dérouter." },
+    { title:"Peur des dragons",             text:"La simple évocation d'un dragon le fait reculer d'un pas. Personne ne lui a dit qu'il n'y en avait pas ici." },
+    { title:"Aime la politique",            text:"Lancez un débat sur la gouvernance du royaume — il oubliera immédiatement pourquoi il était là." }
+  ],
   bandit: [
     { title:"Paperasse",  text:"La simple mention d'un formulaire de déclaration de vol le paralyse. Il aurait dû régulariser sa situation." },
     { title:"Autographe", text:"Lui demander un autographe le désarme complètement — il a toujours rêvé d'être célèbre." },
@@ -575,8 +579,16 @@ const mobWeaknesses = {
     { title:"Voleurs de trésors", text:"La simple idée qu'on touche à son butin suffit à lui faire perdre son calme." },
     { title:"Ventre mou", text:"Sous toute cette majesté écailleuse, il reste une zone bien moins glorieuse à protéger." }
   ],
-  liquorice:         { title:"Chaleur sèche", text:"Fond moralement et physiquement face au feu franc." },
-  valkyrie:          { title:"Orgueil martial", text:"Aime les duels nobles, mais déteste les pièges et les attaques sales." },
+  liquorice: [
+    { title:"L'eau",                         text:"Un simple verre d'eau suffit à dissoudre sa confiance en lui." },
+    { title:"Les amateurs de bonbons salés", text:"Leur enthousiasme pour sa propre technique le déstabilise complètement." },
+    { title:"Le sucre",                      text:"La présence de sucre pur dans son voisinage provoque une réaction de rejet incontrôlable." }
+  ],
+  valkyrie: [
+    { title:"Syndrome de l'imposteur divin", text:"Elle se demande secrètement si elle mérite vraiment Asgard. Un seul doute exprimé à voix haute la fige sur place." },
+    { title:"Jalousie",                      text:"Complimenter une autre guerrière devant elle déclenche une crise d'ego qui court-circuite son attaque." },
+    { title:"Refus du destin",               text:"Lui dire \"tu n'es pas sur ma liste\" la plonge dans une crise existentielle dont elle ne sort pas vite." }
+  ],
   golem:             { title:"Fissures et résonance", text:"Les impacts lourds répétés et la foudre ouvrent sa pierre." },
   pretre: [
     { title:"Déstabilisé par les enfants", text:"La présence des enfants fait vaciller son masque et brouille sa contenance." },
@@ -697,6 +709,36 @@ function getMobWeakness(mobName, mobTier = "weak") {
 }
 
 const mobSpecialPresentations = {
+  valkyrie: {
+    scene: "valkyrie",
+    sound: "valkyrie.mp3",
+    soundVolume: 0.68,
+    kicker: "Jugement céleste",
+    emphasis: "divine",
+    particles: [],
+    image: "valkyriespé.jpg",
+    quoteFrame: "cadre.png"
+  },
+  liquorice: {
+    scene: "liquorice",
+    sound: "liquorice.mp3",
+    soundVolume: 0.70,
+    kicker: "Assèchement sucré",
+    emphasis: "arcane",
+    particles: [],
+    image: "sel.png",
+    quoteFrame: "cadre.png"
+  },
+  garde: {
+    scene: "garde",
+    sound: "garde.mp3",
+    soundVolume: 0.65,
+    kicker: "Flèche dans le genou",
+    emphasis: "stone",
+    particles: [],
+    image: "gardespé.jpg",
+    quoteFrame: "cadre.png"
+  },
   bandit: {
     scene: "bandit",
     sound: "bandit.mp3",

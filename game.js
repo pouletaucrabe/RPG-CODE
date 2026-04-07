@@ -2034,6 +2034,24 @@ function showMobSpecialAttackEvent(data) {
         glow: "rgba(140,200,60,0.55)",
         bg: "radial-gradient(circle at center,rgba(18,30,8,0.96) 0%,rgba(5,12,2,0.98) 60%,rgba(2,6,1,1) 100%)"
       }
+    : scene === "valkyrie"
+    ? {
+        accent: "#ffe090",
+        glow: "rgba(255,220,120,0.60)",
+        bg: "radial-gradient(circle at 50% 30%,rgba(255,245,200,0.14) 0%,rgba(30,20,8,0.96) 28%,rgba(6,4,1,1) 100%)"
+      }
+    : scene === "liquorice"
+    ? {
+        accent: "#f0f0ff",
+        glow: "rgba(220,220,255,0.55)",
+        bg: "radial-gradient(circle at center,rgba(16,12,28,0.97) 0%,rgba(6,4,14,0.99) 60%,rgba(1,1,4,1) 100%)"
+      }
+    : scene === "garde"
+    ? {
+        accent: "#b0b8c8",
+        glow: "rgba(160,170,190,0.50)",
+        bg: "radial-gradient(circle at center,rgba(18,20,26,0.97) 0%,rgba(8,10,14,0.99) 60%,rgba(2,3,5,1) 100%)"
+      }
     : scene === "bandit"
     ? {
         accent: "#c8a060",
@@ -2143,6 +2161,48 @@ function showMobSpecialAttackEvent(data) {
     const moonDisc = document.createElement("div")
     moonDisc.className = "mobSpecialMoonDisc"
     overlay.appendChild(moonDisc)
+  }
+
+  if (scene === "valkyrie") {
+    // Lance qui traverse l'écran en diagonale
+    const spear = document.createElement("div")
+    spear.className = "mobSpecialValkyireSpear"
+    overlay.appendChild(spear)
+
+    // Flash divin au moment de l'impact
+    setTimeout(() => {
+      const divFlash = document.createElement("div")
+      divFlash.className = "mobSpecialValkyrieDivineFlash"
+      overlay.appendChild(divFlash)
+      setTimeout(() => divFlash.remove(), 800)
+    }, 520)
+
+    // Plumes qui tombent
+    for (let i = 0; i < 22; i++) {
+      const feather = document.createElement("div")
+      feather.className = "mobSpecialFeather"
+      feather.style.left = (Math.random() * 100) + "%"
+      feather.style.animationDuration = (2.0 + Math.random() * 2.5) + "s"
+      feather.style.animationDelay = (0.4 + Math.random() * 3.0) + "s"
+      feather.style.fontSize = (10 + Math.random() * 10) + "px"
+      feather.style.opacity = String(0.4 + Math.random() * 0.5)
+      feather.innerText = "❧"
+      overlay.appendChild(feather)
+    }
+  }
+
+  if (scene === "liquorice") {
+    const saltCount = 60
+    for (let i = 0; i < saltCount; i++) {
+      const grain = document.createElement("div")
+      grain.className = "mobSpecialSaltGrain"
+      grain.style.left = (Math.random() * 100) + "%"
+      grain.style.animationDuration = (1.2 + Math.random() * 2.2) + "s"
+      grain.style.animationDelay = (Math.random() * 3.5) + "s"
+      grain.style.width = grain.style.height = (2 + Math.random() * 3) + "px"
+      grain.style.opacity = String(0.5 + Math.random() * 0.5)
+      overlay.appendChild(grain)
+    }
   }
 
   if (scene === "bandit" && presentation && Array.isArray(presentation.slideImages) && presentation.slideImages.length) {
@@ -2534,7 +2594,9 @@ db.ref("game/combatOutcome").on("value", snap => {
     if (data.time && Date.now() - data.time > 15000) return
     const localId = getLocalPlayerId()
     if (!localId) return
-    if (data.player && String(data.player).toLowerCase() !== localId) return
+    // Pas de filtre sur le joueur ciblé = défaite collective, tout le monde voit l'écran
+    const targetId = String(data.player || "").trim().toLowerCase()
+    if (targetId && targetId !== localId.trim().toLowerCase()) return
     triggerLocalDefeat("combatOutcome")
   }
 })
