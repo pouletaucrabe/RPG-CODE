@@ -50,6 +50,12 @@
         "x": { ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000" },
         "y": { ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000" },
         "$other": { ".validate": true }
+      },
+      "bibi": {
+        ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === 'greg' || root.child('profiles').child(auth.uid).child('playerId').val() === 'bibi')",
+        "x": { ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000" },
+        "y": { ".validate": "newData.isNumber() && newData.val() >= -5000 && newData.val() <= 5000" },
+        "$other": { ".validate": true }
       }
     },
     "elements": {
@@ -173,3 +179,4 @@
     }
   }
 }
+le token de gr

@@ -2911,6 +2911,8 @@ function updateTokenFromDB(snapshot) {
   if (currentX === data.x && currentY === data.y) return
   token.style.left = data.x + "px"
   token.style.top  = data.y + "px"
+  if (data.facing === 1) token.classList.add("faceLeft")
+  else if (data.facing === 0) token.classList.remove("faceLeft")
   updateTokenStats(id)
   if (data.hp !== undefined) {
     if (id === "greg" && data.hp < 50) showBibiSpeech("Miiii !")
@@ -4721,18 +4723,30 @@ document.addEventListener("mousemove", e => {
   const map  = document.getElementById("map"); const rect = map.getBoundingClientRect()
   const gx   = Math.floor((e.clientX - rect.left) / grid) * grid
   const gy   = Math.floor((e.clientY - rect.top)  / grid) * grid
-  if (gx < lastX) selected.classList.add("faceLeft")
-  if (gx > lastX) selected.classList.remove("faceLeft")
+  let facing = null
+  if (gx < lastX) { selected.classList.add("faceLeft"); facing = 1 }
+  if (gx > lastX) { selected.classList.remove("faceLeft"); facing = 0 }
   lastX = gx; selected.style.left = gx + "px"; selected.style.top = gy + "px"
   const now = Date.now()
   if (now - lastSend > sendDelay && (gx !== lastSentX || gy !== lastSentY)) {
     if (selected.id === "eloSummonToken") db.ref("combat/eloSummon").update({ x: gx, y: gy })
-    else if (!selected._fbSlot) db.ref("tokens/" + selected.id).update({ x: gx, y: gy })
+    else if (!selected._fbSlot) {
+      const upd = { x: gx, y: gy }
+      if (facing !== null) upd.facing = facing
+      db.ref("tokens/" + selected.id).update(upd)
+    }
     lastSentX = gx; lastSentY = gy; lastSend = now
   }
   if (selected.id === "greg") {
     const bibi = document.getElementById("bibi")
-    if (bibi) { bibi.style.left = (gx + 80) + "px"; bibi.style.top = gy + "px"; db.ref("tokens/bibi").update({ x: gx + 80, y: gy }); tryBark() }
+    if (bibi) {
+      if (facing === 1) bibi.classList.add("faceLeft")
+      else if (facing === 0) bibi.classList.remove("faceLeft")
+      bibi.style.left = (gx + 80) + "px"; bibi.style.top = gy + "px"
+      const bibiFacing = bibi.classList.contains("faceLeft") ? 1 : 0
+      db.ref("tokens/bibi").update({ x: gx + 80, y: gy, facing: bibiFacing })
+      tryBark()
+    }
   }
 })
 
