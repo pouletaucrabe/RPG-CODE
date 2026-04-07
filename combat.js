@@ -178,11 +178,9 @@ function advanceCombatTurn() {
     nextRound += 1
   }
   const nextActor = order[nextIndex] ? order[nextIndex].id : ""
-  const updates = {}
-  updates["combat/turnState/currentIndex"]   = nextIndex
-  updates["combat/turnState/currentActorId"] = nextActor
-  updates["combat/turnState/round"]          = nextRound
-  db.ref("/").update(updates)
+  db.ref("combat/turnState/currentIndex").set(nextIndex)
+  db.ref("combat/turnState/currentActorId").set(nextActor)
+  db.ref("combat/turnState/round").set(nextRound)
 }
 
 function closeCombatInitiativeOverlay() {
@@ -1195,6 +1193,15 @@ function _startRemoteCombat(data) {
   setGameState("COMBAT")
   combatSequence(data.mainMob, data.tier)
   setTimeout(() => { if (typeof updateThuumButton === "function") updateThuumButton() }, 250)
+  // Race condition fix : si combat/turnState est déjà arrivé avant game/combatState,
+  // le listener a retourné tôt car combatActive était false — on re-render maintenant
+  setTimeout(() => {
+    const ts = window.__combatTurnState
+    if (ts && typeof renderCombatInitiativeOverlay === "function") {
+      renderCombatInitiativeOverlay(ts)
+      if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+    }
+  }, 350)
 }
 
 function _playRemoteCombatExit() {
