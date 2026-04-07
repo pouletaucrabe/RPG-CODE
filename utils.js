@@ -4,6 +4,55 @@
 /* HELPERS GÉNÉRAUX         */
 /* ========================= */
 
+/**
+ * Parse un entier depuis n'importe quel type, avec fallback et bornes optionnelles.
+ * Remplace le pattern répété : Math.max(min, Math.min(max, parseInt(x, 10) || fallback))
+ * @param {*}      val      — valeur à parser
+ * @param {number} fallback — valeur si NaN (défaut 0)
+ * @param {number|null} min — borne basse optionnelle
+ * @param {number|null} max — borne haute optionnelle
+ */
+function safeInt(val, fallback = 0, min = null, max = null) {
+  let n = parseInt(val, 10)
+  if (isNaN(n)) n = fallback
+  if (min !== null && n < min) n = min
+  if (max !== null && n > max) n = max
+  return n
+}
+
+/**
+ * Retourne val si c'est une string non-vide, sinon fallback.
+ * @param {*}      val
+ * @param {string} fallback — défaut ""
+ */
+function safeStr(val, fallback = "") {
+  return (typeof val === "string" && val.length > 0) ? val : fallback
+}
+
+/**
+ * CS — Combat State namespace.
+ * Regroupe les 5 globals combat critiques sous un seul objet inspectable.
+ * L'ancien accès window.__xxx continue de fonctionner via des accessors
+ * (pas besoin de toucher le reste du code).
+ *
+ * Usage debug en console : CS  →  {turnState, damageLog, attackResolving, outcomeShowing, pendingLocalDefeat}
+ */
+window.CS = {}
+;[
+  ["__combatTurnState",      "turnState"],
+  ["__combatDamageLog",      "damageLog"],
+  ["__playerAttackResolving","attackResolving"],
+  ["__combatOutcomeShowing", "outcomeShowing"],
+  ["__pendingLocalDefeat",   "pendingLocalDefeat"],
+].forEach(([oldKey, newKey]) => {
+  Object.defineProperty(window, oldKey, {
+    get()  { return window.CS[newKey] },
+    set(v) { window.CS[newKey] = v },
+    configurable: true,
+    enumerable: false,
+  })
+})
+
 function idsEqualLoose(a, b) {
   return String(a || "").toLowerCase() === String(b || "").toLowerCase()
 }

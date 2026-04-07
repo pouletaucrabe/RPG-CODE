@@ -1552,10 +1552,10 @@ function usePlayerThuum(forcedWord) {
   const mainDmg = damage.main
   const splash = damage.splash
 
-  db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(1, (parseInt(cur, 10) || 0) - mainDmg) })
+  db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(1, safeInt(cur) - mainDmg) })
 
   ;["mob2", "mob3"].forEach(slot => {
-    db.ref("combat/" + slot + "/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(1, (parseInt(cur, 10) || 0) - splash) })
+    db.ref("combat/" + slot + "/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(1, safeInt(cur) - splash) })
   })
 
   closePlayerPowersPanel()

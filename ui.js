@@ -1159,7 +1159,7 @@ function resolvePlayerAttack(attack, options = {}) {
             const maxHp = getCharacterMaxHp(targetId, targetData)
             const currentHp = parseInt(targetData.hp, 10) || 0
             const nextHp = Math.min(maxHp, currentHp + healAmount)
-            db.ref("characters/" + targetId + "/hp").transaction(cur => Math.min(maxHp, (parseInt(cur, 10) || 0) + healAmount))
+            db.ref("characters/" + targetId + "/hp").transaction(cur => Math.min(maxHp, safeInt(cur) + healAmount))
             const outcome = {
               mode: "heal",
               amount: nextHp - currentHp
@@ -1276,13 +1276,13 @@ function resolvePlayerAttack(attack, options = {}) {
                 const ally = allySnap.val() || {}
                 const hp = parseInt(ally.hp, 10) || 0
                 const maxHP = getCharacterMaxHp(id, ally)
-                db.ref("characters/" + id + "/hp").transaction(cur => Math.min(maxHP, (parseInt(cur, 10) || 0) + 8))
+                db.ref("characters/" + id + "/hp").transaction(cur => Math.min(maxHP, safeInt(cur) + 8))
               })
             })
           }
 
           const nextHp = Math.max(0, (parseInt(mob.hp, 10) || 0) - damage)
-          db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(0, (parseInt(cur, 10) || 0) - damage) })
+          db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(0, safeInt(cur) - damage) })
           if (!fail && bibiRage && parseInt(bibiRage.turns, 10) > 0) {
             const turnsLeft = Math.max(0, (parseInt(bibiRage.turns, 10) || 0) - 1)
             if (turnsLeft <= 0) db.ref("combat/mob/bibiRage").remove()
@@ -1851,7 +1851,7 @@ function tickMobPlayerPoison() {
 
       const damage = Math.max(1, parseInt(poison.damage, 10) || 2)
       const turnsLeft = Math.max(0, (parseInt(poison.turns, 10) || 0) - 1)
-      db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(0, (parseInt(cur, 10) || 0) - damage) })
+      db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(0, safeInt(cur) - damage) })
       showNotification("Poison — " + String(mob.name || "MOB").toUpperCase() + " perd " + damage + " HP")
       if (typeof addMJLog === "function") addMJLog("POISON — " + String(mob.name || "MOB").toUpperCase() + " : -" + damage + " HP")
       if (turnsLeft <= 0) db.ref("combat/mob/playerPoison").remove()
@@ -1871,7 +1871,7 @@ function tickMobPlayerBleed() {
 
       const damage = Math.max(1, parseInt(bleed.damage, 10) || 1)
       const turnsLeft = Math.max(0, (parseInt(bleed.turns, 10) || 0) - 1)
-      db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(0, (parseInt(cur, 10) || 0) - damage) })
+      db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(0, safeInt(cur) - damage) })
       showNotification("Saignement — " + String(mob.name || "MOB").toUpperCase() + " perd " + damage + " HP")
       if (typeof addMJLog === "function") addMJLog("SAIGNEMENT — " + String(mob.name || "MOB").toUpperCase() + " : -" + damage + " HP")
       if (turnsLeft <= 0) db.ref("combat/mob/playerBleed").remove()
@@ -1891,9 +1891,9 @@ function tickTimedCombatMobState(path) {
 }
 
 function applyMobDamageToPlayer(pid, dmg, attack, mobData, slot) {
-  db.ref("characters/" + pid + "/hp").transaction(cur => Math.max(0, (parseInt(cur, 10) || 0) - dmg))
+  db.ref("characters/" + pid + "/hp").transaction(cur => Math.max(0, safeInt(cur) - dmg))
   if (attack.effect === "curse") {
-    db.ref("characters/" + pid + "/curse").transaction(cur => Math.min(8, (parseInt(cur, 10) || 0) + 1))
+    db.ref("characters/" + pid + "/curse").transaction(cur => Math.min(8, safeInt(cur) + 1))
   }
   if (attack.special && attack.healSelfRatio && slot) {
     const heal = Math.max(1, Math.round(dmg * attack.healSelfRatio))
@@ -3437,7 +3437,7 @@ function _applyAllyResult(pnj, action, roll, targetId) {
     }
     else if (action.type==="heal" && targetId) {
       const healAmt = action.healMult ? roll*action.healMult : action.healAmt||roll
-      db.ref("characters/"+targetId+"/hp").transaction(cur => Math.min(300, (parseInt(cur,10)||0) + healAmt))
+      db.ref("characters/"+targetId+"/hp").transaction(cur => Math.min(300, safeInt(cur) + healAmt))
       addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : +${healAmt} HP à ${targetId.toUpperCase()}`)
       showNotification(`${action.icon} ${pnj.name} soigne ${targetId.toUpperCase()} de ${healAmt} HP !`)
       flashGold(); if(isCrit){ powerExplosion(); flashGold() }
@@ -3459,7 +3459,7 @@ function _applyAllyResult(pnj, action, roll, targetId) {
       const buffAmt = action.buffMult ? roll*action.buffMult : roll
       const mainStats = { greg:"force", ju:"perspi", elo:"charme" }
       const stat = mainStats[targetId]||"force"
-      db.ref("characters/"+targetId+"/"+stat).transaction(cur => (parseInt(cur,10)||0) + buffAmt)
+      db.ref("characters/"+targetId+"/"+stat).transaction(cur => safeInt(cur) + buffAmt)
       addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : +${buffAmt} ${stat} à ${targetId.toUpperCase()}`)
       showNotification(`${action.icon} ${pnj.name} : +${buffAmt} ${stat} à ${targetId.toUpperCase()} !`)
       flashGold(); powerExplosion()
