@@ -92,7 +92,13 @@
           ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === $playerId)"
         }
       },
-      "eloSummon": { ".write": "auth != null" }
+      "eloSummon": { ".write": "auth != null" },
+      "hits": {
+        "$hitId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['from','to','amount','type','round','time'])"
+        }
+      }
     },
     "events": {
       ".read": "auth != null",

@@ -2200,6 +2200,44 @@ html, body {
   box-shadow: inset 0 0 18px rgba(90,40,130,0.08);
 }
 
+.combatStatusItem--dmg {
+  border-color: rgba(100,160,220,0.3);
+  background: linear-gradient(180deg, rgba(10,22,38,0.82), rgba(6,14,26,0.92));
+}
+
+.combatStatusItem--mob {
+  border-color: rgba(200,65,55,0.3);
+  background: linear-gradient(180deg, rgba(28,10,10,0.82), rgba(18,6,6,0.92));
+}
+
+.combatStatusItem--heal {
+  border-color: rgba(60,180,110,0.32);
+  background: linear-gradient(180deg, rgba(8,24,16,0.82), rgba(6,16,10,0.92));
+}
+
+.combatStatusSection {
+  font-family: Cinzel, serif;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: rgba(210,175,100,0.55);
+  text-align: center;
+  padding: 4px 0 2px;
+  border-top: 1px solid rgba(200,160,80,0.15);
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.combatStatusItem--dmg .combatStatusTitle,
+.combatStatusItem--heal .combatStatusTitle,
+.combatStatusItem--mob .combatStatusTitle {
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+
+.combatStatusItem--dmg .combatStatusText { color: #88c8ff; }
+.combatStatusItem--mob .combatStatusText { color: #ff9090; }
+.combatStatusItem--heal .combatStatusText { color: #80e8b0; }
+
 .combatStatusIcon {
   width: 18px;
   height: 18px;

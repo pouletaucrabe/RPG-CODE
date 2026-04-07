@@ -84,6 +84,12 @@ function addMJLog(text) {
   log.prepend(entry)
 }
 
+function pushCombatHit(from, to, amount, type) {
+  const turnState = typeof getCombatTurnState === "function" ? getCombatTurnState() : null
+  const round = turnState ? (parseInt(turnState.round, 10) || 1) : 1
+  db.ref("combat/hits").push({ from, to, amount: parseInt(amount, 10) || 0, type, round, time: Date.now() })
+}
+
 function addCombatLog(text) {
   const content = document.getElementById("diceLogContent")
   if (!content) return

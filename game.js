@@ -1590,6 +1590,15 @@ if (madnessGauge) madnessGauge.style.display = "none"
 resetMadnessPresentation()
 if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
 
+// ─── combat/hits — log des dégâts (sync tous les clients) ───
+db.ref("combat/hits").on("value", snap => {
+  const data = snap.val()
+  if (!data) { window.__combatDamageLog = []; if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel(); return }
+  const hits = Object.values(data).sort((a, b) => (b.time || 0) - (a.time || 0)).slice(0, 6)
+  window.__combatDamageLog = hits
+  if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+})
+
 // ─── combat/mob — listener unique fusionné ───
 db.ref("combat/mob").on("value", snap => {
   const data = snap.val()
@@ -1635,13 +1644,8 @@ db.ref("combat/mob").on("value", snap => {
       hud.style.display = "block"
       activeMobSlots["mob"] = true
       const mobAttackPanel = document.getElementById("mobAttackPanel")
-      const mobAttackToggle = document.getElementById("mobAttackToggle")
-      const mobPanelBroken =
-        !mobAttackPanel ||
-        !mobAttackToggle ||
-        !mobAttackPanel.children.length ||
-        (mobAttackPanel.style.display === "none" && mobAttackToggle.style.display === "none")
-      if (typeof renderAllMobPanels === "function" && mobPanelBroken) {
+      const mobPanelMissing = !mobAttackPanel || mobAttackPanel.style.display === "none"
+      if (typeof renderAllMobPanels === "function" && mobPanelMissing) {
         setTimeout(() => renderAllMobPanels(), 40)
       } else {
         const spFill = document.getElementById("subPanelHPFill_mob")

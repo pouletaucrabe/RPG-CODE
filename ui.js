@@ -993,6 +993,20 @@ function getCombatStatusEntries() {
     })
   }
 
+  const dmgLog = window.__combatDamageLog || []
+  if (dmgLog.length) {
+    entries.push({ kind: "section", title: "Derniers coups" })
+    dmgLog.forEach(hit => {
+      entries.push({
+        kind: hit.type,
+        icon: hit.type === "heal" ? "arcane.png" : "impact_ring.png",
+        title: hit.from + "  →  " + hit.to,
+        text: hit.type === "heal" ? "+" + hit.amount + " PV" : "−" + hit.amount + " PV",
+        meta: "Round " + hit.round
+      })
+    })
+  }
+
   return entries
 }
 
@@ -1027,6 +1041,14 @@ function renderCombatStatusPanel() {
   }
 
   entries.forEach(entry => {
+    if (entry.kind === "section") {
+      const sep = document.createElement("div")
+      sep.className = "combatStatusSection"
+      sep.innerText = entry.title || ""
+      list.appendChild(sep)
+      return
+    }
+
     const row = document.createElement("div")
     row.className = "combatStatusItem combatStatusItem--" + (entry.kind || "buff")
 
@@ -1155,6 +1177,7 @@ function resolvePlayerAttack(attack, options = {}) {
                 " → +" + outcome.amount + " PV à " + targetId.toUpperCase()
               )
             }
+            if (typeof pushCombatHit === "function") pushCombatHit(playerId.toUpperCase(), targetId.toUpperCase(), outcome.amount, "heal")
             if (typeof advanceCombatTurn === "function") advanceCombatTurn()
             window.__playerAttackResolving = false
           }, () => {
@@ -1343,6 +1366,7 @@ function resolvePlayerAttack(attack, options = {}) {
               " → -" + damage + " PV à " + String(mob.name || "MOB").toUpperCase()
             )
           }
+          if (typeof pushCombatHit === "function") pushCombatHit(playerId.toUpperCase(), String(mob.name || "MOB").toUpperCase(), damage, "dmg")
           if (isSpecial) markPlayerCombatSpecialUsed(playerId)
           showCombatHUD()
           if (typeof advanceCombatTurn === "function") advanceCombatTurn()
@@ -1966,10 +1990,12 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
         ;["greg","ju","elo","bibi"].forEach(pid => applyMobDamageToPlayer(pid, dmg, attack, mobData, slot))
         db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
         addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: "TOUS", dmg, special: !!attack.special, attack, mobData })
+        if (typeof pushCombatHit === "function") pushCombatHit(mobLabel, "TOUS", dmg, "mob")
       } else {
         applyMobDamageToPlayer(target, dmg, attack, mobData, slot)
         db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
         addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: targetLabel, dmg, special: !!attack.special, attack, mobData })
+        if (typeof pushCombatHit === "function") pushCombatHit(mobLabel, targetLabel, dmg, "mob")
         showNotification(attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
       }
       if (aggroActive) tickTimedCombatMobState("combat/mob/yuAggro")

@@ -193,15 +193,30 @@ function renderCombatInitiativeToggle(state) {
   if (existing) existing.remove()
   if (!combatActive || !state) return
 
+  const wrap = document.createElement("div")
+  wrap.id = "combatInitiativeToggle"
+  wrap.style.cssText = "position:fixed;top:88px;right:22px;z-index:999999996;display:flex;gap:6px;"
+
   const btn = document.createElement("button")
-  btn.id = "combatInitiativeToggle"
-  btn.style.cssText = "position:fixed;top:88px;right:22px;z-index:999999996;padding:10px 14px;font-family:Cinzel,serif;font-size:12px;letter-spacing:0.8px;background:linear-gradient(180deg,rgba(12,24,30,0.94),rgba(6,12,18,0.94));color:#f3ddb0;border:1px solid rgba(214,164,90,0.4);border-radius:999px;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,0.28);"
-  btn.innerText = state.phase === "rolling" ? "Réouvrir les dés" : "Réouvrir l'ordre"
+  btn.style.cssText = "padding:10px 14px;font-family:Cinzel,serif;font-size:12px;letter-spacing:0.8px;background:linear-gradient(180deg,rgba(12,24,30,0.94),rgba(6,12,18,0.94));color:#f3ddb0;border:1px solid rgba(214,164,90,0.4);border-radius:999px;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,0.28);"
+  btn.innerText = state.phase === "rolling" ? "🎲 Dés d'init" : "📋 Ordre"
   btn.onclick = () => {
     window.__combatInitiativeHidden = false
     renderCombatInitiativeOverlay(state)
   }
-  document.body.appendChild(btn)
+  wrap.appendChild(btn)
+
+  if (isGM && state.phase === "rolling") {
+    const rollAllBtn = document.createElement("button")
+    rollAllBtn.style.cssText = "padding:10px 14px;font-family:Cinzel,serif;font-size:12px;background:linear-gradient(180deg,rgba(70,40,10,0.96),rgba(35,18,4,0.96));color:#ffe8bb;border:1px solid rgba(212,168,91,0.55);border-radius:999px;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,0.28);"
+    rollAllBtn.innerText = "⚡ Tout lancer"
+    rollAllBtn.onclick = () => {
+      if (typeof submitAllInitiativeRollsForGMTest === "function") submitAllInitiativeRollsForGMTest()
+    }
+    wrap.appendChild(rollAllBtn)
+  }
+
+  document.body.appendChild(wrap)
 }
 
 function renderCombatInitiativeOverlay(state) {
@@ -414,6 +429,7 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
   if (typeof addSessionLog === "function") addSessionLog("⚔ Combat démarré — " + mainMob + (extraMobs.length ? " + " + extraMobs.join(", ") : ""))
   window.__playerCombatSpecialsUsed = {}
   window.__playerCombatFlags = {}
+  window.__combatDamageLog = []
   db.ref("game/storyImage").remove()
   db.ref("game/storyImage2").remove()
   db.ref("game/storyImage3").remove()
@@ -573,7 +589,7 @@ function _startCombatSequence(mob, tierMob) {
 
           db.ref("combat/mob").once("value", () => {
             activeMobSlots["mob"] = true
-            renderAllMobPanels()
+            if (!document.getElementById("mobAttackPanel")) renderAllMobPanels()
             if (isGM) {
               const ap = document.getElementById("addMobPanel")
               if (ap) {
@@ -915,6 +931,7 @@ function endCombat() {
     db.ref("combat/mob").remove()
     ;["mob2","mob3"].forEach(s => db.ref("combat/" + s).remove())
     db.ref("combat/eloSummon").remove()
+    db.ref("combat/hits").remove()
     db.ref("combat/mob/playerPoison").remove()
     db.ref("combat/mob/playerBleed").remove()
     db.ref("combat/mob/bibiRage").remove()
