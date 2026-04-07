@@ -1014,10 +1014,9 @@ function setGroupMadness(value) {
 
 function changeGroupMadness(delta) {
   if (!isGM) return
-  db.ref("game/groupMadness").once("value", snap => {
-    const current = parseInt(snap.val(), 10) || 0
-    setGroupMadness(current + delta)
-  })
+  db.ref("game/groupMadness").transaction(current => {
+    return Math.max(0, Math.min(100, (parseInt(current, 10) || 0) + delta))
+  }, err => { if (err) console.error("changeGroupMadness transaction failed:", err) })
 }
 
 function resetGroupMadness() {
@@ -1553,16 +1552,10 @@ function usePlayerThuum(forcedWord) {
   const mainDmg = damage.main
   const splash = damage.splash
 
-  db.ref("combat/mob").once("value", snap => {
-    const mob = snap.val()
-    if (mob) db.ref("combat/mob/hp").set(Math.max(1, (mob.hp || 0) - mainDmg))
-  })
+  db.ref("combat/mob/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(1, (parseInt(cur, 10) || 0) - mainDmg) })
 
   ;["mob2", "mob3"].forEach(slot => {
-    db.ref("combat/" + slot).once("value", snap => {
-      const mob = snap.val()
-      if (mob) db.ref("combat/" + slot + "/hp").set(Math.max(1, (mob.hp || 0) - splash))
-    })
+    db.ref("combat/" + slot + "/hp").transaction(cur => { if (cur == null) return undefined; return Math.max(1, (parseInt(cur, 10) || 0) - splash) })
   })
 
   closePlayerPowersPanel()
@@ -1815,6 +1808,13 @@ db.ref(".info/connected").on("value", snap => {
   const label = document.getElementById("firebaseDotLabel")
   if (dot) { dot.style.background = connected ? "#44ff88" : "#ff4444"; dot.style.boxShadow = connected ? "0 0 6px #44ff88" : "0 0 6px #ff4444" }
   if (label) label.textContent = connected ? "connecté" : "déconnecté"
+
+  // Après une reconnexion : re-enregistrer les handlers onDisconnect GM
+  // (Firebase les annule automatiquement à chaque reconnexion)
+  if (connected && isGM && combatActive) {
+    db.ref("combat/turnState").onDisconnect().remove()
+    db.ref("game/combatState").onDisconnect().remove()
+  }
 })
 
 // ─── endSession — signal fin de session pour les joueurs ───
@@ -3110,10 +3110,9 @@ function triggerLevelUp(playerID) {
   showLevelUpText(playerID)
   playSound("levelUpSound")
   // Donner 2 points libres à distribuer
-  db.ref("characters/" + playerID + "/freePoints").once("value", snap => {
-    const current = parseInt(snap.val()) || 0
-    db.ref("characters/" + playerID + "/freePoints").set(current + 2)
-  })
+  db.ref("characters/" + playerID + "/freePoints").transaction(current => {
+    return (parseInt(current, 10) || 0) + 2
+  }, err => { if (err) console.error("freePoints transaction failed:", err) })
 }
 
 function updateGMStats(playerID, data) {

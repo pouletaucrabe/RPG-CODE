@@ -89,6 +89,9 @@ function initCombatTurnState() {
     rolls: {},
     order: [],
     time: Date.now()
+  }).catch(err => {
+    console.error("initCombatTurnState write failed:", err)
+    if (typeof showNotification === "function") showNotification("⚠️ Erreur réseau : état de combat non synchronisé", "error")
   })
 }
 
@@ -163,6 +166,9 @@ function finalizeCombatInitiativeIfReady(state) {
     currentIndex: 0,
     currentActorId: order[0] ? order[0].id : "",
     round: 1
+  }).catch(err => {
+    console.error("finalizeInitiativeOrder write failed:", err)
+    if (typeof showNotification === "function") showNotification("⚠️ Erreur réseau : ordre d'initiative non synchronisé", "error")
   })
 }
 
@@ -178,9 +184,11 @@ function advanceCombatTurn() {
     nextRound += 1
   }
   const nextActor = order[nextIndex] ? order[nextIndex].id : ""
-  db.ref("combat/turnState/currentIndex").set(nextIndex)
-  db.ref("combat/turnState/currentActorId").set(nextActor)
-  db.ref("combat/turnState/round").set(nextRound)
+  db.ref("combat/turnState").update({
+    currentIndex: nextIndex,
+    currentActorId: nextActor,
+    round: nextRound
+  }).catch(err => console.error("advanceCombatTurn write failed:", err))
 }
 
 function closeCombatInitiativeOverlay() {
@@ -460,6 +468,11 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
     const hp   = Math.round(base * mult * Math.pow(1 + effLevel * sc, 1.72))
     const lvl  = Math.max(1, level + (tierLvlOff[tier] || 0))
     db.ref("combat/mob").set({ name:mainMob, hp, maxHP:hp, lvl, tier })
+    // Si le MJ se déconnecte en plein combat, retirer l'état pour ne pas bloquer les joueurs
+    if (isGM) {
+      db.ref("combat/turnState").onDisconnect().remove()
+      db.ref("game/combatState").onDisconnect().remove()
+    }
 
     _state.pendingExtraMobs = {}
     extraMobs.forEach((mob, i) => {
@@ -1268,6 +1281,12 @@ function _resolveRemoteCombatEnd(attempt = 0) {
     const outcome = outcomeSnap.val()
 
     if (window.__combatOutcomeShowing || window.__pendingLocalDefeat) return
+
+    // Ignorer un outcome trop vieux (données résiduelles d'un ancien combat)
+    if (outcome && outcome.time && Date.now() - outcome.time > 30000) {
+      _playRemoteCombatExit()
+      return
+    }
 
     if (outcome && outcome.type === "defeat") {
       const localId = typeof getLocalPlayerId === "function"

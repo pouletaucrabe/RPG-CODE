@@ -89,7 +89,7 @@ function pushCombatHit(from, to, amount, type, detail) {
   const round = turnState ? (parseInt(turnState.round, 10) || 1) : 1
   const entry = { from, to, amount: parseInt(amount, 10) || 0, type, round, time: Date.now() }
   if (detail) entry.detail = String(detail)
-  db.ref("combat/hits").push(entry)
+  db.ref("combat/hits").push(entry).catch(err => console.error("pushCombatHit failed:", err))
 }
 
 function addCombatLog(text) {

@@ -68,15 +68,16 @@
       "turnState": {
         "rolls": {
           "$actorId": {
-            ".write": "auth != null"
+            ".write": "auth != null",
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
           }
         },
-        "currentIndex":    { ".write": "auth != null" },
-        "currentActorId":  { ".write": "auth != null" },
-        "round":           { ".write": "auth != null" }
+        "currentIndex":   { ".write": "auth != null", ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "currentActorId": { ".write": "auth != null", ".validate": "newData.isString()" },
+        "round":          { ".write": "auth != null", ".validate": "newData.isNumber() && newData.val() >= 1" }
       },
       "mob": {
-        "hp":               { ".write": "auth != null" },
+        "hp":               { ".write": "auth != null", ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 50000" },
         "bibiRage":         { ".write": "auth != null" },
         "yuAggro":          { ".write": "auth != null" },
         "yuSkipNextTurn":   { ".write": "auth != null" },
@@ -93,11 +94,14 @@
         }
       },
       "eloSummon": { ".write": "auth != null" },
-      "allyBroadcast": { ".write": "auth != null" },
+      "allyBroadcast": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['pnjId', 'actionId', 'time']) && newData.child('pnjId').isString() && newData.child('actionId').isString() && newData.child('time').isNumber()"
+      },
       "hits": {
         "$hitId": {
           ".write": "auth != null",
-          ".validate": "newData.hasChildren(['from','to','amount','type','round','time'])"
+          ".validate": "newData.hasChildren(['from','to','amount','type','round','time']) && newData.child('from').isString() && newData.child('to').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('amount').val() <= 9999 && newData.child('round').isNumber() && newData.child('round').val() >= 1 && newData.child('time').isNumber()"
         }
       }
     },
@@ -113,7 +117,7 @@
       ".read": "auth != null",
       "$entry": {
         ".write": "auth != null",
-        ".validate": "newData.hasChildren(['player', 'dice', 'result', 'time', 'sender'])"
+        ".validate": "newData.hasChildren(['player', 'dice', 'result', 'time', 'sender']) && newData.child('result').isNumber() && newData.child('result').val() >= 1 && newData.child('time').isNumber()"
       }
     },
     "game": {
