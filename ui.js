@@ -1268,7 +1268,12 @@ function getCombatStatusEntries() {
   return entries
 }
 
+let _renderCombatStatusPanelTimer = null
 function renderCombatStatusPanel() {
+  clearTimeout(_renderCombatStatusPanelTimer)
+  _renderCombatStatusPanelTimer = setTimeout(_renderCombatStatusPanelNow, 50)
+}
+function _renderCombatStatusPanelNow() {
   const panel = document.getElementById("combatStatusPanel")
   if (!panel) return
   if (!combatActive) {
@@ -2327,19 +2332,20 @@ function addMobToFight(mobId, forceTier) {
 
 function removeMobSlot(slot) {
   db.ref("combat/"+slot).remove(); activeMobSlots[slot]=false
-  const tok=document.getElementById("mobToken_"+slot); if(tok) tok.remove()
+  const tok=document.getElementById("mobToken_"+slot); if(tok){ if(tok._slotRef&&tok._slotRefCb) tok._slotRef.off("value",tok._slotRefCb); tok.remove() }
   renderAllMobPanels()
 }
 
 function spawnExtraMobToken(mobData, slot) {
   const container=document.getElementById("combatTokens"); if(!container){ if(!mobData._retryCount) mobData._retryCount=0; if(++mobData._retryCount<10) setTimeout(()=>spawnExtraMobToken(mobData,slot),300); return }
-  const existing=document.getElementById("mobToken_"+slot); if(existing) existing.remove()
+  const existing=document.getElementById("mobToken_"+slot)
+  if(existing){ if(existing._slotRef&&existing._slotRefCb) existing._slotRef.off("value",existing._slotRefCb); existing.remove() }
   const tok=document.createElement("div"); tok.id="mobToken_"+slot; tok.className="token"
   const idx=slot==="mob2"?1:2, startX=Math.round((window.innerWidth-4*110)/2)
   tok.style.cssText=`position:absolute;width:70px;height:70px;left:${startX+(idx+4)*90}px;top:${Math.round(window.innerHeight*0.25)}px;z-index:200;display:flex;flex-direction:column;align-items:center;cursor:pointer;`
   const img=document.createElement("img"); img.style.cssText="width:60px;height:60px;object-fit:contain;border-radius:50%;border:2px solid #cc2200;box-shadow:0 0 10px rgba(200,0,0,0.5);"; img.src="images/"+mobData.name+".png"; img.onerror=()=>img.style.display="none"; tok.appendChild(img)
   const label=document.createElement("div"); label.style.cssText="font-family:Cinzel,serif;font-size:9px;color:#ff8888;margin-top:2px;text-align:center;background:rgba(0,0,0,0.7);padding:1px 4px;border-radius:2px;"; label.innerText=(mobData.name||"MOB").toUpperCase()+" "+mobData.hp+"/"+mobData.maxHP; tok.appendChild(label)
-  db.ref("combat/"+slot).on("value",s=>{ const d=s.val(); if(d&&label) label.innerText=(d.name||"MOB").toUpperCase()+" "+d.hp+"/"+d.maxHP })
+  const slotRef=db.ref("combat/"+slot); const slotCb=s=>{ const d=s.val(); if(d&&label) label.innerText=(d.name||"MOB").toUpperCase()+" "+d.hp+"/"+d.maxHP }; slotRef.on("value",slotCb); tok._slotRef=slotRef; tok._slotRefCb=slotCb
   tok.addEventListener("mousedown",e=>{ if(!isGM) return; selected=tok; lastX=tok.offsetLeft; _state.tokenDragStart={x:e.clientX,y:e.clientY}; _state.tokenDragging=false; tok._fbSlot=slot; e.preventDefault() })
   container.appendChild(tok)
 }
