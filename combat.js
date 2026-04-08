@@ -79,6 +79,7 @@ function getInitiativeParticipants() {
 function initCombatTurnState() {
   if (!isGM) return
   window.__lastCombatPhase = null
+  window.__combatInitiativeHidden = false
   const participants = getInitiativeParticipants()
   db.ref("combat/turnState").set({
     phase: "rolling",
@@ -434,6 +435,7 @@ function launchFromMobMenu() {
 function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
   if (combatActive || combatStarting) return
   combatStarting = true; combatActive = true
+  window.__combatInitiativeHidden = false
   if (typeof addSessionLog === "function") addSessionLog("⚔ Combat démarré — " + mainMob + (extraMobs.length ? " + " + extraMobs.join(", ") : ""))
   window.__playerCombatSpecialsUsed = {}
   window.__playerCombatFlags = {}
@@ -830,6 +832,7 @@ function showVictory() {
   if (typeof addSessionLog === "function") addSessionLog("🏆 Victoire !")
   if (isGM) {
     db.ref("game/combatOutcome").set({ type: "victory", time: Date.now() })
+    if (currentMob) db.ref("game/defeatedMobs/" + String(currentMob).toLowerCase()).set(true)
     setTimeout(() => db.ref("game/combatOutcome").remove(), 1500)
   }
   db.ref("combat/mob/victoryLootBonus").once("value", snap => {

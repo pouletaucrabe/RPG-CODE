@@ -2083,6 +2083,36 @@ function showMobSpecialAttackEvent(data) {
     divineWash.className = "mobSpecialDivineWash"
     overlay.appendChild(divineWash)
   }
+  if (scene === "chnaw") {
+    const chnawWash = document.createElement("div")
+    chnawWash.className = "mobSpecialChnawWash"
+    overlay.appendChild(chnawWash)
+  }
+  if (scene === "fantome") {
+    const discoWash = document.createElement("div")
+    discoWash.className = "mobSpecialDiscoWash"
+    overlay.appendChild(discoWash)
+  }
+  if (scene === "jormungand") {
+    const tideWash = document.createElement("div")
+    tideWash.className = "mobSpecialTideWash"
+    overlay.appendChild(tideWash)
+  }
+  if (scene === "kraken") {
+    const krakenWash = document.createElement("div")
+    krakenWash.className = "mobSpecialKrakenWash"
+    overlay.appendChild(krakenWash)
+  }
+  if (scene === "nhiddog") {
+    const bloodWash = document.createElement("div")
+    bloodWash.className = "mobSpecialBloodWash"
+    overlay.appendChild(bloodWash)
+  }
+  if (scene === "fenrir") {
+    const fenrirWash = document.createElement("div")
+    fenrirWash.className = "mobSpecialFenrirWash"
+    overlay.appendChild(fenrirWash)
+  }
   if (scene === "melenchon") {
     const tricolorWash = document.createElement("div")
     tricolorWash.className = "mobSpecialTricolorWash"
@@ -2092,6 +2122,20 @@ function showMobSpecialAttackEvent(data) {
   const stage = document.createElement("div")
   stage.className = "mobSpecialStage"
   overlay.appendChild(stage)
+
+  if (presentation && presentation.video) {
+    const stageVideo = document.createElement("video")
+    stageVideo.className = "mobSpecialVideo" + (scene ? " mobSpecialVideo--" + scene : "")
+    stageVideo.src = typeof resolveImagePath === "function" ? resolveImagePath(presentation.video) : "images/" + presentation.video
+    stageVideo.autoplay = true
+    stageVideo.loop = true
+    stageVideo.muted = true
+    stageVideo.playsInline = true
+    stageVideo.setAttribute("playsinline", "")
+    stageVideo.setAttribute("muted", "")
+    overlay.appendChild(stageVideo)
+    stageVideo.play().catch(() => {})
+  }
 
   const ring = document.createElement("div")
   ring.className = "mobSpecialRing" + (scene ? " mobSpecialRing--" + scene : "")
@@ -2152,9 +2196,53 @@ function showMobSpecialAttackEvent(data) {
     const fissure = document.createElement("div")
     fissure.className = "mobSpecialFissure"
     stage.appendChild(fissure)
+    const whip = document.createElement("div")
+    whip.className = "mobSpecialWhip"
+    stage.appendChild(whip)
   }
 
-  if (scene === "loup") {
+  if (scene === "jormungand") {
+    const wave = document.createElement("div")
+    wave.className = "mobSpecialWave"
+    stage.appendChild(wave)
+  }
+
+  if (scene === "kraken") {
+    const wave = document.createElement("div")
+    wave.className = "mobSpecialKrakenWave"
+    stage.appendChild(wave)
+    const crack = document.createElement("div")
+    crack.className = "mobSpecialScreenCrack"
+    stage.appendChild(crack)
+  }
+
+  if (scene === "nhiddog") {
+    const bloodSplash = document.createElement("img")
+    bloodSplash.className = "mobSpecialBloodSplash"
+    bloodSplash.src = typeof resolveImagePath === "function" ? resolveImagePath("blood_splash.png") : "images/blood_splash.png"
+    bloodSplash.alt = ""
+    stage.appendChild(bloodSplash)
+  }
+
+  if (scene === "chnaw") {
+    for (let i = 0; i < 18; i++) {
+      const clone = document.createElement("img")
+      clone.className = "mobSpecialClone mobSpecialClone--chnaw"
+      clone.src = typeof resolveImagePath === "function" ? resolveImagePath("chnaw.png") : "images/chnaw.png"
+      clone.alt = ""
+      clone.style.left = (Math.random() * 88 + 2) + "%"
+      clone.style.top = (Math.random() * 78 + 6) + "%"
+      clone.style.animationDelay = (Math.random() * 0.72).toFixed(2) + "s"
+      clone.style.animationDuration = (0.45 + Math.random() * 0.42).toFixed(2) + "s"
+      clone.style.setProperty("--chnaw-rot", (Math.random() * 30 - 15).toFixed(1) + "deg")
+      stage.appendChild(clone)
+    }
+    const photoFlash = document.createElement("div")
+    photoFlash.className = "mobSpecialCameraFlash"
+    overlay.appendChild(photoFlash)
+  }
+
+  if (scene === "loup" || scene === "fenrir") {
     const moonWash = document.createElement("div")
     moonWash.className = "mobSpecialMoonWash"
     overlay.appendChild(moonWash)
@@ -2268,7 +2356,7 @@ function showMobSpecialAttackEvent(data) {
     })
   }
 
-  if (!["vampire", "melenchon", "ogre", "pretre"].includes(scene)) {
+  if (!["vampire", "melenchon", "ogre", "pretre", "chnaw", "fantome", "fenrir", "jormungand", "kraken", "nhiddog"].includes(scene)) {
     const icon = document.createElement("div")
     icon.style.cssText = "position:relative;z-index:2;font-size:64px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 18px " + style.accent + ");"
     icon.innerText = String(data.icon || "✦")
@@ -2325,6 +2413,14 @@ function showMobSpecialAttackEvent(data) {
     setManagedAudioBaseVolume(sceneAudio, specialVolume)
     sceneAudio.play().catch(() => {})
   }
+  if (scene === "balraug") {
+    setTimeout(() => {
+      const whipAudio = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("whip.mp3") : "audio/whip.mp3")
+      if (typeof setManagedAudioBaseVolume === "function") setManagedAudioBaseVolume(whipAudio, 0.88)
+      else whipAudio.volume = 0.88
+      whipAudio.play().catch(() => {})
+    }, 140)
+  }
 
   const impactFlash = document.createElement("div")
   impactFlash.style.cssText = "position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at center, rgba(255,255,255,0.22), rgba(255,255,255,0.06) 28%, transparent 62%);mix-blend-mode:screen;"
@@ -2357,7 +2453,7 @@ function showMobSpecialAttackEvent(data) {
     db.ref("game/mobAttackEvent").remove()
   }, 6000)
   screenShakeHard()
-  if (!scene || ["draugr", "ogre", "melenchon", "balraug", "dragon", "gobelins"].includes(scene)) screenShakeHard()
+  if (!scene || ["draugr", "ogre", "melenchon", "balraug", "dragon", "gobelins", "fenrir", "kraken", "jormungand", "nhiddog"].includes(scene)) screenShakeHard()
 }
 
 // ─── mobAttackEvent ───
@@ -2857,6 +2953,10 @@ db.ref("combat/mob/revealedWeakness").on("value", snap => {
   if (typeof updateCombatTokenStateVisuals === "function") updateCombatTokenStateVisuals()
 })
 
+db.ref("game/defeatedMobs").on("value", snap => {
+  window.__defeatedMobFlags = snap.val() || {}
+})
+
 
 db.ref("combat/mob/bibiRage").on("value", snap => {
   window.__combatBibiRageState = snap.val() || null
@@ -3191,6 +3291,29 @@ function watchCharacter(snapshot) {
 
   const token = document.getElementById(playerID)
   if (token) {
+    if (hp <= 0) {
+      token.classList.add("playerDead")
+      deadPlayers[playerID] = true
+      if (!document.getElementById("skull_" + playerID)) {
+        const skull = document.createElement("div")
+        skull.id = "skull_" + playerID
+        skull.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;z-index:10;animation:skullFloat 2s ease-in-out infinite alternate;"
+        skull.innerText = "mort"
+        token.appendChild(skull)
+      }
+      if (isGM && !window.__hpDeathSyncBusy?.[playerID]) {
+        if (!window.__hpDeathSyncBusy) window.__hpDeathSyncBusy = {}
+        window.__hpDeathSyncBusy[playerID] = true
+        db.ref("game/playerDeath").set({ player: playerID, time: Date.now() }).finally(() => {
+          setTimeout(() => { if (window.__hpDeathSyncBusy) delete window.__hpDeathSyncBusy[playerID] }, 600)
+        })
+      }
+    } else {
+      token.classList.remove("playerDead")
+      deadPlayers[playerID] = false
+      const skull = document.getElementById("skull_" + playerID)
+      if (skull) skull.remove()
+    }
     if (corruption >= 10) {
       token.classList.add("powerReady")
       if (myToken && myToken.id === playerID && !powerModeActive) activatePowerMode(playerID)

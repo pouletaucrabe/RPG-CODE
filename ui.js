@@ -535,28 +535,32 @@ function getPlayerSpecialPresentation(playerId) {
       kicker: "FINISHER",
       accent: "#d9b37c",
       glow: "rgba(217,179,124,0.38)",
-      image: "gregspé.jpg"
+      image: "gregspé.jpg",
+      quoteFrame: "cadre.png"
     },
     ju: {
       scene: "yu",
       kicker: "RIPOSTE",
       accent: "#8fc9ff",
       glow: "rgba(143,201,255,0.34)",
-      image: "juspé.png"
+      video: "juspé.mp4",
+      quoteFrame: "cadre.png"
     },
     elo: {
       scene: "elo",
       kicker: "INCANTATION",
       accent: "#9cf2cf",
       glow: "rgba(156,242,207,0.34)",
-      image: "elospé.jpg"
+      image: "elospé.jpg",
+      quoteFrame: "cadre.png"
     },
     bibi: {
       scene: "bibi",
       kicker: "RAGE CANINE",
       accent: "#ffd28d",
       glow: "rgba(255,210,141,0.34)",
-      image: "bibispé.png"
+      image: "bibispé.png",
+      quoteFrame: "cadre.png"
     }
   }
   return map[key] || map.greg
@@ -566,7 +570,6 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
   const presentation = getPlayerSpecialPresentation(playerId)
   const specialSoundMap = {
     greg: "spégreg.mp3",
-    ju: "spéju.mp3",
     elo: "spéelo.mp3",
     bibi: "spébibi.mp3"
   }
@@ -577,7 +580,19 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
   stage.className = "playerSpecialStage"
   overlay.appendChild(stage)
 
-  if (presentation.image) {
+  if (presentation.video) {
+    const heroVideo = document.createElement("video")
+    heroVideo.className = "playerSpecialVideo playerSpecialVideo--" + presentation.scene
+    heroVideo.src = "images/" + presentation.video
+    heroVideo.autoplay = true
+    heroVideo.loop = true
+    heroVideo.muted = false
+    heroVideo.volume = 0.88
+    heroVideo.playsInline = true
+    if (typeof setManagedAudioBaseVolume === "function") setManagedAudioBaseVolume(heroVideo, 0.88)
+    heroVideo.onerror = () => heroVideo.style.display = "none"
+    stage.appendChild(heroVideo)
+  } else if (presentation.image) {
     const heroImage = document.createElement("img")
     heroImage.className = "playerSpecialImage playerSpecialImage--" + presentation.scene
     heroImage.src = "images/" + presentation.image
@@ -612,12 +627,30 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
   title.innerText = String(attack.name || "SPÉCIALE").toUpperCase()
   box.appendChild(title)
 
+  const flavorText = outcome.mode === "heal"
+    ? playerId.toUpperCase() + " restaure " + (outcome.amount || 0) + " PV"
+    : playerId.toUpperCase() + " frappe " + (outcome.targetName || "MOB") + " pour " + (outcome.amount || 0) + " dégâts"
+
+  let flavorHost = box
+  if (presentation.quoteFrame) {
+    const frame = document.createElement("img")
+    frame.className = "playerSpecialQuoteFrame playerSpecialQuoteFrame--" + presentation.scene
+    frame.src = "images/" + presentation.quoteFrame
+    frame.alt = ""
+    frame.onerror = () => frame.style.display = "none"
+    box.appendChild(frame)
+
+    const quoteWrap = document.createElement("div")
+    quoteWrap.className = "playerSpecialQuoteWrap playerSpecialQuoteWrap--" + presentation.scene
+    box.appendChild(quoteWrap)
+    flavorHost = quoteWrap
+  }
+
   const sub = document.createElement("div")
   sub.className = "playerSpecialSub"
   sub.style.color = presentation.accent
-  if (outcome.mode === "heal") sub.innerText = playerId.toUpperCase() + " restaure " + (outcome.amount || 0) + " PV"
-  else sub.innerText = playerId.toUpperCase() + " frappe " + (outcome.targetName || "MOB") + " pour " + (outcome.amount || 0) + " dégâts"
-  box.appendChild(sub)
+  sub.innerText = flavorText
+  flavorHost.appendChild(sub)
 
   overlay.appendChild(box)
   document.body.appendChild(overlay)
@@ -656,7 +689,7 @@ function showPlayerSpecialCinematic(playerId, attack, outcome, meta = {}) {
     overlay.style.transition = "opacity 0.42s ease"
     overlay.style.opacity = "0"
     setTimeout(() => overlay.remove(), 450)
-  }, meta.crit ? 2400 : 2050)
+  }, 6000)
 }
 
 function showPlayerAttackImpact(playerId, attack, outcome, meta = {}) {
@@ -800,6 +833,89 @@ function isPlayerSpecialConditionMet(playerId, specialAttack, context = {}) {
   return false
 }
 
+function getPlayerLevelScaling(playerId, charData = null) {
+  const source = charData || {}
+  const lvl = Math.max(1, parseInt(source.lvl, 10) || 1)
+  return {
+    lvl,
+    damageFlat: Math.max(0, (lvl - 1) * 2),
+    supportFlat: Math.max(0, Math.floor((lvl - 1) * 1.5)),
+    finisherFlat: Math.max(0, (lvl - 1) * 3)
+  }
+}
+
+function applyPlayerSpecialModifiers(playerId, state) {
+  const pid = String(playerId || "").toLowerCase()
+  const next = { ...state }
+  const scaling = getPlayerLevelScaling(playerId, state.charData)
+  next.levelScaling = scaling
+  next.failEffectText = ""
+
+  if (pid === "greg") {
+    next.damage += 14 + scaling.finisherFlat
+    next.flatBonus += 14 + scaling.finisherFlat
+    if ((state.mobHpRatio || 1) <= 0.25) {
+      next.damage += 8
+      next.flatBonus += 8
+    }
+    if (state.crit) {
+      next.damage += 10 + scaling.supportFlat
+      next.flatBonus += 10 + scaling.supportFlat
+    }
+    if (state.fail) {
+      next.damage = 0
+      next.flatBonus = 0
+      next.failEffectText = "Greg vacille et rate sa fenêtre d'exécution."
+    }
+  } else if (pid === "ju") {
+    next.damage += 10 + scaling.damageFlat
+    next.flatBonus += 10 + scaling.damageFlat
+    if (state.mobSpecialUsed) {
+      next.damage += 6 + scaling.supportFlat
+      next.flatBonus += 6 + scaling.supportFlat
+    }
+    if (state.crit) {
+      next.damage += 4 + scaling.supportFlat
+      next.flatBonus += 4 + scaling.supportFlat
+    }
+    if (state.fail) {
+      next.damage = Math.max(0, Math.round(state.basePower * 0.4))
+      next.flatBonus = 0
+      next.failEffectText = "Le plan s'effondre et Yu dévoile trop tôt son jeu."
+    }
+  } else if (pid === "elo") {
+    next.damage += 9 + scaling.damageFlat
+    next.flatBonus += 9 + scaling.damageFlat
+    next.groupHeal = 6 + (parseInt(state.charData?.charme, 10) || 0) + scaling.supportFlat
+    if (state.anyAllyQuarterHp) next.groupHeal += 4
+    if (state.crit) next.groupHeal *= 2
+    if (state.fail) {
+      next.damage = 0
+      next.flatBonus = 0
+      next.groupHeal = Math.max(3, Math.round((6 + scaling.supportFlat) * 0.5))
+      next.failEffectText = "L'incantation se brise, mais un souffle d'espoir subsiste."
+    }
+  } else if (pid === "bibi") {
+    next.damage += 12 + scaling.damageFlat
+    next.flatBonus += 12 + scaling.damageFlat
+    if (state.gregCriticalHp) {
+      next.damage += 8 + scaling.supportFlat
+      next.flatBonus += 8 + scaling.supportFlat
+    }
+    if (state.crit) {
+      next.damage += 6 + scaling.supportFlat
+      next.flatBonus += 6 + scaling.supportFlat
+    }
+    if (state.fail) {
+      next.damage = Math.max(0, Math.round(state.basePower * 0.5))
+      next.flatBonus = 0
+      next.failEffectText = "Bibi part trop tôt et s'éparpille au lieu de mordre juste."
+    }
+  }
+
+  return next
+}
+
 function buildPlayerSpecialBlock(playerId, specialAttack) {
   const block = document.createElement("div")
   block.className = "combatBlock combatBlock--action combatBlock--special"
@@ -807,6 +923,7 @@ function buildPlayerSpecialBlock(playerId, specialAttack) {
 
   populateAttackBlock(block, specialAttack)
   appendAttackLine(block, "Condition", specialAttack.conditionText)
+  if (specialAttack.fail) appendAttackLine(block, "Crit fail", specialAttack.fail)
 
   const state = document.createElement("div")
   state.className = "combatSpecialState"
@@ -1221,6 +1338,18 @@ function resolvePlayerAttack(attack, options = {}) {
             }
           }
 
+          const mobHp = parseInt(mob.hp, 10) || 0
+          const mobMaxHp = Math.max(1, parseInt(mob.maxHP, 10) || mobHp || 1)
+          const gregData = players.greg || {}
+          const gregHp = parseInt(gregData.hp, 10) || 0
+          const gregMaxHp = getCharacterMaxHp("greg", gregData)
+          const anyAllyQuarterHp = ["greg","ju","elo","bibi"].some(id => {
+            const ally = players[id] || {}
+            const hp = parseInt(ally.hp, 10) || 0
+            const max = getCharacterMaxHp(id, ally)
+            return hp > 0 && hp <= Math.ceil(max * 0.25)
+          })
+
           let damage = fail ? 0 : basePower
           if (crit) damage *= 2
           let multiplier = crit ? 2 : 1
@@ -1230,6 +1359,30 @@ function resolvePlayerAttack(attack, options = {}) {
             multiplier *= specialMult
           }
           let flatBonus = 0
+          let specialGroupHeal = 0
+          let specialFailText = ""
+
+          if (isSpecial) {
+            const specialState = applyPlayerSpecialModifiers(playerId, {
+              attack,
+              charData: data,
+              mobHpRatio: mobHp / mobMaxHp,
+              mobSpecialUsed: !!mob.specialUsed,
+              gregCriticalHp: gregHp <= Math.ceil(gregMaxHp * 0.2),
+              anyAllyQuarterHp,
+              crit,
+              fail,
+              damage,
+              flatBonus,
+              multiplier,
+              basePower
+            })
+            damage = specialState.damage
+            flatBonus = specialState.flatBonus
+            multiplier = specialState.multiplier
+            specialGroupHeal = Math.max(0, parseInt(specialState.groupHeal, 10) || 0)
+            specialFailText = specialState.failEffectText || ""
+          }
 
           if (playerId === "elo" && window.__eloSummonState && window.__eloSummonState.active) {
             flatBonus = crit ? 8 : 4
@@ -1270,15 +1423,15 @@ function resolvePlayerAttack(attack, options = {}) {
             multiplier *= 2
           }
 
-          if (isSpecial && attack.rule === "ally_below_sixty" && crit) {
+          if (isSpecial && playerId === "elo" && specialGroupHeal > 0) {
             ;["greg","ju","elo","bibi"].forEach(id => {
               db.ref("characters/" + id).once("value", allySnap => {
                 const ally = allySnap.val() || {}
-                const hp = parseInt(ally.hp, 10) || 0
                 const maxHP = getCharacterMaxHp(id, ally)
-                db.ref("characters/" + id + "/hp").transaction(cur => Math.min(maxHP, safeInt(cur) + 8))
+                db.ref("characters/" + id + "/hp").transaction(cur => Math.min(maxHP, safeInt(cur) + specialGroupHeal))
               })
             })
+            showNotification("Le groupe récupère " + specialGroupHeal + " PV.")
           }
 
           const nextHp = Math.max(0, (parseInt(mob.hp, 10) || 0) - damage)
@@ -1345,10 +1498,27 @@ function resolvePlayerAttack(attack, options = {}) {
             db.ref("combat/mob/attackMalus").set({ source: "ju", amount: 1, turns: 2, time: Date.now() })
             showNotification("Le mob est humilié et perd 1 attaque pendant 2 tours.")
           }
+          if (isSpecial && fail && specialFailText) {
+            if (playerId === "ju") {
+              db.ref("combat/mob/attackMalus").set({ source: "ju", amount: 1, turns: 1, time: Date.now() })
+            } else if (playerId === "elo" && specialGroupHeal > 0) {
+              ;["greg","ju","elo","bibi"].forEach(id => {
+                db.ref("characters/" + id).once("value", allySnap => {
+                  const ally = allySnap.val() || {}
+                  const maxHP = getCharacterMaxHp(id, ally)
+                  db.ref("characters/" + id + "/hp").transaction(cur => Math.min(maxHP, safeInt(cur) + specialGroupHeal))
+                })
+              })
+            } else if (playerId === "bibi") {
+              db.ref("combat/mob/attackMalus").set({ source: "bibi", amount: 2, turns: 1, time: Date.now() })
+            }
+            showNotification(specialFailText)
+          }
           const outcome = {
             mode: "damage",
             amount: damage,
-            targetName: String(mob.name || "MOB").toUpperCase()
+            targetName: String(mob.name || "MOB").toUpperCase(),
+            groupHeal: specialGroupHeal
           }
           renderPlayerAttackResolutionV2(playerId, attack, roll, total, {
             ...outcome,

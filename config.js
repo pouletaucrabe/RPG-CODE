@@ -163,6 +163,7 @@ const playerSpecialAttacks = {
     stat: "Force",
     effect: "Exécution brutale sur cible affaiblie",
     crit: "Dégâts colossaux",
+    fail: "Greg vacille et rate sa fenêtre d'exécution.",
     conditionText: "Mob principal à 40% HP ou moins",
     flavor: "Greg lâche toute retenue et termine le travail sans élégance.",
     icon: "slash_overlay.png",
@@ -176,6 +177,7 @@ const playerSpecialAttacks = {
     stat: "Perspicacité",
     effect: "Riposte de précision après la spéciale ennemie",
     crit: "Rupture totale des défenses",
+    fail: "Le plan s'effondre et Yu révèle trop tôt son jeu.",
     conditionText: "Le mob principal a déjà utilisé sa spéciale",
     flavor: "Ju attend exactement le moment où l'ennemi se croit intouchable.",
     icon: "rune_glow.png",
@@ -189,6 +191,7 @@ const playerSpecialAttacks = {
     stat: "Charme",
     effect: "Déchaîne la nature quand le groupe vacille",
     crit: "Soin léger du groupe en plus des dégâts",
+    fail: "L'incantation se brise, mais un souffle d'espoir subsiste.",
     conditionText: "Un allié à 60% HP ou moins",
     flavor: "Elo appelle une histoire si vieille qu'elle mord encore.",
     icon: "rune_glow.png",
@@ -202,6 +205,7 @@ const playerSpecialAttacks = {
     stat: "Chance",
     effect: "Bibi déchaîne son chaos canin",
     crit: "Dégâts massifs et peur de meute",
+    fail: "Bibi s'éparpille et ne trouve pas sa cible.",
     conditionText: "Greg à 20% HP ou moins",
     flavor: "Quand Bibi craque, tout le champ de bataille le sent.",
     icon: "fang.png",
@@ -472,7 +476,7 @@ const mobSpecialAttacks = {
   gobelins: { name:"Les sournoiseries du gobelin", icon:"💣", dmgMin:7, dmgMax:12, effect:null, animation:"tavern", flavor:"Une pluie de bombes artisanales mal fabriquées, mais avec enthousiasme." },
   loup: { name:"Hurlement de meute", icon:"🐺", dmgMin:8, dmgMax:14, effect:null, animation:"howl", flavor:"Un hurlement glacial annonce la morsure coordonnée." },
   draugr: { name:"WHAAAAAA", icon:"🪦", dmgMin:10, dmgMax:17, effect:"curse", animation:"spectral", flavor:"Le draugr s'exprime dans la langue des Dieux." },
-  fantome: { name:"Traversée du linceul", icon:"👻", dmgMin:8, dmgMax:13, effect:null, animation:"spectral", flavor:"Le froid passe à travers l'armure et les excuses." },
+  fantome: { name:"Dance or die", icon:"👻", dmgMin:8, dmgMax:13, effect:null, animation:"spectral", flavor:"Le fantôme danse et son rythme est insoutenable." },
   vampire: { name:"La vie en oah oah", icon:"🩸", dmgMin:12, dmgMax:20, effect:"curse", animation:"bloodmoon", flavor:"Si si je vous promets que je suis une dangereuse créature." },
   witch: { name:"Défier la gravité", icon:"🧪", dmgMin:11, dmgMax:18, effect:"curse", animation:"arcane", flavor:"Regardez à l'Ouest.", },
   garde: { name:"J'ai pris une flèche dans le genou", icon:"🛡", dmgMin:10, dmgMax:16, effect:null, animation:"stone", flavor:"Le garde raconte son histoire et la pitié vous envahie." },
@@ -483,16 +487,16 @@ const mobSpecialAttacks = {
   valkyrie: { name:"Chute de lance", icon:"🪽", dmgMin:14, dmgMax:22, effect:null, animation:"divine", flavor:"La lance traverse le ciel comme un verdict déjà signé." },
   golem: { name:"Écrasement tectonique", icon:"🪨", dmgMin:15, dmgMax:24, effect:null, animation:"stone", flavor:"Le sol oublie sa fonction de sol." },
   pretre: { name:"Mon cierge est allumé, la cire prête à couler", icon:"📿", dmgMin:16, dmgMax:24, effect:"curse", animation:"divine", flavor:"Le sermon dérape immédiatement vers quelque chose de très peu canonique." },
-  fenrir: { name:"Mâchoire du crépuscule", icon:"🌘", dmgMin:16, dmgMax:25, effect:null, animation:"howl", flavor:"Fenrir choisit une cible comme on choisit la fin du monde." },
+  fenrir: { name:"Le son de la fin du monde", icon:"🌘", dmgMin:16, dmgMax:25, effect:null, animation:"howl", flavor:"Fenrir hurle sous la lune et invoque le Ragnarok." },
   zombie: { name:"Marche des morceaux", icon:"🧟", dmgMin:13, dmgMax:20, effect:null, animation:"venom", flavor:"Chaque membre participe, même sans coordination centrale." },
   zombie2: { name:"Morsure recyclée", icon:"☣", dmgMin:13, dmgMax:19, effect:"curse", animation:"venom", flavor:"Rien n'est frais, tout est offensant." },
   troll: { name:"Pont cassé", icon:"🪵", dmgMin:12, dmgMax:18, effect:null, animation:"stone", flavor:"Le troll frappe comme si la route lui appartenait." },
   cyclope: { name:"Regard du mal calibré", icon:"👁", dmgMin:13, dmgMax:20, effect:null, animation:"stone", flavor:"Un seul œil, mais une très mauvaise intention." },
   serpentgeant: { name:"Constriction abyssale", icon:"🐍", dmgMin:15, dmgMax:24, effect:null, animation:"abyss", flavor:"Le serpent décide que respirer est devenu optionnel." },
-  balraug: { name:"You shall not pass", icon:"🔥", dmgMin:25, dmgMax:38, effect:"all", animation:"fire", flavor:"Le Balraug bloque le passage avec une autorité tout à fait litigieuse." },
-  jormungand: { name:"Marée du monde", icon:"🌊", dmgMin:24, dmgMax:36, effect:"all", animation:"abyss", flavor:"La mer intérieure de Jormungand déborde sur tout le groupe." },
-  kraken: { name:"Tentacule d'inventaire", icon:"🐙", dmgMin:23, dmgMax:35, effect:"all", animation:"abyss", flavor:"Le Kraken fouille vos poches avec une implication gênante." },
-  nhiddog: { name:"Griffe des racines", icon:"🕳", dmgMin:21, dmgMax:33, effect:"all", animation:"abyss", flavor:"Les racines du monde mordent à travers lui." },
+  balraug: { name:"Coup de fouet bien placé", icon:"🔥", dmgMin:25, dmgMax:38, effect:"all", animation:"fire", flavor:"Le Balraug bloque le passage avec une autorité tout à fait litigieuse." },
+  jormungand: { name:"Raz de marée", icon:"🌊", dmgMin:24, dmgMax:36, effect:"all", animation:"abyss", flavor:"Le serpent sort de l'eau et sa taille fait trembler le monde." },
+  kraken: { name:"Fatale tentacule", icon:"🐙", dmgMin:23, dmgMax:35, effect:"all", animation:"abyss", flavor:"Le Kraken surgit et sa masse fait trembler le monde." },
+  nhiddog: { name:"Faim insatiable", icon:"🕳", dmgMin:21, dmgMax:33, effect:"all", animation:"abyss", flavor:"Le dragon affamé suce le sang de ses opposants." },
   hydre: { name:"Conseil de têtes", icon:"🐍", dmgMin:24, dmgMax:38, effect:"all", animation:"venom", flavor:"Personne n'est d'accord, sauf sur le fait de vous dévorer." },
   basilic: { name:"Œil qui fige", icon:"🗿", dmgMin:22, dmgMax:34, effect:null, animation:"venom", flavor:"Le regard pèse comme une pierre vivante." },
   roi: { name:"Impôt terminal", icon:"👑", dmgMin:26, dmgMax:40, effect:"all", animation:"royal", flavor:"Le roi prélève directement en points de vie." },
@@ -509,6 +513,7 @@ const mobSpecialAttacks = {
   forgeron1: { name:"Reprise à chaud", icon:"⚒", dmgMin:11, dmgMax:18, effect:null, animation:"fire", flavor:"Le métal n'est pas le seul à plier." },
   maire: { name:"Discours d'urgence", icon:"📜", dmgMin:14, dmgMax:22, effect:null, animation:"royal", flavor:"Une allocution si longue qu'elle devient contondante." },
   generalmelenchon: { name:"MAIS QUI ELLE EST CELLE LA", icon:"📣", dmgMin:18, dmgMax:27, effect:"all", animation:"royal", flavor:"Humiliation gauchiste sans torticolis." }
+  ,chnaw: { name:"Regroupement", icon:"📸", dmgMin:17, dmgMax:26, effect:"all", animation:"tavern", flavor:"Les chnaws se multiplient jusqu'à écraser quiconque se met en travers de leur chemin." }
 }
 
 function _getFallbackMobSpecialAttack(mobName, mobTier) {
@@ -548,7 +553,11 @@ const mobWeaknesses = {
     { title:"Peur des Thu'um", text:"Le simple écho d'un cri nordique bien placé fait vibrer ses vieux os." },
     { title:"Cryptomanie", text:"Dès qu'on menace son petit confort de caveau, toute sa concentration s'effondre." }
   ],
-  fantome:           { title:"Ancrage sacré", text:"Les effets lumineux, sacrés ou très matériels percent leur voile." },
+  fantome: [
+    { title:"Peur des aspirateurs", text:"Le simple bruit d'une aspiration un peu trop énergique menace instantanément son intégrité spectrale." },
+    { title:"Crise existentielle", text:"Le moindre doute sur sa condition le fige dans une grande spirale métaphysique." },
+    { title:"Peur d'être oublié", text:"Ignoré trop longtemps, il perd contenance et se dissipe presque de lui-même." }
+  ],
   vampire: [
     { title:"Peur des loups", text:"Le moindre rappel lupin suffit à fissurer sa superbe." },
     { title:"Sensible aux odeurs", text:"Les parfums trop francs, l'ail ou une odeur humide lui coupent le style." },
@@ -600,10 +609,27 @@ const mobWeaknesses = {
     { title:"Peur du vide", text:"Le moindre rappel d'une chute sans fin fissure sa superbe infernale." },
     { title:"Peur de la magie", text:"Les forces occultes qu'il ne contrôle pas lui inspirent une vraie méfiance." }
   ],
-  fenrir:            { title:"Entraves", text:"Déteste être freiné, immobilisé ou forcé à reculer." },
-  jormungand:        { title:"Nuque du monde", text:"Les frappes précises sous la mâchoire et les décharges l'irritent fortement." },
-  kraken:            { title:"Tentacules coupés", text:"Les attaques tranchantes et le feu le rendent plus prudent." },
-  nhiddog:           { title:"Racines brûlées", text:"La lumière et le feu font mal à ce qui rampe sous la terre." },
+  fenrir: [
+    { title:"Peur des chaînes", text:"Les chaînes, les entraves et tout ce qui rappelle sa captivité suffisent à freiner sa rage." },
+    { title:"Mâchoire vulnérable", text:"Sa mâchoire porte toute sa fureur : une frappe nette à cet endroit suffit à le dérégler." },
+    { title:"Solitude de la meute", text:"Séparé des siens, Fenrir perd une partie de sa fureur et de sa présence." },
+    { title:"Fratrie décimée", text:"La mort de Jormungand fissure sa volonté et laisse apparaître une vraie faille.", requiresDefeatedMob:"jormungand" }
+  ],
+  jormungand: [
+    { title:"Fratrie décimée", text:"La mort de Fenrir fissure sa volonté et laisse apparaître une vraie faille.", requiresDefeatedMob:"fenrir" },
+    { title:"Solitude", text:"Séparé de tout ce qui lui rappelle le monde, il perd une partie de sa présence et de sa rage." },
+    { title:"Peur de Thor", text:"Le simple souvenir du tonnerre et du marteau suffit à troubler ses instincts les plus anciens." }
+  ],
+  kraken: [
+    { title:"Boulet de canon", text:"Les vieux réflexes maritimes remontent vite quand il sent qu'on veut vraiment le couler." },
+    { title:"Davy Jones", text:"Tout ce qui rappelle les abysses maudites et les pactes marins trouble sa rage." },
+    { title:"Terre ferme", text:"Loin de l'océan et de son élément, sa majesté tentaculaire perd nettement en présence." }
+  ],
+  nhiddog: [
+    { title:"Obsession de se nourrir", text:"Le pousse à se précipiter bêtement dès qu'il croit sentir une proie facile." },
+    { title:"Dépression", text:"Le poids de son existence souterraine l'alourdit dès qu'on l'isole ou qu'on lui résiste." },
+    { title:"Folie", text:"Ses pulsions deviennent erratiques et il perd toute discipline quand on le pousse à bout." }
+  ],
   roi:               { title:"Humiliation publique", text:"Craque plus vite quand son autorité est tournée au ridicule." },
   tavernier:         { title:"Désordre", text:"Le chaos, les meubles qui volent et les attaques imprévisibles le dérèglent." },
   soulard:           { title:"Vertige", text:"Supporte mal les frappes rapides et tout ce qui lui fait perdre l'appui." },
@@ -622,6 +648,11 @@ const mobWeaknesses = {
     { title:"Peur des blondes", text:"Toute présence blonde le fait dérailler de sa ligne oratoire." },
     { title:"Frites molles", text:"Une frite trop molle suffit à ruiner son autorité gastronomique." },
     { title:"Il est sourd", text:"Les ordres, les objections et les nuances ont tendance à lui échapper complètement." }
+  ],
+  chnaw: [
+    { title:"Touriste de l'extrême", text:"Dès qu'il aperçoit un angle parfait, il oublie totalement le combat pour capturer le meilleur cliché." },
+    { title:"Ne se déplace qu'en groupe", text:"Isolé, il perd tout courage et toute coordination." },
+    { title:"Barrière de langue", text:"Le moindre malentendu ou ordre mal compris suffit à briser son élan collectif." }
   ],
   "jarl baldur":     { title:"Orgueil de chef", text:"A du mal à encaisser une riposte brillante ou une humiliation claire." },
   marchand2:         { title:"Nerfs fragiles", text:"Dès que la scène sort de son contrôle, il perd ses moyens." },
@@ -665,7 +696,7 @@ function getMobWeakness(mobName, mobTier = "weak") {
   const key = String(mobName || "").toLowerCase()
   const weakness = mobWeaknesses[key]
   if (weakness) {
-    const pool = Array.isArray(weakness)
+    const rawPool = Array.isArray(weakness)
       ? weakness
       : [
           weakness,
@@ -678,7 +709,13 @@ function getMobWeakness(mobName, mobTier = "weak") {
             text: weakness.text + " Si on casse son tempo, la faille devient évidente."
           }
         ]
-    const pick = pool[Math.floor(Math.random() * pool.length)] || weakness
+    const defeatedMobs = (typeof window !== "undefined" && window.__defeatedMobFlags) ? window.__defeatedMobFlags : {}
+    const pool = rawPool.filter(entry => {
+      if (!entry || !entry.requiresDefeatedMob) return true
+      return !!defeatedMobs[String(entry.requiresDefeatedMob).toLowerCase()]
+    })
+    const usablePool = pool.length ? pool : rawPool.filter(entry => !entry?.requiresDefeatedMob)
+    const pick = usablePool[Math.floor(Math.random() * usablePool.length)] || weakness
     return { ...pick }
   }
   const fallbackByTier = {
@@ -768,6 +805,16 @@ const mobSpecialPresentations = {
     image: "loupspé.jpg",
     quoteFrame: "cadre.png"
   },
+  fantome: {
+    scene: "fantome",
+    sound: "fantome.mp3",
+    soundVolume: 0.72,
+    kicker: "Disco d'outre-tombe",
+    emphasis: "spectral",
+    particles: [],
+    video: "fantome.mp4",
+    quoteFrame: "cadre.png"
+  },
   vampire: {
     scene: "vampire",
     sound: "vampire spé.mp3",
@@ -796,7 +843,7 @@ const mobSpecialPresentations = {
     kicker: "Crypt rupture",
     emphasis: "scream",
     particles: [],
-    image: "draugrspé.png",
+    video: "draugrspé.mp4",
     quoteFrame: "cadre.png"
   },
   dragon: {
@@ -827,6 +874,55 @@ const mobSpecialPresentations = {
     emphasis: "ritual",
     particles: [],
     image: "pretrespé.png",
+    quoteFrame: "cadre.png"
+  },
+  chnaw: {
+    scene: "chnaw",
+    sound: "chnaws.mp3",
+    soundVolume: 0.76,
+    kicker: "Multiplication de terrain",
+    emphasis: "flash",
+    particles: [],
+    quoteFrame: "cadre.png"
+  },
+  fenrir: {
+    scene: "fenrir",
+    sound: "fenrir.mp3",
+    soundVolume: 0.78,
+    kicker: "Ragnarok imminent",
+    emphasis: "howl",
+    particles: [],
+    image: "fenrirspé.jpg",
+    quoteFrame: "cadre.png"
+  },
+  jormungand: {
+    scene: "jormungand",
+    sound: "jormspé.mp3",
+    soundVolume: 0.8,
+    kicker: "Déferlement du monde",
+    emphasis: "abyss",
+    particles: [],
+    image: "jormspé.jpg",
+    quoteFrame: "cadre.png"
+  },
+  kraken: {
+    scene: "kraken",
+    sound: "krakenspé.mp3",
+    soundVolume: 0.84,
+    kicker: "Abysses en colère",
+    emphasis: "abyss",
+    particles: [],
+    video: "krakenspé.mp4",
+    quoteFrame: "cadre.png"
+  },
+  nhiddog: {
+    scene: "nhiddog",
+    sound: "nispé.mp3",
+    soundVolume: 0.8,
+    kicker: "Soif de sang",
+    emphasis: "abyss",
+    particles: [],
+    image: "nispé.jpg",
     quoteFrame: "cadre.png"
   },
   generalmelenchon: {
