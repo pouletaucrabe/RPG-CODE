@@ -4,6 +4,42 @@
 /* FICHE PERSONNAGE          */
 /* ========================= */
 
+const INVENTORY_EFFECT_STATS = ["force", "charme", "perspi", "chance", "defense"]
+
+function refreshSheetEffectiveStatsDisplay() {
+  if (!currentSheetPlayer) return
+  const inventoryField = document.getElementById("inventaire")
+  if (!inventoryField) return
+
+  const previousMods = window.__sheetInventoryModifiers || { force: 0, charme: 0, perspi: 0, chance: 0, defense: 0 }
+  const baseData = { ...(window.__sheetBaseCharacterData || {}) }
+
+  INVENTORY_EFFECT_STATS.forEach(stat => {
+    const field = document.getElementById(stat)
+    if (!field) return
+    const displayed = parseInt(field.value, 10)
+    if (Number.isFinite(displayed)) baseData[stat] = displayed - (parseInt(previousMods[stat], 10) || 0)
+  })
+
+  const nextMods = (typeof getInventoryStatModifiers === "function")
+    ? getInventoryStatModifiers(inventoryField.value)
+    : { force: 0, charme: 0, perspi: 0, chance: 0, defense: 0 }
+
+  INVENTORY_EFFECT_STATS.forEach(stat => {
+    const field = document.getElementById(stat)
+    if (!field) return
+    field.value = (parseInt(baseData[stat], 10) || 0) + (nextMods[stat] || 0)
+  })
+
+  window.__sheetBaseCharacterData = baseData
+  window.__sheetInventoryModifiers = nextMods
+}
+
+function getPersistedSheetStatValue(fieldId, rawValue, inventoryMods) {
+  if (!INVENTORY_EFFECT_STATS.includes(fieldId)) return rawValue
+  return Math.max(0, (parseInt(rawValue, 10) || 0) - (parseInt(inventoryMods[fieldId], 10) || 0))
+}
+
 function openCharacterSheet(id = null) {
   let playerID
   if (isGM) { if (!id) return; playerID = id }
@@ -24,6 +60,8 @@ function openCharacterSheet(id = null) {
   document.querySelectorAll(".playerOnly").forEach(f => { f.style.display = playerID === "bibi" ? "none" : "block" })
   db.ref("characters/" + playerID).once("value", snapshot => {
     const data = snapshot.val(); if (!data) return
+    window.__sheetBaseCharacterData = { ...data }
+    window.__sheetInventoryModifiers = { force: 0, charme: 0, perspi: 0, chance: 0, defense: 0 }
     ;["lvl","xp","force","charme","perspi","chance","defense","hp"].forEach(k => { const el = document.getElementById(k); if (el) el.value = data[k] || 0 })
     if (!window._playerMaxPoids) window._playerMaxPoids = {}
     window._playerMaxPoids[playerID] = data.poids || 100
@@ -32,6 +70,7 @@ function openCharacterSheet(id = null) {
     const notesField = document.getElementById("notes")
     if (invField) invField.value = data.inventaire || ""
     if (notesField) notesField.value = data.notes || ""
+    refreshSheetEffectiveStatsDisplay()
     curseLevel = data.curse || 0
     document.querySelectorAll(".curseGem").forEach((g, i) => g.classList.toggle("active", i < curseLevel))
     corruptionLevel = data.corruption || 0
@@ -48,6 +87,8 @@ function closeCharacterSheet() {
   saveCharacter()
   const sheet = document.getElementById("characterSheet"); if (!sheet) return
   sheet.style.display = "none"
+  window.__sheetBaseCharacterData = null
+  window.__sheetInventoryModifiers = null
   if (pendingLevelUp[currentSheetPlayer]) { triggerLevelUp(currentSheetPlayer); pendingLevelUp[currentSheetPlayer] = false }
 }
 
@@ -57,6 +98,8 @@ function forceCloseCharacterSheetWithoutSave() {
   sheet.style.display = "none"
   sheet.dataset.playerId = ""
   currentSheetPlayer = null
+  window.__sheetBaseCharacterData = null
+  window.__sheetInventoryModifiers = null
   const title = document.getElementById("sheetTitle")
   if (title) title.innerText = ""
   const img = document.getElementById("sheetImage")
@@ -70,9 +113,17 @@ function saveCharacter() {
   if (!myToken && !isGM) return
   if (!isGM && currentSheetPlayer === "bibi" && myToken && myToken.id !== "greg") return
   const id = currentSheetPlayer, data = {}
+  const inventoryMods = (typeof getInventoryStatModifiers === "function")
+    ? getInventoryStatModifiers(document.getElementById("inventaire")?.value || "")
+    : { force: 0, charme: 0, perspi: 0, chance: 0, defense: 0 }
   document.querySelectorAll("#characterSheet .sheetField").forEach(f => {
-    if (f.offsetParent !== null && f.id !== "weight" && f.id !== "maxWeight") data[f.id] = f.value
+    if (f.offsetParent !== null && f.id !== "weight" && f.id !== "maxWeight") data[f.id] = getPersistedSheetStatValue(f.id, f.value, inventoryMods)
   })
+  if (window.__sheetBaseCharacterData) {
+    INVENTORY_EFFECT_STATS.forEach(stat => {
+      if (data[stat] != null) window.__sheetBaseCharacterData[stat] = parseInt(data[stat], 10) || 0
+    })
+  }
   db.ref("characters/" + id).update(data).catch(console.error)
   showNotification("💾 Fiche sauvegardée")
 }
@@ -88,11 +139,19 @@ function autoSaveCharacter() {
   if (!isGM && myToken && myToken.id !== id && !(myToken.id === "greg" && id === "bibi")) return
 
   const data = {}
+  const inventoryMods = (typeof getInventoryStatModifiers === "function")
+    ? getInventoryStatModifiers(document.getElementById("inventaire")?.value || "")
+    : { force: 0, charme: 0, perspi: 0, chance: 0, defense: 0 }
   document.querySelectorAll("#characterSheet .sheetField").forEach(f => {
     if (f.offsetParent !== null && f.id !== "weight" && f.id !== "maxWeight") {
-      const v = f.value.trim(); if (v !== "") data[f.id] = isNaN(v) ? v : parseInt(v)
+      const v = f.value.trim(); if (v !== "") data[f.id] = isNaN(v) ? v : getPersistedSheetStatValue(f.id, parseInt(v, 10), inventoryMods)
     }
   })
+  if (window.__sheetBaseCharacterData) {
+    INVENTORY_EFFECT_STATS.forEach(stat => {
+      if (data[stat] != null) window.__sheetBaseCharacterData[stat] = parseInt(data[stat], 10) || 0
+    })
+  }
   if (Object.keys(data).length > 0) db.ref("characters/" + id).update(data).then(() => ["greg","ju","elo","bibi"].forEach(p => updateTokenStats(p)))
 }
 
@@ -118,6 +177,7 @@ function updateWeightBar() {
   if (!currentSheetPlayer) return
   const text = document.getElementById("inventaire").value
   const total = _parseInventoryWeight(text)
+  refreshSheetEffectiveStatsDisplay()
   // Utiliser le max déjà chargé en mémoire, fallback Firebase si absent
   const cachedMax = window._playerMaxPoids && window._playerMaxPoids[currentSheetPlayer]
   const applyMax = max => {
@@ -151,10 +211,12 @@ function loadPlayerCombatStats() {
   }
   const ref = db.ref("characters/" + myToken.id)
   const cb = snap => {
-    const d = snap.val(); if (!d) return
+    const raw = snap.val(); if (!raw) return
+    const d = (typeof getEffectiveCharacterData === "function") ? getEffectiveCharacterData(myToken.id, raw) : raw
+    window.__combatInventoryModifiers = d.__inventoryStatMods || { force: 0, charme: 0, perspi: 0, chance: 0, defense: 0 }
     ;["force","charme","perspi","chance","defense","hp"].forEach(k => { const el = document.getElementById("combat_"+k); if (el) el.value = d[k] || 0 })
-    updateCombatHPBar(d.hp || 0)
-    if (!isGM && (combatActive || gameState === "COMBAT") && (parseInt(d.hp, 10) || 0) <= 0 && !window.__combatOutcomeShowing) {
+    updateCombatHPBar(raw.hp || 0)
+    if (!isGM && (combatActive || gameState === "COMBAT") && (parseInt(raw.hp, 10) || 0) <= 0 && !window.__combatOutcomeShowing) {
       if (typeof triggerLocalDefeat === "function") triggerLocalDefeat("hp")
     }
   }
@@ -167,7 +229,8 @@ function saveCombatStats() {
   if (!myToken) return
   const hp = parseInt(document.getElementById("combat_hp").value) || 0
   const data = {}
-  ;["force","charme","perspi","chance","defense"].forEach(k => { data[k] = document.getElementById("combat_"+k).value })
+  const inventoryMods = window.__combatInventoryModifiers || { force: 0, charme: 0, perspi: 0, chance: 0, defense: 0 }
+  ;["force","charme","perspi","chance","defense"].forEach(k => { data[k] = getPersistedSheetStatValue(k, document.getElementById("combat_"+k).value, inventoryMods) })
   data.hp = hp
   db.ref("characters/" + myToken.id).update(data).catch(console.error)
   const bar = document.getElementById("hp_" + myToken.id); if (bar) bar.style.width = Math.max(0, Math.min(100, hp)) + "%"
@@ -1240,7 +1303,10 @@ function resolvePlayerAttack(attack, options = {}) {
   const diceMax = Math.max(2, parseInt(attack.dice, 10) || 20)
 
   db.ref("characters/" + playerId).once("value", charSnap => {
-    const data = charSnap.val() || {}
+    const rawData = charSnap.val() || {}
+    const data = (typeof getEffectiveCharacterData === "function")
+      ? getEffectiveCharacterData(playerId, rawData)
+      : rawData
     if (playerId === "greg" && attack.name === "I know Frank (si arc)" && !playerHasInventoryItem(data, "arc")) {
       showNotification("Greg doit avoir un arc dans son inventaire.")
       window.__playerAttackResolving = false
@@ -1326,7 +1392,11 @@ function resolvePlayerAttack(attack, options = {}) {
             if (entry.id === "__bibiRage") bibiRage = entry.data
             else if (entry.id === "__yuAggro") yuAggro = entry.data
             else if (entry.id === "__spiderSenseBuff") spiderSenseBuff = entry.data
-            else players[entry.id] = entry.data
+            else {
+              players[entry.id] = (typeof getEffectiveCharacterData === "function")
+                ? getEffectiveCharacterData(entry.id, entry.data)
+                : entry.data
+            }
           })
 
           if (isSpecial) {
