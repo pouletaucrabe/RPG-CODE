@@ -1842,10 +1842,17 @@ function buildMobSubPanel(mobData, slot) {
     const rBtn = document.createElement("button"); rBtn.style.cssText = "width:100%;padding:5px;margin-bottom:5px;font-family:Cinzel,serif;font-size:10px;background:rgba(80,30,120,0.5);color:#cc88ff;border:1px solid rgba(120,50,200,0.5);border-radius:4px;cursor:pointer;"
     rBtn.innerText = "Aléatoire (ciblage auto)"
     rBtn.onclick = () => {
-      const av = atks.filter(a=>a.name!==panel._lastAttack)
-      const atk = (av.length?av:atks)[Math.floor(Math.random()*(av.length||atks.length))]
+      const naturalRoll = Math.floor(Math.random() * 20) + 1
+      const canAutoTriggerSpecial = naturalRoll === 20 && specialAtk && !specialUsed
+      const atkPool = canAutoTriggerSpecial ? [specialAtk] : atks
+      const av = atkPool.filter(a => a.name !== panel._lastAttack)
+      const atk = (av.length ? av : atkPool)[Math.floor(Math.random() * (av.length || atkPool.length))]
       const target = _smartTarget(atk)
       panel._currentTarget = target === "all" ? null : target
+      if (canAutoTriggerSpecial) {
+        showNotification((mobData.name || "MOB").toUpperCase() + " fait un critique et déclenche sa spéciale !")
+        if (typeof addMJLog === "function") addMJLog((mobData.name || "MOB").toUpperCase() + " — critique naturel : spéciale automatique")
+      }
       launchMobAttackFromSlotV2(atk, mobData, panel, target)
     }
     panel.appendChild(rBtn)
@@ -3584,10 +3591,14 @@ function _applyAllyResult(pnj, action, roll, targetId) {
     }
     else if (action.type==="heal" && targetId) {
       const healAmt = action.healMult ? roll*action.healMult : action.healAmt||roll
-      db.ref("characters/"+targetId+"/hp").transaction(cur => Math.min(300, safeInt(cur) + healAmt))
-      addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : +${healAmt} HP à ${targetId.toUpperCase()}`)
-      showNotification(`${action.icon} ${pnj.name} soigne ${targetId.toUpperCase()} de ${healAmt} HP !`)
-      flashGold(); if(isCrit){ powerExplosion(); flashGold() }
+      db.ref("characters/"+targetId).once("value", s => {
+        const charData = s.val() || {}
+        const maxHP = getCharacterMaxHp(targetId, charData)
+        db.ref("characters/"+targetId+"/hp").transaction(cur => Math.min(maxHP, safeInt(cur) + healAmt))
+        addMJLog(`${action.icon} ${pnj.name} — ${action.label} (D${action.dice}=${roll}) : +${healAmt} HP à ${targetId.toUpperCase()}`)
+        showNotification(`${action.icon} ${pnj.name} soigne ${targetId.toUpperCase()} de ${healAmt} HP !`)
+        flashGold(); if(isCrit){ powerExplosion(); flashGold() }
+      })
     }
     else if (action.type==="malus") {
       const success = roll >= (action.threshold||10)

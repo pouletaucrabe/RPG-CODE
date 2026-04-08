@@ -492,6 +492,16 @@ html, body {
   letter-spacing: 2px;
 }
 
+.elem-subtitle-gold {
+  font-family: Cinzel, serif;
+  font-size: 11px;
+  color: rgba(232, 214, 170, 0.88);
+  text-align: center;
+  margin: -2px 0 10px;
+  letter-spacing: 1px;
+  font-style: italic;
+}
+
 .elem-full-btn {
   width: 100%;
   padding: 8px;

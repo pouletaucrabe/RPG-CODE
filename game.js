@@ -1569,6 +1569,7 @@ function usePlayerThuum(forcedWord) {
 /* ========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+window.__pageLoadTime = Date.now()
 window.__introClickLockUntil = 0
 initGMCombatPanelsDrag()
   
@@ -1848,6 +1849,7 @@ db.ref("game/endSession").on("value", snap => {
 db.ref("game/newGame").on("value", snap => {
   const data = snap.val()
   if (!data || !data.time) return
+  if (data.time < (window.__pageLoadTime || 0)) return  // event antérieur au chargement, ignorer
   if (isGM) return  // le MJ gère lui-même
   if (!gameStarted) return
   // Réinitialiser l'état local et revenir à l'écran d'intro
@@ -2665,7 +2667,7 @@ db.ref("game/playerDeath").on("value", snap => {
       setTimeout(() => db.ref("game/combatOutcome").remove(), 6500)
       if (!document.getElementById("revive_" + pid)) {
         const revBtn = document.createElement("button"); revBtn.id = "revive_" + pid
-      revBtn.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:99999;padding:10px 24px;font-family:'Cinzel Decorative',serif;font-size:13px;background:linear-gradient(rgba(0,80,0,0.8),rgba(0,40,0,0.8));color:#88ff88;border:2px solid rgba(50,180,50,0.6);border-radius:6px;cursor:pointer;letter-spacing:2px;animation:bifrostPulse 1.5s ease-in-out infinite alternate;"
+      revBtn.style.cssText = "position:fixed;bottom:104px;left:50%;transform:translateX(-50%);z-index:99999;padding:10px 24px;font-family:'Cinzel Decorative',serif;font-size:13px;background:linear-gradient(rgba(0,80,0,0.8),rgba(0,40,0,0.8));color:#88ff88;border:2px solid rgba(50,180,50,0.6);border-radius:6px;cursor:pointer;letter-spacing:2px;animation:bifrostPulse 1.5s ease-in-out infinite alternate;"
       revBtn.innerText = "✦ Ressusciter " + pid.toUpperCase()
       revBtn.onclick = () => { revivePlayer(pid); revBtn.remove() }
       document.body.appendChild(revBtn)
@@ -2795,6 +2797,75 @@ function resetLocalCombatVisualState() {
   window.__eloSummonState = null
   clearCombatTokenStateVisuals()
   if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+}
+
+function cleanupTransientGameUI(options = {}) {
+  const {
+    closeSavePanel = false
+  } = options
+
+  combatActive = false
+  combatStarting = false
+  window.__combatOutcomeShowing = false
+  window.__pendingLocalDefeat = false
+  window.__combatInitiativeHidden = false
+
+  resetLocalCombatVisualState()
+  resetMadnessPresentation()
+  if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
+  if (typeof closeMapLoreBookOverlay === "function") closeMapLoreBookOverlay()
+  if (typeof closeCombatInitiativeOverlay === "function") closeCombatInitiativeOverlay()
+
+  const initiativeToggle = document.getElementById("combatInitiativeToggle")
+  if (initiativeToggle) initiativeToggle.remove()
+
+  ;[
+    "mobAttackPanel",
+    "allyPNJPanel",
+    "allyViewerPanel",
+    "runeChallengeOverlay",
+    "spellMiniGame",
+    "curseIntroScreen",
+    "curseWheelScreen",
+    "documentOverlay"
+  ].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.remove()
+  })
+
+  const combatArena = document.getElementById("combatArena"); if (combatArena) combatArena.style.display = "none"
+  const combatGrid = document.getElementById("combatGrid"); if (combatGrid) combatGrid.style.display = "none"
+  const combatFilter = document.getElementById("combatFilter"); if (combatFilter) combatFilter.style.display = "none"
+  const defeatScreen = document.getElementById("defeatScreen"); if (defeatScreen) defeatScreen.style.display = "none"
+  const fade = document.getElementById("fadeScreen"); if (fade) { fade.style.opacity = "0"; fade.style.pointerEvents = "none" }
+
+  document.querySelectorAll("[id^='revive_']").forEach(btn => btn.remove())
+
+  if (closeSavePanel) {
+    const panel = document.getElementById("savePanel")
+    if (panel) panel.remove()
+  }
+
+  updateMadnessVisibility()
+  updateThuumButton()
+}
+
+function finalizeNewGameLocally() {
+  gameStarted = false
+  window.isNewGame = true
+  window.__curseWheelTriggeredFor = null
+  cemeteryEventDone = false
+  odinVisionShown = false
+  window.playerThuumData = {}
+  window.playerThuumAccessData = {}
+  window.mapLoreBookData = null
+  window.readLoreBooksData = {}
+  deadPlayers = {}
+  pendingLevelUp = {}
+  lastLevel = {}
+  lastHP = {}
+  stopAllMusic()
+  cleanupTransientGameUI()
 }
 
 function updateCombatTokenStateVisuals() {
@@ -3284,13 +3355,14 @@ function watchCharacter(snapshot) {
   const hp         = parseInt(data.hp)         || 0
   const corruption = parseInt(data.corruption) || 0
 
-  const maxHP = 100 + (lvl - 1) * 8
+  const maxHP = getMaxHP(playerID, lvl)
   const bar   = document.getElementById("hp_" + playerID)
   if (bar) bar.style.width = Math.max(0, Math.min(100, (hp / maxHP) * 100)) + "%"
   updateTokenGlow(playerID, hp)
 
   const token = document.getElementById(playerID)
   if (token) {
+    const wasDead = !!deadPlayers[playerID]
     if (hp <= 0) {
       token.classList.add("playerDead")
       deadPlayers[playerID] = true
@@ -3301,11 +3373,11 @@ function watchCharacter(snapshot) {
         skull.innerText = "mort"
         token.appendChild(skull)
       }
-      if (isGM && !window.__hpDeathSyncBusy?.[playerID]) {
+      if (isGM && !window.__hpDeathSyncBusy?.[playerID] && !wasDead) {
         if (!window.__hpDeathSyncBusy) window.__hpDeathSyncBusy = {}
         window.__hpDeathSyncBusy[playerID] = true
         db.ref("game/playerDeath").set({ player: playerID, time: Date.now() }).finally(() => {
-          setTimeout(() => { if (window.__hpDeathSyncBusy) delete window.__hpDeathSyncBusy[playerID] }, 600)
+          setTimeout(() => { if (window.__hpDeathSyncBusy) delete window.__hpDeathSyncBusy[playerID] }, 1500)
         })
       }
     } else {
@@ -3739,32 +3811,8 @@ function loadGame() {
     }
     if (!data.characters && !data.tokens) { showNotification("Sauvegarde vide"); return }
     _applyLoadData(data, () => {
-    combatActive = false
-    combatStarting = false
-    resetLocalCombatVisualState()
-    resetMadnessPresentation()
-    if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
     db.ref("events/aurora").remove()
-    ;[
-      "mobAttackPanel",
-      "allyPNJPanel",
-      "allyViewerPanel",
-      "runeChallengeOverlay",
-      "spellMiniGame",
-      "curseIntroScreen",
-      "curseWheelScreen",
-      "documentOverlay"
-    ].forEach(id => {
-      const el = document.getElementById(id)
-      if (el) el.remove()
-    })
-    const combatArena = document.getElementById("combatArena"); if (combatArena) combatArena.style.display = "none"
-    const combatGrid = document.getElementById("combatGrid"); if (combatGrid) combatGrid.style.display = "none"
-    const combatFilter = document.getElementById("combatFilter"); if (combatFilter) combatFilter.style.display = "none"
-    const defeatScreen = document.getElementById("defeatScreen"); if (defeatScreen) defeatScreen.style.display = "none"
-    const fade = document.getElementById("fadeScreen"); if (fade) { fade.style.opacity = "0"; fade.style.pointerEvents = "none" }
-    updateMadnessVisibility()
-    updateThuumButton()
+    cleanupTransientGameUI()
     showNotification("✅ Partie chargée")
     }) // fin _applyLoadData
   }) // fin Firebase once
@@ -3780,32 +3828,7 @@ function loadSave(saveName) {
     }
     if (!data) { showNotification("Sauvegarde introuvable"); return }
     _applyLoadData(data, () => {
-    combatActive = false
-    combatStarting = false
-    resetLocalCombatVisualState()
-    resetMadnessPresentation()
-    if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
-    ;[
-      "mobAttackPanel",
-      "allyPNJPanel",
-      "allyViewerPanel",
-      "runeChallengeOverlay",
-      "spellMiniGame",
-      "curseIntroScreen",
-      "curseWheelScreen",
-      "documentOverlay"
-    ].forEach(id => {
-      const el = document.getElementById(id)
-      if (el) el.remove()
-    })
-    const combatArena = document.getElementById("combatArena"); if (combatArena) combatArena.style.display = "none"
-    const combatGrid = document.getElementById("combatGrid"); if (combatGrid) combatGrid.style.display = "none"
-    const combatFilter = document.getElementById("combatFilter"); if (combatFilter) combatFilter.style.display = "none"
-    const defeatScreen = document.getElementById("defeatScreen"); if (defeatScreen) defeatScreen.style.display = "none"
-    const fade = document.getElementById("fadeScreen"); if (fade) { fade.style.opacity = "0"; fade.style.pointerEvents = "none" }
-    updateMadnessVisibility()
-    updateThuumButton()
-    const panel = document.getElementById("savePanel"); if (panel) panel.remove()
+    cleanupTransientGameUI({ closeSavePanel: true })
     showNotification("✅ Partie chargée : " + saveName)
     addMJLog("📂 Chargement : " + saveName)
     }) // fin _applyLoadData
@@ -4033,21 +4056,6 @@ function newGame() {
   } // fin doReset
 
   doReset()
-}
-
-function resetAllPlayerStats() {
-  if (!isGM) { showNotification("MJ seulement"); return }
-  ;["greg", "ju", "elo", "bibi"].forEach(pid => {
-    db.ref("characters/" + pid + "/lvl").once("value", snap => {
-      const lvl      = snap.val() || 1
-      const computed = getPlayerStatsAtLevel(pid, lvl)
-      if (!computed) return
-      const update = { lvl, hp: computed.hp, poids: computed.poids }
-      allStats.forEach(s => { update[s] = computed[s] })
-      db.ref("characters/" + pid).update(update)
-      showNotification("✓ Stats " + pid + " réinitialisées (lvl " + lvl + ")")
-    })
-  })
 }
 
 /* ========================= */
@@ -4588,8 +4596,6 @@ function startGame() {
   document.body.focus()
   if (gameStarted) return
   gameStarted = true
-  primeMapMusicChannels()
-  playInitialMapMusic(window.__latestMapValue || "taverne.jpg")
   hideIntroLayers()
   setGameState(GAME_STATE.INTRO)
   const fade = document.getElementById("fadeScreen"); fade.style.opacity = 1
@@ -4603,21 +4609,20 @@ function startGame() {
   setTimeout(() => {
     if (isGM) {
       // MJ : cinématique si newGame() vient d'être appelé
-      if (window.isNewGame) { window.isNewGame = false; playOpeningCinematic(startDialogue) }
+      if (window.isNewGame) {
+        window.isNewGame = false
+        stopAllMusic()
+        playOpeningCinematic(startDialogue)
+      }
       else showTavern()
     } else {
-      // Joueur : lire Firebase directement pour éviter la race condition auth
-      db.ref("game/newGame").once("value", snap => {
-        const d = snap.val()
-        const seenKey = d && d.time ? "rpg_seen_newgame_" + d.time : null
-        const isNew = seenKey && !localStorage.getItem(seenKey) && Date.now() - d.time < 30 * 60 * 1000
-        if (isNew) {
-          try { localStorage.setItem(seenKey, "1") } catch(e) {}
-          playOpeningCinematic(startDialogue)
-        } else {
-          showTavern()
-        }
-      })
+      if (window.isNewGame) {
+        window.isNewGame = false
+        stopAllMusic()
+        playOpeningCinematic(startDialogue)
+      } else {
+        showTavern()
+      }
     }
   }, 1500)
 }
@@ -4630,6 +4635,10 @@ function showTavern() {
   hideIntroLayers()
   setGameState("GAME")
   const fade = document.getElementById("fadeScreen"); const map = document.getElementById("map")
+  primeMapMusicChannels()
+  // Démarrer la musique immédiatement (dans la fenêtre du geste utilisateur)
+  const earlyMap = currentMap || "taverne.jpg"
+  if (mapMusic[earlyMap]) playInitialMapMusic(earlyMap)
   fadeOut()
   document.getElementById("camera").style.display  = "block"
   document.getElementById("diceBar").style.display  = "flex"
@@ -4652,7 +4661,7 @@ function showTavern() {
     if (isGM) maybeSpawnMapLoreBook(mapName)
     syncMapElementsFromDB()
     syncWantedStateFromDB()
-    playInitialMapMusic(mapName)
+    if (mapName !== earlyMap) playInitialMapMusic(mapName)
     ensureMapMusicPlayback(mapName, 0)
     setTimeout(() => { fade.style.opacity = 0 }, 500)
     ensureMapMusicPlayback(mapName, 800)

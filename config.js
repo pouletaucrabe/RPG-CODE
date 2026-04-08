@@ -1092,6 +1092,7 @@ const shopItems = [
   { id:"lanterne",   name:"Lanterne",        img:"lanterne.png",  category:"util",    basePrix:30,  baseStats:"Vision nuit",  scaling:2  },
   { id:"torche",     name:"Torche",          img:"torche.png",    category:"util",    basePrix:15,  baseStats:"Éclairage",    scaling:1  },
   { id:"corde",      name:"Corde/Grappin",   img:"corde.png",     category:"util",    basePrix:25,  baseStats:"Utilité",      scaling:2  },
+  { id:"cartedumonde", name:"Carte du Monde", img:"mapicon.png",  category:"util",    basePrix:90,  baseStats:"Révèle les routes", scaling:6 },
   { id:"selle",      name:"Selle de Bibi",   img:"bag.png",       category:"util",    basePrix:80,  baseStats:"Poids +",      scaling:5  },
   { id:"pioche",     name:"Pioche",          img:"pioche.png",    category:"util",    basePrix:40,  baseStats:"Minage",       scaling:3  },
   { id:"amulette",   name:"Amulette Sacrée", img:"anneau2.png",   category:"util",    basePrix:150, baseStats:"Curse -1",     scaling:10 },
@@ -1108,6 +1109,7 @@ function getShopPrice(item, partyLvl) {
 
 function getShopStats(item, partyLvl) {
   const lvl = partyLvl || 1
+  if (item.id === "cartedumonde") return "Accès aux repères du monde"
   if (item.id === "selle")      return "Poids Bibi +" + (5 + lvl * 3) + " kg"
   if (item.id === "amulette")   return "Curse -" + Math.min(3, 1 + Math.floor(lvl / 3))
   if (item.id === "pierresoin") return "+" + (5 + Math.floor(lvl / 2)) + " HP/tour"
