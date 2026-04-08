@@ -916,7 +916,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.querySelectorAll(".sheetField").forEach(field => {
-    field.addEventListener("input", () => { autoSaveCharacter(); updateWeightBar() })
+    const isLongTextField = field.id === "inventaire" || field.id === "notes"
+    field.addEventListener("input", () => {
+      if (!isLongTextField) {
+        if (typeof queueCharacterAutoSave === "function") queueCharacterAutoSave()
+        else autoSaveCharacter()
+      }
+      updateWeightBar()
+    })
+    if (isLongTextField) {
+      field.addEventListener("blur", () => {
+        if (typeof queueCharacterAutoSave === "function") queueCharacterAutoSave(0)
+        else autoSaveCharacter()
+      })
+    }
   })
 
   document.querySelectorAll("#playerCombatPanel input").forEach(field => {

@@ -3245,6 +3245,25 @@ function getMaxHP(playerId, level) {
   return s ? s.hp : 100
 }
 
+function getMaxCarryWeight(playerId, level, data = null) {
+  const source = data || {}
+  const lvl = Math.max(1, parseInt(level ?? source.lvl, 10) || 1)
+  const stats = (typeof getPlayerStatsAtLevel === "function") ? getPlayerStatsAtLevel(playerId, lvl) : null
+  return Math.max(1, parseInt(source.poids, 10) || parseInt(stats?.poids, 10) || 100)
+}
+
+function isCharacterOverweight(playerId, data = null) {
+  const source = data || {}
+  const inventoryText = String(source.inventaire || "")
+  const weight = typeof _parseInventoryWeight === "function" ? _parseInventoryWeight(inventoryText) : 0
+  const maxWeight = getMaxCarryWeight(playerId, source.lvl, source)
+  return {
+    overweight: weight > maxWeight,
+    weight,
+    maxWeight
+  }
+}
+
 function updateTokenFromDB(snapshot) {
   const id   = snapshot.key
   const data = snapshot.val()
@@ -3284,15 +3303,10 @@ function updateTokenStats(id) {
     const corruption = data.corruption || 0
     const lvl        = data.lvl || 1
 
-    // Calcul du poids inventaire — fonction partagée avec la fiche
-    const weight = data.inventaire && typeof _parseInventoryWeight === "function"
-      ? _parseInventoryWeight(data.inventaire)
-      : 0
-
     const token     = document.getElementById(id)
-    const maxWeight = data.poids || 100
+    const { weight, maxWeight, overweight } = isCharacterOverweight(id, data)
     if (token) {
-      token.classList.toggle("overweight", weight >= maxWeight)
+      token.classList.toggle("overweight", overweight)
       if ((data.curse || 0) >= 8) { token.classList.add("cursed");    startBloodEffect(token) }
       else                        { token.classList.remove("cursed"); stopBloodEffect(token)  }
     }
@@ -3308,7 +3322,7 @@ function updateTokenStats(id) {
     stats.innerHTML = `
       <div class="powerText">⭐ Niv ${lvl}</div>
       <div class="hpText" style="color:${hpColor}">❤️ ${hp}/${maxHP}</div>
-      ${weight > 0 ? `<div class="weightText">🎒 ${weight}</div>` : ""}
+      ${weight > 0 ? `<div class="weightText">🎒 ${weight}${overweight ? ` <span class="overweightInline">SURCHARGÉ</span>` : ""}</div>` : (overweight ? `<div class="overweightText">SURCHARGÉ</div>` : "")}
       ${curseIcons ? `<div class="curseText">${curseIcons}</div>` : ""}
       ${powerIcon  ? `<div class="powerText">${powerIcon}</div>` : ""}
     `
@@ -4601,10 +4615,12 @@ function startGame() {
   const fade = document.getElementById("fadeScreen"); fade.style.opacity = 1
   const music = document.getElementById("music"); if (music) { music.pause(); music.currentTime = 0 }
   db.ref("game/map").once("value", snapshot => {
-    const mapName = snapshot.val(); if (!mapName) return
-    const map = document.getElementById("map")
-    map.style.backgroundImage = "url('" + mapName + "')"
-    calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
+    const mapName = snapshot.val()
+    if (mapName) {
+      const map = document.getElementById("map")
+      map.style.backgroundImage = "url('" + mapName + "')"
+      calculateMinZoom(); cameraZoom = minZoom; cameraX = 0; cameraY = 0; updateCamera()
+    }
   })
   setTimeout(() => {
     if (isGM) {
@@ -4951,6 +4967,11 @@ function choosePlayer(id) {
   watchLocalPlayerDefeat(id)
   updateThuumButton()
   watchFreePoints(id)
+  // Lier le profil anonyme au playerId pour autoriser les écritures Firebase
+  if (window.__authUid && !window.__authPlayerId) {
+    db.ref("profiles/" + window.__authUid + "/playerId").set(id).catch(() => {})
+    window.__authPlayerId = id
+  }
   // Réduire le menu en mini badge
   _collapsePlayerMenu(id)
 }
@@ -4998,6 +5019,20 @@ document.querySelectorAll(".token").forEach(token => {
         showNotification(token.id.toUpperCase() + " est KO. Réanimez-le pour le déplacer.")
         return
       }
+      if (token.id !== "mobToken" && !token.id.startsWith("mobToken_")) {
+        db.ref("characters/" + token.id).once("value", snap => {
+          const data = snap.val() || {}
+          if (isCharacterOverweight(token.id, data).overweight) {
+            showNotification(token.id.toUpperCase() + " est surchargé et ne peut pas bouger.")
+            return
+          }
+          document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
+          token.classList.add("gmSelected"); selected = token; lastX = selected.offsetLeft
+          _state.tokenDragStart = { x: e.clientX, y: e.clientY }; _state.tokenDragging = false
+          e.preventDefault()
+        })
+        return
+      }
       document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
       token.classList.add("gmSelected"); selected = token; lastX = selected.offsetLeft
       _state.tokenDragStart = { x: e.clientX, y: e.clientY }; _state.tokenDragging = false
@@ -5007,9 +5042,22 @@ document.querySelectorAll(".token").forEach(token => {
       showNotification(token.id.toUpperCase() + " est KO et ne peut pas bouger.")
       return
     }
-    if (token.id === "bibi") { selected = token; lastX = selected.offsetLeft; bibiMoved = true; tryBark(); e.preventDefault(); return }
+    const localMoveId = token.id === "bibi" ? "bibi" : (myToken ? myToken.id : "")
+    if (token.id === "bibi" || (myToken && token.id === myToken.id)) {
+      db.ref("characters/" + localMoveId).once("value", snap => {
+        const data = snap.val() || {}
+        if (isCharacterOverweight(localMoveId, data).overweight) {
+          showNotification(localMoveId.toUpperCase() + " est surchargé et ne peut pas bouger.")
+          return
+        }
+        selected = token
+        lastX = selected.offsetLeft
+        if (token.id === "bibi") { bibiMoved = true; tryBark() }
+        e.preventDefault()
+      })
+      return
+    }
     if (!myToken || token.id !== myToken.id) return
-    selected = token; lastX = selected.offsetLeft; e.preventDefault()
   })
 })
 

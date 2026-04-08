@@ -463,10 +463,25 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
     const tierMults  = { weak:1.3,  medium:2.0, high:3.4, boss:6.1  }
     const tierScales = { weak:0.15, medium:0.22, high:0.30, boss:0.41 }
     const tierLvlOff = { weak:-1,   medium:1,   high:3,    boss:8    }
+    const softenBossCurve = effectiveLevel => {
+      if (tier !== "boss" || effectiveLevel <= 10) return effectiveLevel
+      return 10 + (effectiveLevel - 10) * 0.65
+    }
     const mult = tierMults[tier]  || 1.0
     const sc   = tierScales[tier] || 0.12
-    // Après lvl 10 : réduire l'écart pour les world boss
-    const effLevel = (tier === "boss" && level > 10) ? 10 + (level - 10) * 0.65 : level
+    const getTieredLevelBonus = lvl => {
+      let total = 0
+      for (let current = 2; current <= lvl; current += 1) {
+        let perLevel = 1
+        if (current >= 15) perLevel = 4
+        else if (current >= 10) perLevel = 3
+        else if (current >= 5) perLevel = 2
+        total += perLevel
+      }
+      return total
+    }
+    const levelBonus = getTieredLevelBonus(Math.max(1, level))
+    const effLevel = softenBossCurve(level + levelBonus * 0.42)
     const hp   = Math.round(base * mult * Math.pow(1 + effLevel * sc, 1.72))
     const lvl  = Math.max(1, level + (tierLvlOff[tier] || 0))
     db.ref("combat/mob").set({ name:mainMob, hp, maxHP:hp, lvl, tier })
@@ -487,7 +502,24 @@ function _launchCombatWithMobs(mainMob, forceTier, extraMobs) {
       const lf2   = { weak:5,   medium:10,   high:17,  boss:36  }[tier2] || 5
       setTimeout(() => {
         getPartyLevel(lv => {
-          const hp2  = Math.round(base2 * mult2 + lv * lf2 + Math.floor(lv * lv * 0.75))
+          const softenBossCurve = effectiveLevel => {
+            if (tier2 !== "boss" || effectiveLevel <= 10) return effectiveLevel
+            return 10 + (effectiveLevel - 10) * 0.65
+          }
+          const getTieredLevelBonus = lvl => {
+            let total = 0
+            for (let current = 2; current <= lvl; current += 1) {
+              let perLevel = 1
+              if (current >= 15) perLevel = 4
+              else if (current >= 10) perLevel = 3
+              else if (current >= 5) perLevel = 2
+              total += perLevel
+            }
+            return total
+          }
+          const levelBonus2 = getTieredLevelBonus(Math.max(1, lv))
+          const effectiveLv2 = softenBossCurve(lv + levelBonus2 * 0.42)
+          const hp2  = Math.round(base2 * mult2 + effectiveLv2 * lf2 + Math.floor(effectiveLv2 * effectiveLv2 * 0.75))
           const lvl2 = Math.max(1, lv + ({ weak:-1, medium:1, high:3, boss:8 }[tier2] || 0))
           db.ref("combat/" + slot).set({ name:mob, hp:hp2, maxHP:hp2, lvl:lvl2, tier:tier2, slot })
           activeMobSlots[slot] = true

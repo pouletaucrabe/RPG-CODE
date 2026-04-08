@@ -958,7 +958,16 @@ function getMobAnimationStyle(animationKey) {
 }
 
 function getMobDamageRange(attack, mobLvl, mobTier = "weak") {
-  const levelFactor = 1 + Math.max(0, mobLvl - 1) * 0.24
+  const lvl = Math.max(1, parseInt(mobLvl, 10) || 1)
+  let levelBonus = 0
+  for (let current = 2; current <= lvl; current += 1) {
+    let perLevel = 1
+    if (current >= 15) perLevel = 4
+    else if (current >= 10) perLevel = 3
+    else if (current >= 5) perLevel = 2
+    levelBonus += perLevel
+  }
+  const levelFactor = 1 + levelBonus * 0.09
   const tierFactor = { weak:1.14, medium:1.24, high:1.38, boss:1.56 }[mobTier] || 1.16
   const specialFactor = attack && attack.special ? 1.24 : 1
   const factor = levelFactor * tierFactor * specialFactor
