@@ -32,6 +32,7 @@
         <button class="menuButton" onclick="newGame()"><span class="btn-inner">NOUVELLE PARTIE</span></button>
         <button class="menuButton" onclick="loadGame()"><span class="btn-inner">CHARGER PARTIE</span></button>
         <button class="menuButton" onclick="requestPlayerAuth()"><span class="btn-inner">CONNEXION JOUEUR</span></button>
+        <button class="menuButton" id="introLogoutBtn" onclick="logoutPlayer()" style="display:none;"><span class="btn-inner">SE DÉCONNECTER</span></button>
       </div>
     </div>
   </div>
@@ -57,6 +58,7 @@
     <div id="playerMenu">
       <button onclick="requestGM()">🎲 MJ</button>
       <button onclick="requestPlayerAuth()">🔑 Connexion</button>
+      <button id="playerMenuLogoutBtn" onclick="logoutPlayer()" style="display:none;">🚪 Déconnexion</button>
       <div id="playerAuthStatus" class="menuLabel" style="display:none;"></div>
       <div class="menuLabel">Choose :</div>
       <button class="playerChoiceBtn" data-player-choice="greg" onmousedown="event.stopPropagation()" onclick="choosePlayer('greg')">Greg</button>

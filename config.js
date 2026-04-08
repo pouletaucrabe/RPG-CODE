@@ -967,7 +967,10 @@ function getMobDamageRange(attack, mobLvl, mobTier = "weak") {
     else if (current >= 5) perLevel = 2
     levelBonus += perLevel
   }
-  const levelFactor = 1 + levelBonus * 0.09
+  const effectiveLevelBonus = mobTier === "boss" && levelBonus > 18
+    ? 18 + (levelBonus - 18) * 0.65
+    : levelBonus
+  const levelFactor = 1 + effectiveLevelBonus * 0.09
   const tierFactor = { weak:1.14, medium:1.24, high:1.38, boss:1.56 }[mobTier] || 1.16
   const specialFactor = attack && attack.special ? 1.24 : 1
   const factor = levelFactor * tierFactor * specialFactor

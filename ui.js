@@ -89,7 +89,8 @@ function closeCharacterSheet() {
     window.__sheetAutoSaveTimer = null
   }
   const closingPlayerId = currentSheetPlayer
-  Promise.resolve(saveCharacter()).finally(() => {
+  Promise.resolve(saveCharacter()).then(saved => {
+    if (!saved) return
     const sheet = document.getElementById("characterSheet"); if (!sheet) return
     sheet.style.display = "none"
     window.__sheetBaseCharacterData = null
@@ -120,8 +121,8 @@ function forceCloseCharacterSheetWithoutSave() {
 }
 
 function saveCharacter() {
-  if (!myToken && !isGM) return
-  if (!isGM && currentSheetPlayer === "bibi" && myToken && myToken.id !== "greg") return
+  if (!myToken && !isGM) return Promise.resolve(false)
+  if (!isGM && currentSheetPlayer === "bibi" && myToken && myToken.id !== "greg") return Promise.resolve(false)
   const id = currentSheetPlayer, data = {}
   const inventoryField = document.getElementById("inventaire")
   const notesField = document.getElementById("notes")
@@ -152,11 +153,13 @@ function saveCharacter() {
       setTimeout(() => {
         db.ref("characters/" + id + "/inventaire").set(latestInventory).catch(() => {})
       }, 420)
-      showNotification("💾 Fiche sauvegardée")
+      showNotification("Fiche sauvegardée")
+      return true
     })
     .catch(err => {
       console.error("saveCharacter failed", err)
-      showNotification("⚠ Sauvegarde fiche incomplète")
+      showNotification("Sauvegarde fiche incomplète")
+      return false
     })
 }
 
@@ -1306,6 +1309,8 @@ function renderCombatStatusPanel() {
 
     const row = document.createElement("div")
     row.className = "combatStatusItem combatStatusItem--" + (entry.kind || "buff")
+    if ((entry.title || "").toLowerCase().includes("tour actif")) row.classList.add("combatStatusItem--turn")
+    if ((entry.title || "").toLowerCase().includes("faiblesse")) row.classList.add("combatStatusItem--weakness")
 
     const icon = document.createElement("img")
     icon.className = "combatStatusIcon"
@@ -2210,8 +2215,8 @@ function applyMobDamageToPlayer(pid, dmg, attack, mobData, slot) {
 
 function launchMobAttackFromSlot(attack, mobData, panel, forcedTarget, slot) {
   const target = forcedTarget || panel._currentTarget
-  if (!target && attack.effect !== "all") { showNotification("⚠ Choisissez une cible !"); return }
-  if (attack.special && mobData.specialUsed) { showNotification("⚠ Attaque spéciale déjà utilisée"); return }
+  if (!target && attack.effect !== "all") { showNotification("Choisissez une cible !"); return }
+  if (attack.special && mobData.specialUsed) { showNotification("Attaque spéciale déjà utilisée"); return }
   panel._lastAttack = attack.name
   animateMobDice(() => {
     tickMobPlayerPoison()
@@ -2252,7 +2257,7 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
     showNotification("Tour actif : " + (typeof getCombatActorLabel === "function" ? getCombatActorLabel(activeActorId) : String(activeActorId || "").toUpperCase()))
     return
   }
-  if (attack.special && mobData.specialUsed) { showNotification("⚠ Attaque spéciale déjà utilisée"); return }
+  if (attack.special && mobData.specialUsed) { showNotification("Attaque spéciale déjà utilisée"); return }
   Promise.all([
     db.ref("combat/mob/yuAggro").once("value"),
     db.ref("combat/mob/yuSkipNextTurn").once("value"),
@@ -2264,7 +2269,7 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
     const aggroActive = !!(yuAggro && parseInt(yuAggro.turns, 10) > 0)
     const malusActive = !!(attackMalus && parseInt(attackMalus.turns, 10) > 0)
     const target = aggroActive && attack.effect !== "all" ? "ju" : (forcedTarget || panel._currentTarget)
-    if (!target && attack.effect !== "all") { showNotification("⚠ Choisissez une cible !"); return }
+    if (!target && attack.effect !== "all") { showNotification("Choisissez une cible !"); return }
     panel._lastAttack = attack.name
     animateMobDice(() => {
       const mobLabel = (mobData.name || "MOB").toUpperCase()
@@ -2307,7 +2312,7 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
 
 function addMobToFight(mobId, forceTier) {
   if (!isGM) return
-  const freeSlot=MOB_SLOTS.find(s=>!activeMobSlots[s]); if(!freeSlot){ showNotification("⚠ Maximum 3 mobs !"); return }
+  const freeSlot=MOB_SLOTS.find(s=>!activeMobSlots[s]); if(!freeSlot){ showNotification("Maximum 3 mobs !"); return }
   const tier=forceTier||(mobStats[mobId]?mobStats[mobId].tier:"weak")
   getPartyLevel(level => {
     const base=mobStats[mobId]?mobStats[mobId].baseHP:10
@@ -2665,8 +2670,8 @@ function renderRuneChallenge(data) {
   document.body.appendChild(ov); setTimeout(()=>ov.style.opacity="1",20)
 }
 
-function unlockRuneHint(hintId) { db.ref("game/runeChallenge/unlockedHints").once("value",snap=>{ const c=snap.val()||[]; if(!c.includes(hintId)){ c.push(hintId); db.ref("game/runeChallenge/unlockedHints").set(c); showNotification("🔓 Fragment runique découvert !"); flashGold() } }) }
-function revealRuneLetter(letter) { if(!isGM) return; db.ref("game/runeChallenge/revealedLetters").once("value",snap=>{ const c=snap.val()||[], u=letter.toUpperCase(); if(!c.includes(u)){ c.push(u); db.ref("game/runeChallenge/revealedLetters").set(c); showNotification("ᚱ Lettre révélée : "+u+" = "+(runeAlphabet[u]||"?")) } }) }
+function unlockRuneHint(hintId) { db.ref("game/runeChallenge/unlockedHints").once("value",snap=>{ const c=snap.val()||[]; if(!c.includes(hintId)){ c.push(hintId); db.ref("game/runeChallenge/unlockedHints").set(c); showNotification("Fragment runique découvert !"); flashGold() } }) }
+function revealRuneLetter(letter) { if(!isGM) return; db.ref("game/runeChallenge/revealedLetters").once("value",snap=>{ const c=snap.val()||[], u=letter.toUpperCase(); if(!c.includes(u)){ c.push(u); db.ref("game/runeChallenge/revealedLetters").set(c); showNotification("Lettre révélée : "+u+" = "+(runeAlphabet[u]||"?")) } }) }
 function showRuneVictory() { playSound("critSound"); flashGold(); flashGold(); screenShakeHard(); powerExplosion(); const w=document.createElement("div"); w.style.cssText="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative','Cinzel',serif;font-size:40px;color:gold;text-shadow:0 0 20px gold;text-align:center;pointer-events:none;z-index:99999999;"; const title=document.createElement("div"); title.innerText="⚔ MESSAGE DÉCHIFFRÉ ⚔"; const sub=document.createElement("span"); sub.style.cssText="font-size:18px;color:#c8a050;"; sub.innerText="Les runes révèlent leur secret !"; w.appendChild(title); w.appendChild(sub); document.body.appendChild(w); setTimeout(()=>{ w.style.transition="opacity 1s"; w.style.opacity="0"; setTimeout(()=>w.remove(),1000) },4000) }
 function tryRuneEventOnDice() { const sb=document.getElementById("storyImage"); if(!sb||sb.style.display!=="flex") return; db.ref("game/runeChallenge").once("value",snap=>{ const data=snap.val(); if(!data||!data.active) return; if(Math.random()>0.25) return; const rev=data.revealedLetters||[], ml=[...new Set("ALUERDSBVTIN OPQCM".split("").filter(c=>c.trim()))], unrev=ml.filter(l=>!rev.includes(l)); if(!unrev.length) return; const l=unrev[Math.floor(Math.random()*unrev.length)], r=runeAlphabet[l]||"?", d=runeEventDialogues[Math.floor(Math.random()*runeEventDialogues.length)]; showRuneBubble(d,l,r); setTimeout(()=>revealRuneLetter(l),3000) }) }
 function showRuneBubble(dialogue, letter, rune) { const ex=document.getElementById("runeBubble"); if(ex) ex.remove(); const b=document.createElement("div"); b.id="runeBubble"; b.style.cssText="position:fixed;bottom:30%;left:55%;max-width:320px;background:url('images/paper.png') center/100% 100% no-repeat;padding:24px 30px;font-family:'IM Fell English',serif;font-size:15px;color:#2b1a10;line-height:1.6;z-index:9999999;opacity:0;transition:opacity 0.6s ease;pointer-events:none;"; const tx=document.createElement("div"); tx.innerText=dialogue; tx.style.cssText="margin-bottom:12px;font-style:italic;"; b.appendChild(tx); const rd=document.createElement("div"); rd.style.cssText="text-align:center;font-size:32px;color:#c8a050;text-shadow:0 0 10px gold;font-family:serif;margin:8px 0 4px;"; rd.innerText=rune; b.appendChild(rd); const ld=document.createElement("div"); ld.style.cssText="text-align:center;font-family:'Cinzel',serif;font-size:14px;color:#8b4000;letter-spacing:2px;"; ld.innerText="= "+letter; b.appendChild(ld); document.body.appendChild(b); setTimeout(()=>b.style.opacity="1",50); playSound("parcheminSound"); setTimeout(()=>{ b.style.opacity="0"; setTimeout(()=>b.remove(),600) },6000) }
@@ -2687,7 +2692,7 @@ function toggleCurse(level) {
   if (level === 8) {
     flashRed()
     screenShakeHard()
-    showNotification("☠ La malédiction est complète !")
+    showNotification("La malédiction est complète !")
     if (targetToken) {
       targetToken.classList.add("cursed")
       startBloodEffect(targetToken)
@@ -2724,7 +2729,7 @@ function setCorruption(level) {
     flashGold()
     screenShake()
     powerExplosion()
-    showNotification("✨ Pouvoir disponible !")
+    showNotification("Pouvoir disponible !")
     if (targetToken) targetToken.classList.add("powerReady")
     activatePowerMode(targetId)
   }
@@ -3348,7 +3353,7 @@ function rollSpellDice(playerId, currentTries) {
   showSpellRollResult(roll,isCrit,isFail,playerId,()=>{
     const newTries=currentTries+1
     if(isCrit){ db.ref("game/cemeterySpell/freed_players").once("value",s=>{ const fp=s.val()||[]; if(!fp.includes(playerId)) fp.push(playerId); db.ref("game/cemeterySpell/freed_players").set(fp); const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(SPELL_PLAYERS.every(p=>(d.freed_players||[]).includes(p))) setTimeout(()=>db.ref("game/cemeterySpell").update({ freed:true }),1000) }) }) }
-    else{ db.ref("game/cemeterySpell/tries").once("value",s=>{ const t=s.val()||{}; t[playerId]=newTries; db.ref("game/cemeterySpell/tries").set(t); if(isFail){ db.ref("characters/"+playerId).once("value",cs=>{ const cd=cs.val(); if(cd){ db.ref("characters/"+playerId+"/hp").set(Math.max(0,(cd.hp||0)-10)); showNotification("💀 "+playerId.toUpperCase()+" perd 10 HP !") } }) }; const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); if(newTries>=SPELL_MAX_TRIES){ setTimeout(()=>{ db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(!d) return; const t2=d.tries||{}; const fp=d.freed_players||[]; const allOut=SPELL_PLAYERS.every(p=>fp.includes(p)||(t2[p]||0)>=SPELL_MAX_TRIES); if(allOut){ const anyF=SPELL_PLAYERS.some(p=>fp.includes(p)); if(!anyF&&isGM){ db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:true }); setTimeout(()=>startCombat(Math.random()>0.5?"zombie":"zombie2","high"),2000) } else db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:false }) } }) },500) } }) }
+    else{ db.ref("game/cemeterySpell/tries").once("value",s=>{ const t=s.val()||{}; t[playerId]=newTries; db.ref("game/cemeterySpell/tries").set(t); if(isFail){ db.ref("characters/"+playerId).once("value",cs=>{ const cd=cs.val(); if(cd){ db.ref("characters/"+playerId+"/hp").set(Math.max(0,(cd.hp||0)-10)); showNotification(playerId.toUpperCase()+" perd 10 HP !") } }) }; const next=(SPELL_PLAYERS.indexOf(playerId)+1)%SPELL_PLAYERS.length; db.ref("game/cemeterySpell/turnIdx").set(next); if(newTries>=SPELL_MAX_TRIES){ setTimeout(()=>{ db.ref("game/cemeterySpell").once("value",snap=>{ const d=snap.val(); if(!d) return; const t2=d.tries||{}; const fp=d.freed_players||[]; const allOut=SPELL_PLAYERS.every(p=>fp.includes(p)||(t2[p]||0)>=SPELL_MAX_TRIES); if(allOut){ const anyF=SPELL_PLAYERS.some(p=>fp.includes(p)); if(!anyF&&isGM){ db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:true }); setTimeout(()=>startCombat(Math.random()>0.5?"zombie":"zombie2","high"),2000) } else db.ref("game/cemeterySpell").update({ freed:true, failedByZombie:false }) } }) },500) } }) }
   })
 }
 
@@ -3974,7 +3979,7 @@ function showFreePointsPanel(playerID, points) {
       upd.freePoints = 0
       db.ref("characters/" + playerID).update(upd).then(() => {
         panel.remove()
-        showNotification("✦ Stats améliorées !")
+        showNotification("Stats améliorées !")
         flashGold()
         // Recharger la fiche si ouverte
         if (currentSheetPlayer === playerID) {
@@ -4028,7 +4033,7 @@ function saveGold() {
   input.style.display = "none"
   const display = document.getElementById("goldDisplay")
   if (display) { display.innerText = val + " po"; display.style.display = "block" }
-  showNotification("💰 " + val + " pièces d'or")
+  showNotification(val + " pièces d'or")
 }
 
 function loadGold(playerID) {
@@ -4272,5 +4277,3 @@ function resetFlySwarmPresentation() {
     }, 3000)
   }
 }
-
-

@@ -1819,6 +1819,38 @@ html, body {
   box-shadow: 0 0 8px rgba(30,160,180,0.3), inset 0 1px 0 rgba(80,220,240,0.15);
 }
 
+#highPnjTab > button:not(.mapCategoryButton),
+#pnjCombatTab > button:not(.mapCategoryButton) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4px 8px 0;
+  padding: 8px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.7px;
+  color: #f0dfae;
+  background: linear-gradient(180deg, rgba(20,74,102,0.92), rgba(10,40,58,0.97));
+  border: 1px solid rgba(52,196,240,0.58);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(136,232,255,0.14),
+    0 0 0 1px rgba(16,84,116,0.32);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+#highPnjTab > button:not(.mapCategoryButton):hover,
+#pnjCombatTab > button:not(.mapCategoryButton):hover {
+  transform: translateY(-1px);
+  color: #fff4c8;
+  background: linear-gradient(180deg, rgba(28,102,136,0.96), rgba(12,54,78,0.99));
+  border-color: rgba(118,232,255,0.74);
+  box-shadow:
+    inset 0 1px 0 rgba(176,244,255,0.18),
+    0 0 14px rgba(74,196,236,0.18);
+}
+
 .pnjTabContent { overflow-y: auto; max-height: calc(100vh - 200px); display: none; }
 .pnjTabContent.active { display: block; }
 
@@ -2175,15 +2207,15 @@ html, body {
   position: fixed;
   top: 12px;
   right: 22px;
-  width: min(282px, 22vw);
-  max-height: 38vh;
+  width: min(246px, 19vw);
+  max-height: 31vh;
   overflow-y: auto;
   z-index: 9999997;
-  padding: 9px 10px 8px;
-  border: 1px solid rgba(201,159,88,0.3);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(8,16,22,0.94), rgba(6,10,14,0.95)), url('images/combat_panel.png') center/cover no-repeat;
-  box-shadow: 0 18px 42px rgba(0,0,0,0.45), inset 0 0 18px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,226,178,0.06);
+  padding: 8px 9px 7px;
+  border: 1px solid rgba(201,159,88,0.24);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(10,18,26,0.9), rgba(6,10,16,0.92)), url('images/combat_panel.png') center/cover no-repeat;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.34), inset 0 0 16px rgba(255,255,255,0.025), inset 0 1px 0 rgba(255,226,178,0.04);
   backdrop-filter: blur(4px);
 }
 
@@ -2200,36 +2232,38 @@ html, body {
 .combatStatusHeader {
   position: relative;
   font-family: Cinzel, serif;
-  font-size: 12px;
-  letter-spacing: 1.4px;
-  color: #f2d7a6;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  color: #f4ddae;
   text-align: center;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  opacity: 0.92;
 }
 
 .combatStatusList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .combatStatusEmpty {
   font-family: Cinzel, serif;
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(214,224,232,0.7);
   text-align: center;
-  padding: 10px 6px 4px;
+  padding: 8px 4px 2px;
 }
 
 .combatStatusItem {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 7px 8px;
+  gap: 7px;
+  padding: 6px 7px;
   border: 1px solid rgba(70,110,130,0.18);
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(12,24,30,0.82), rgba(8,16,22,0.92));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(14,26,36,0.76), rgba(8,16,24,0.84));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
 }
 
 .combatStatusItem--warn {
@@ -2262,15 +2296,26 @@ html, body {
   background: linear-gradient(180deg, rgba(8,24,16,0.82), rgba(6,16,10,0.92));
 }
 
+.combatStatusItem--turn {
+  border-color: rgba(114, 222, 255, 0.5);
+  background: linear-gradient(180deg, rgba(18,52,74,0.9), rgba(8,26,40,0.95));
+  box-shadow: inset 0 1px 0 rgba(210,246,255,0.08), 0 0 14px rgba(74,196,236,0.12);
+}
+
+.combatStatusItem--weakness {
+  border-color: rgba(212, 164, 88, 0.42);
+  background: linear-gradient(180deg, rgba(48,34,16,0.82), rgba(24,16,8,0.9));
+}
+
 .combatStatusSection {
   font-family: Cinzel, serif;
-  font-size: 9px;
-  letter-spacing: 1.2px;
-  color: rgba(210,175,100,0.55);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: rgba(214,188,124,0.55);
   text-align: center;
-  padding: 4px 0 2px;
+  padding: 3px 0 1px;
   border-top: 1px solid rgba(200,160,80,0.15);
-  margin-top: 2px;
+  margin-top: 1px;
   text-transform: uppercase;
 }
 
@@ -2286,8 +2331,8 @@ html, body {
 .combatStatusItem--heal .combatStatusText { color: #80e8b0; }
 
 .combatStatusIcon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   flex: 0 0 auto;
   margin-top: 1px;
@@ -2407,24 +2452,24 @@ html, body {
 
 .combatStatusTitle {
   font-family: Cinzel, serif;
-  font-size: 11px;
+  font-size: 10px;
   color: #f0dfbf;
-  letter-spacing: 0.7px;
-  margin-bottom: 2px;
+  letter-spacing: 0.6px;
+  margin-bottom: 1px;
 }
 
 .combatStatusText {
   font-family: "IM Fell English", serif;
-  font-size: 11px;
-  line-height: 1.2;
+  font-size: 10px;
+  line-height: 1.15;
   color: #d6dde3;
 }
 
 .combatStatusMeta {
-  margin-top: 2px;
+  margin-top: 1px;
   font-family: Cinzel, serif;
-  font-size: 10px;
-  color: #89c7f7;
+  font-size: 9px;
+  color: #97d7ff;
   letter-spacing: 0.4px;
 }
 
@@ -4199,12 +4244,15 @@ body {
 #playerSelect button {
   width: 100% !important;
   margin: 6px 0 !important;
-  background: linear-gradient(135deg,
-    rgba(20,20,20,0.78) 0%,
-    rgba(6,6,6,0.9) 50%,
-    rgba(20,20,20,0.78) 100%) !important;
-  border: 1px solid rgba(212,168,53,0.35) !important;
-  box-shadow: inset 0 1px 0 rgba(255,220,140,0.08), inset 0 -1px 0 rgba(0,0,0,0.4) !important;
+  padding: 9px 14px !important;
+  background: linear-gradient(180deg, rgba(20,74,102,0.9), rgba(10,40,58,0.96)) !important;
+  border: 1px solid rgba(48, 188, 235, 0.55) !important;
+  border-radius: 3px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(126, 232, 255, 0.15),
+    0 0 0 1px rgba(18, 86, 118, 0.35) !important;
+  color: #f1dfad !important;
+  letter-spacing: 1px !important;
 }
 
 #playerSelect button::before,
@@ -4214,18 +4262,36 @@ body {
 }
 
 #playerSelect button:hover {
-  background: linear-gradient(135deg,
-    rgba(48,36,16,0.84) 0%,
-    rgba(20,14,8,0.94) 50%,
-    rgba(48,36,16,0.84) 100%) !important;
-  border-color: rgba(212,168,53,0.7) !important;
-  color: #fff1c0 !important;
-  box-shadow: 0 0 12px rgba(212,168,53,0.25), inset 0 1px 0 rgba(255,220,140,0.16) !important;
+  background: linear-gradient(180deg, rgba(26,98,132,0.94), rgba(12,54,78,0.98)) !important;
+  border-color: rgba(108, 228, 255, 0.72) !important;
+  color: #fff4ca !important;
+  box-shadow:
+    0 0 12px rgba(72, 188, 236, 0.22),
+    inset 0 1px 0 rgba(170, 244, 255, 0.18) !important;
+  transform: translateY(-1px) !important;
 }
 
 #playerSelect button:hover::before,
 #playerSelect button:hover::after {
-  color: #f2d48a !important;
+  color: #fff0b6 !important;
+}
+
+#playerSelect button[onclick*="startEndSession"] {
+  background: linear-gradient(180deg, rgba(116,24,24,0.92), rgba(56,10,10,0.98)) !important;
+  border-color: rgba(224,92,92,0.55) !important;
+  color: #ffd0d0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,180,180,0.1),
+    0 0 0 1px rgba(96,20,20,0.45) !important;
+}
+
+#playerSelect button[onclick*="startEndSession"]:hover {
+  background: linear-gradient(180deg, rgba(148,30,30,0.96), rgba(70,12,12,0.99)) !important;
+  border-color: rgba(255,126,126,0.7) !important;
+  color: #ffe2e2 !important;
+  box-shadow:
+    0 0 14px rgba(210,70,70,0.22),
+    inset 0 1px 0 rgba(255,198,198,0.12) !important;
 }
 
 #playerSelect.collapsed {
@@ -4308,6 +4374,64 @@ body {
   box-shadow: 0 0 16px rgba(189,148,67,0.12), inset 0 1px 0 rgba(255,224,164,0.08) !important;
 }
 
+#gmCharacters {
+  display: none;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 18px 18px 16px !important;
+}
+
+#gmCharacters button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 86px;
+  margin: 0 !important;
+  padding: 9px 14px !important;
+  font-family: var(--font-body) !important;
+  font-size: 12px !important;
+  letter-spacing: 0.8px !important;
+  color: #f0dfae !important;
+  background: linear-gradient(180deg, rgba(20,74,102,0.92), rgba(10,40,58,0.97)) !important;
+  border: 1px solid rgba(52, 196, 240, 0.58) !important;
+  border-radius: 3px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(136, 232, 255, 0.14),
+    0 0 0 1px rgba(16, 84, 116, 0.34) !important;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+#gmCharacters button:hover {
+  transform: translateY(-1px) !important;
+  color: #fff4c8 !important;
+  background: linear-gradient(180deg, rgba(28,102,136,0.96), rgba(12,54,78,0.99)) !important;
+  border-color: rgba(118, 232, 255, 0.74) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(176, 244, 255, 0.18),
+    0 0 14px rgba(74, 196, 236, 0.2) !important;
+}
+
+#gmCharacters button[onclick*="startEndSession"] {
+  background: linear-gradient(180deg, rgba(122,22,22,0.94), rgba(58,10,10,0.98)) !important;
+  border-color: rgba(224,92,92,0.56) !important;
+  color: #ffd6d6 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,186,186,0.1),
+    0 0 0 1px rgba(92,18,18,0.42) !important;
+}
+
+#gmCharacters button[onclick*="startEndSession"]:hover {
+  background: linear-gradient(180deg, rgba(150,30,30,0.98), rgba(72,12,12,1)) !important;
+  border-color: rgba(255,126,126,0.72) !important;
+  color: #ffe4e4 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,210,210,0.14),
+    0 0 14px rgba(212, 74, 74, 0.22) !important;
+}
+
 /* — Barre dés — */
 
 #diceBar {
@@ -4326,19 +4450,238 @@ body {
 
 #diceLog,
 #mjLog {
-  background: linear-gradient(180deg, rgba(18,14,10,0.96), rgba(8,8,8,0.99)) !important;
-  border: 1px solid rgba(181,145,82,0.7) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 0 0 1px rgba(76,50,18,0.95), 0 16px 38px rgba(0,0,0,0.84) !important;
+  background:
+    linear-gradient(180deg, rgba(18,34,52,0.94), rgba(8,18,32,0.97)) !important;
+  border: 1px solid rgba(214, 182, 108, 0.72) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 0 0 1px rgba(74, 120, 152, 0.45),
+    inset 0 1px 0 rgba(226, 245, 255, 0.08),
+    0 18px 42px rgba(0,0,0,0.72),
+    0 0 28px rgba(72, 156, 210, 0.12) !important;
+  backdrop-filter: blur(4px);
 }
 
 #notification {
-  background: linear-gradient(180deg, rgba(26,20,14,0.98), rgba(10,8,8,0.99)) !important;
-  border-radius: 12px !important;
+  background:
+    linear-gradient(180deg, rgba(24,42,66,0.97), rgba(10,20,34,0.98)) !important;
+  border: 1px solid rgba(214, 182, 108, 0.8) !important;
+  border-radius: 14px !important;
   box-shadow:
-    0 0 0 1px rgba(77,52,18,0.96),
-    0 10px 28px rgba(0,0,0,0.84),
-    0 0 16px rgba(183,145,80,0.12) !important;
+    0 0 0 1px rgba(86, 134, 170, 0.44),
+    inset 0 1px 0 rgba(235,246,255,0.1),
+    0 10px 30px rgba(0,0,0,0.72),
+    0 0 22px rgba(76, 178, 226, 0.14) !important;
+  color: #f8eed0 !important;
+  letter-spacing: 1.2px !important;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 14px 20px !important;
+  font-family: Cinzel, serif !important;
+  font-size: 14px !important;
+  line-height: 1.35;
+}
+
+#notification::before,
+#diceLog::before,
+#mjLog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), transparent 32%),
+    radial-gradient(circle at top center, rgba(120, 214, 255, 0.16), transparent 44%);
+}
+
+#notification > *,
+#diceLog > *,
+#mjLog > * {
+  position: relative;
+  z-index: 1;
+}
+
+#notification[data-type="info"] {
+  background:
+    linear-gradient(180deg, rgba(24,42,66,0.97), rgba(10,20,34,0.98)) !important;
+  border-color: rgba(128, 212, 255, 0.52) !important;
+}
+
+#notification[data-type="danger"] {
+  background:
+    linear-gradient(180deg, rgba(74,20,20,0.97), rgba(30,10,10,0.98)) !important;
+  border-color: rgba(236, 112, 112, 0.64) !important;
+  box-shadow:
+    0 0 0 1px rgba(132, 34, 34, 0.62),
+    inset 0 1px 0 rgba(255,220,220,0.08),
+    0 10px 30px rgba(0,0,0,0.72),
+    0 0 22px rgba(216, 74, 74, 0.16) !important;
+}
+
+#notification[data-type="gain"] {
+  background:
+    linear-gradient(180deg, rgba(30,68,44,0.97), rgba(10,30,18,0.98)) !important;
+  border-color: rgba(122, 230, 164, 0.58) !important;
+  box-shadow:
+    0 0 0 1px rgba(34, 112, 72, 0.56),
+    inset 0 1px 0 rgba(230,255,238,0.08),
+    0 10px 30px rgba(0,0,0,0.72),
+    0 0 22px rgba(82, 210, 132, 0.14) !important;
+}
+
+#notification[data-type="special"] {
+  background:
+    linear-gradient(180deg, rgba(62,30,82,0.97), rgba(20,10,34,0.98)) !important;
+  border-color: rgba(196, 142, 255, 0.6) !important;
+  box-shadow:
+    0 0 0 1px rgba(92, 48, 140, 0.56),
+    inset 0 1px 0 rgba(246,230,255,0.08),
+    0 10px 30px rgba(0,0,0,0.72),
+    0 0 24px rgba(168, 96, 255, 0.16) !important;
+}
+
+.dice-log-head,
+.mj-log-head {
+  margin-bottom: 10px !important;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(214, 182, 108, 0.2);
+  color: #f5dfaf !important;
+  text-shadow: 0 0 12px rgba(255, 220, 130, 0.16);
+}
+
+.mj-log-toggle {
+  color: #8fdcff !important;
+  text-shadow: 0 0 10px rgba(76, 190, 255, 0.34);
+}
+
+#diceLogContent,
+#mjLogContent {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(130, 210, 255, 0.65) rgba(12, 22, 38, 0.55);
+}
+
+.logEntry {
+  padding: 7px 0 !important;
+  border-bottom: 1px solid rgba(214,182,108,0.14) !important;
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.logMJ {
+  color: #f4dfa6;
+}
+
+.logCrit {
+  color: #ffe17c;
+  text-shadow: 0 0 10px rgba(255, 215, 90, 0.58);
+}
+
+.logFail {
+  color: #ff9f9f;
+  text-shadow: 0 0 10px rgba(255, 74, 74, 0.42);
+}
+
+.logCombat {
+  color: #cfeeff;
+  font-size: 11px;
+  letter-spacing: 0.25px;
+}
+
+#diceResult .dice-player-label {
+  color: #d8f5ff;
+  text-shadow:
+    0 0 14px rgba(82, 196, 255, 0.32),
+    0 0 24px rgba(36, 122, 186, 0.22),
+    0 2px 10px rgba(0,0,0,0.62);
+}
+
+#diceResult .dice-face {
+  border-color: rgba(101, 214, 255, 0.78);
+  box-shadow:
+    inset 0 0 26px rgba(52, 144, 202, 0.28),
+    0 0 28px rgba(8, 28, 48, 0.42);
+  background:
+    linear-gradient(145deg, rgba(14,40,62,0.98), rgba(7,18,30,0.99));
+  color: #7fe7ff;
+  text-shadow: 0 0 16px rgba(70, 220, 255, 0.8);
+}
+
+#diceResult .dice-result-label {
+  color: #d8f6ff;
+  text-shadow:
+    0 0 16px rgba(92, 210, 255, 0.45),
+    0 0 30px rgba(22, 116, 190, 0.18),
+    0 2px 12px rgba(0,0,0,0.68);
+}
+
+.tokenStats .powerText,
+.tokenStats .hpText,
+.tokenStats .lowHPText,
+.tokenStats .weightText,
+.tokenStats .overweightText {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 8px 18px rgba(0,0,0,0.28);
+}
+
+.tokenStats .powerText {
+  background: linear-gradient(180deg, rgba(20,56,84,0.92), rgba(10,28,46,0.95));
+  border-color: rgba(212, 180, 106, 0.78);
+  color: #f4df9f;
+  text-shadow: 0 0 8px rgba(255, 219, 120, 0.24);
+}
+
+.tokenStats .hpText,
+.tokenStats .lowHPText {
+  background: linear-gradient(180deg, rgba(16,34,54,0.9), rgba(8,18,32,0.95));
+  border-color: rgba(110, 202, 255, 0.32);
+}
+
+.tokenStats .weightText {
+  background: linear-gradient(180deg, rgba(22,40,62,0.82), rgba(8,18,30,0.9));
+  border: 1px solid rgba(110, 172, 214, 0.24);
+  color: #d6e7f1;
+}
+
+.tokenStats .overweightInline,
+.tokenStats .overweightText {
+  background: linear-gradient(180deg, rgba(146, 34, 34, 0.96), rgba(84, 10, 10, 0.98));
+  border-color: rgba(255, 130, 130, 0.72);
+  color: #ffe0e0;
+  box-shadow:
+    0 0 10px rgba(148, 18, 18, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.tokenStateBadges {
+  gap: 5px;
+}
+
+.tokenStateBadge {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-width: 1px;
+  box-shadow:
+    0 8px 16px rgba(0,0,0,0.24),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.34);
+}
+
+.tokenStateBadge--warn {
+  background: linear-gradient(180deg, rgba(154,52,46,0.98), rgba(92,24,20,0.98));
+  border-color: rgba(232,124,112,0.58);
+}
+
+.tokenStateBadge--buff {
+  background: linear-gradient(180deg, rgba(36,118,88,0.98), rgba(12,64,46,0.98));
+  border-color: rgba(106,206,162,0.54);
+}
+
+.tokenStateBadge--ally {
+  background: linear-gradient(180deg, rgba(88,64,146,0.98), rgba(46,28,90,0.98));
+  border-color: rgba(186,156,248,0.52);
 }
 
 /* — Thuum — */

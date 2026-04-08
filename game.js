@@ -56,6 +56,7 @@ function syncFirebaseAccessForUser(uid) {
     const role = snap.val()
     window.__authRole = typeof role === "string" ? role : null
     if (window.__authRole === "gm" && !isGM) activateGM(true)
+    updateIntroLogoutBtn()
   }
 
   const profileRef = db.ref("profiles/" + uid + "/playerId")
@@ -293,6 +294,8 @@ function updatePlayerAuthMenuState() {
     btn.style.display = authPlayer ? (isAssigned ? "block" : "none") : "block"
     btn.disabled = !!(authPlayer && !isAssigned)
   })
+
+  updateIntroLogoutBtn()
 }
 
 function closePlayerAuthModal() {
@@ -479,6 +482,39 @@ function requestPlayerAuth() {
   showPlayerAuthModal()
 }
 
+function logoutPlayer() {
+  if (!auth) return
+  auth.signOut().then(() => {
+    if (isGM) {
+      isGM = false
+      const gmBar = document.getElementById("gmBar")
+      const mjLog = document.getElementById("mjLog")
+      const previewBtn = document.getElementById("playerPreviewBtn")
+      if (gmBar) gmBar.style.display = "none"
+      if (mjLog) mjLog.style.display = "none"
+      if (previewBtn) previewBtn.style.display = "none"
+      document.querySelectorAll(".gmSection").forEach(s => s.style.display = "none")
+    }
+    window.__authPlayerId = null
+    window.__authRole = null
+    detachFirebaseAccessSync()
+    showNotification("Déconnexion réussie")
+    updateIntroLogoutBtn()
+    window.__authLoginPromise = null
+    auth.signInAnonymously().catch(() => {})
+  }).catch(err => {
+    showNotification("Erreur lors de la déconnexion : " + (err?.message || err))
+  })
+}
+
+function updateIntroLogoutBtn() {
+  const isAuth = !!(window.__authPlayerId || window.__authRole === "gm")
+  const introBtn = document.getElementById("introLogoutBtn")
+  const menuBtn = document.getElementById("playerMenuLogoutBtn")
+  if (introBtn) introBtn.style.display = isAuth ? "" : "none"
+  if (menuBtn) menuBtn.style.display = isAuth ? "" : "none"
+}
+
 initFirebaseAnonymousAuth()
 
 window.groupMadness = 0
@@ -608,7 +644,7 @@ function applyMapLoreBookReward(entry, playerId) {
   if (!entry || !entry.reward || !playerId) return
   const reward = entry.reward
   db.ref("characters/" + playerId + "/" + reward.stat).transaction(current => (parseInt(current, 10) || 0) + reward.amount)
-  showNotification("📖 " + playerId.toUpperCase() + " gagne +" + reward.amount + " " + reward.label)
+  showNotification(playerId.toUpperCase() + " gagne +" + reward.amount + " " + reward.label)
 }
 
 function getLocalPlayerId() {
@@ -1826,8 +1862,8 @@ db.ref("game/endSession").on("value", snap => {
   const logo = document.getElementById("endSessionLogo")
   if (isGM) return
 
-  // Signal supprimé (GM a appuyé sur Espace) → fermer chez les joueurs aussi
-  if (!data || !data.time) {
+  // Signal supprimé ou désactivé → fermer chez les joueurs aussi
+  if (!data || !data.time || data.active === false) {
     if (snd) { snd.pause(); snd.currentTime = 0 }
     if (bg)   bg.style.display = "none"
     if (logo) logo.style.display = "none"
@@ -1865,7 +1901,7 @@ db.ref("game/newGame").on("value", snap => {
   stopAllMusic()
   setGameState("MENU")
   startIntro()
-  showNotification("🆕 Nouvelle partie lancée par le MJ")
+  showNotification("Nouvelle partie lancée par le MJ")
 })
 
 // ─── groupMadness — jauge folie du groupe ───
@@ -2658,7 +2694,7 @@ db.ref("game/playerDeath").on("value", snap => {
       skull.innerText = "💀"; tok.appendChild(skull)
     }
   }
-  showNotification("💀 " + pid.toUpperCase() + " est tombé !")
+  showNotification(pid.toUpperCase() + " est tombé !")
   const snd = new Audio("audio/defaite.mp3"); setManagedAudioBaseVolume(snd, 0.6); snd.play().catch(() => {})
   screenShakeHard()
   if (!isGM && getLocalPlayerId() === String(pid || "").toLowerCase()) triggerLocalDefeat("playerDeath")
@@ -3477,8 +3513,8 @@ function watchCharacter(snapshot) {
 }
 
 function triggerLevelUp(playerID) {
-  showNotification("✨ " + playerID.toUpperCase() + " LEVEL UP !")
-  addMJLog("⭐ " + playerID.toUpperCase() + " LEVEL UP")
+  showNotification(playerID.toUpperCase() + " LEVEL UP !")
+  addMJLog(playerID.toUpperCase() + " LEVEL UP")
   showLevelUpEffect(playerID)
   showLevelUpText(playerID)
   playSound("levelUpSound")
@@ -3590,7 +3626,7 @@ function revivePlayer(playerId) {
     const skull = document.getElementById("skull_" + playerId)
     if (skull) skull.remove()
   }
-  showNotification("💫 " + playerId.toUpperCase() + " revient à la vie !")
+  showNotification(playerId.toUpperCase() + " revient à la vie !")
   db.ref("game/playerRevive").set({ player: playerId, time: Date.now() })
 }
 
@@ -3687,10 +3723,10 @@ function saveGame() {
       if (pending === 0) {
         // Sauvegarde Firebase (source principale)
         db.ref("saves/" + saveName).set(data).then(() => {
-          showNotification("💾 Sauvegardé : " + saveName)
-          addMJLog("💾 Sauvegarde : " + saveName)
+          showNotification("Sauvegardé : " + saveName)
+          addMJLog("Sauvegarde : " + saveName)
         }).catch(e => {
-          showNotification("⚠ Erreur sauvegarde Firebase")
+          showNotification("Erreur sauvegarde Firebase")
           console.error("Save error Firebase:", e)
         })
         // Sauvegarde localStorage (copie de secours locale)
@@ -4061,8 +4097,8 @@ function newGame() {
         ].forEach(p => p.catch(() => {}))
 
         finalizeNewGameLocally()
-        showNotification("🆕 Nouvelle partie — Taverne de Rivebois")
-        addMJLog("🆕 Nouvelle partie lancée")
+        showNotification("Nouvelle partie — Taverne de Rivebois")
+        addMJLog("Nouvelle partie lancée")
         setGameState("MENU")
         startIntro()
       })
@@ -4246,7 +4282,7 @@ function showDiceAnimation(playerName, max, final, rawRoll) {
         if (playerName !== "MJ" && playerName !== "MOB") {
           db.ref("characters/" + playerName + "/corruption").once("value", snap => {
             db.ref("characters/" + playerName + "/corruption").set(Math.min(10, (parseInt(snap.val()) || 0) + 1))
-            showNotification("✨ " + playerName.toUpperCase() + " gagne 1 point de Pouvoir !")
+            showNotification(playerName.toUpperCase() + " gagne 1 point de Pouvoir !")
           })
         }
       }
@@ -4258,7 +4294,7 @@ function showDiceAnimation(playerName, max, final, rawRoll) {
         if (playerName !== "MJ" && playerName !== "MOB") {
           db.ref("characters/" + playerName + "/curse").once("value", snap => {
             db.ref("characters/" + playerName + "/curse").set(Math.min(8, (parseInt(snap.val()) || 0) + 1))
-            showNotification("☠ " + playerName.toUpperCase() + " gagne 1 point de Malédiction !")
+            showNotification(playerName.toUpperCase() + " gagne 1 point de Malédiction !")
           })
         }
       }
@@ -4511,7 +4547,7 @@ function startEndSession() {
   if (!snd || !bg || !logo) return
 
   addSessionLog("🌙 Fin de session")
-  db.ref("game/endSession").set({ time: Date.now() })
+  db.ref("game/endSession").set({ time: Date.now(), active: true })
 
   // Stopper toute musique en cours
   stopAllMusic()
@@ -4527,15 +4563,15 @@ function startEndSession() {
     logo.style.display = "block"
   }, 3700)
 
-  // Space uniquement pour fermer — aucun clic ni Escape
+  // Space ou Escape ferment pour tout le monde
   function closeEndSession(e) {
-    if (e.code !== "Space") return
+    if (e.code !== "Space" && e.code !== "Escape") return
     e.preventDefault()
     clearTimeout(trigger)
     snd.pause(); snd.currentTime = 0
     bg.style.display = "none"
     logo.style.display = "none"
-    db.ref("game/endSession").remove()
+    db.ref("game/endSession").update({ active: false, closedAt: Date.now() })
     document.removeEventListener("keydown", closeEndSession)
   }
   document.addEventListener("keydown", closeEndSession)
@@ -4952,7 +4988,7 @@ function choosePlayer(id) {
     selected = null; _state.tokenDragging = false; _state.tokenDragStart = null
     document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer", "gmSelected"))
     if (myToken) myToken.classList.add("selectedPlayer")
-    showNotification("🎭 MJ joue : " + id.toUpperCase())
+    showNotification("MJ joue : " + id.toUpperCase())
     watchLocalPlayerDefeat(id)
     updateThuumButton()
     _collapsePlayerMenu(id)
@@ -4963,7 +4999,7 @@ function choosePlayer(id) {
   document.querySelectorAll(".token").forEach(t => t.classList.remove("selectedPlayer"))
   myToken = document.getElementById(id); window.myToken = myToken
   myToken.classList.add("selectedPlayer")
-  showNotification("✨ Votre héros est : " + id.toUpperCase())
+  showNotification("Votre héros est : " + id.toUpperCase())
   watchLocalPlayerDefeat(id)
   updateThuumButton()
   watchFreePoints(id)

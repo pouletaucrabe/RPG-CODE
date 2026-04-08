@@ -176,11 +176,69 @@ function safeRemoveElement(id) {
 /* NOTIFICATIONS             */
 /* ========================= */
 
-function showNotification(text) {
+function inferNotificationType(text) {
+  const normalized = String(text || "").toLowerCase()
+  if (
+    normalized.includes("erreur") ||
+    normalized.includes("incomplet") ||
+    normalized.includes("introuvable") ||
+    normalized.includes("corrompue") ||
+    normalized.includes("corrompu") ||
+    normalized.includes("refusé") ||
+    normalized.includes("refuse") ||
+    normalized.includes("ko") ||
+    normalized.includes("tombé") ||
+    normalized.includes("ne peut pas") ||
+    normalized.includes("condition non remplie") ||
+    normalized.includes("surchargé") ||
+    normalized.includes("surcharge") ||
+    normalized.includes("empoisonné") ||
+    normalized.includes("saigne")
+  ) return "danger"
+
+  if (
+    normalized.includes("gagne") ||
+    normalized.includes("récupère") ||
+    normalized.includes("recupere") ||
+    normalized.includes("pièces d'or") ||
+    normalized.includes("pieces d'or") ||
+    normalized.includes("level up") ||
+    normalized.includes("revient à la vie") ||
+    normalized.includes("revient a la vie") ||
+    normalized.includes("sauvegardé") ||
+    normalized.includes("sauvegarde") ||
+    normalized.includes("donnée aux joueurs") ||
+    normalized.includes("donné aux joueurs")
+  ) return "gain"
+
+  if (
+    normalized.includes("spéciale") ||
+    normalized.includes("speciale") ||
+    normalized.includes("faiblesse révélée") ||
+    normalized.includes("faiblesse revelee") ||
+    normalized.includes("pouvoir") ||
+    normalized.includes("malédiction") ||
+    normalized.includes("malediction") ||
+    normalized.includes("skraa") ||
+    normalized.includes("reihkt") ||
+    normalized.includes("cri")
+  ) return "special"
+
+  return "info"
+}
+
+function showNotification(text, type) {
   const box = document.getElementById("notification")
+  if (!box) return
+  const resolvedType = type || inferNotificationType(text)
+  if (box.__hideTimer) clearTimeout(box.__hideTimer)
+  box.dataset.type = resolvedType
   box.innerText = text
   box.style.opacity = 1
-  setTimeout(() => { box.style.opacity = 0 }, 3000)
+  box.__hideTimer = setTimeout(() => {
+    box.style.opacity = 0
+    box.dataset.type = ""
+  }, 3000)
 }
 
 function addMJLog(text) {
@@ -227,8 +285,8 @@ function addDiceLog(player, dice, result) {
   entry.classList.add("logEntry")
   if (player === "MJ") entry.classList.add("logMJ")
   let text = player + " → 🎲 d" + dice + " → " + result
-  if (result === dice) { text += " ✨"; entry.classList.add("logCrit") }
-  if (result === 1)    { text += " ☠";  entry.classList.add("logFail") }
+  if (result === dice) { text += " CRIT"; entry.classList.add("logCrit") }
+  if (result === 1)    { text += " FAIL";  entry.classList.add("logFail") }
   entry.innerText = text
   content.prepend(entry)
   addMJLog(text)
@@ -237,7 +295,7 @@ function addDiceLog(player, dice, result) {
 
 function showXPMessage(amount) {
   const msg = document.createElement("div")
-  msg.innerText = "✨ +" + amount + " XP pour le groupe ✨"
+  msg.innerText = "+" + amount + " XP pour le groupe"
   msg.style.cssText = "position:fixed;left:50%;top:55%;transform:translate(-50%,0);font-family:Cinzel;font-size:40px;color:gold;text-shadow:0 0 10px gold,0 0 20px orange,0 0 40px gold;pointer-events:none;z-index:999999999;opacity:0;transition:all 1s ease;"
   document.body.appendChild(msg)
   setTimeout(() => { msg.style.opacity = "1"; msg.style.transform = "translate(-50%,-40px)" }, 50)
@@ -387,7 +445,7 @@ function showLevelUpEffect(playerID) {
 
 function showLevelUpText(player) {
   const msg = document.createElement("div")
-  msg.innerText = "⭐ LEVEL UP ⭐"
+  msg.innerText = "LEVEL UP"
   msg.style.cssText = "position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(0.5);font-family:Cinzel;font-size:80px;color:gold;text-shadow:0 0 10px gold,0 0 30px orange,0 0 60px gold;pointer-events:none;z-index:999999999;opacity:0;transition:all 0.6s ease;"
   document.body.appendChild(msg)
   setTimeout(() => { msg.style.opacity = "1"; msg.style.transform = "translate(-50%,-50%) scale(1.2)" }, 50)
