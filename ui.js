@@ -1441,15 +1441,11 @@ function resolvePlayerAttack(attack, options = {}) {
               statBonus: statValue
             })
             showPlayerAttackImpact(playerId, attack, outcome, { crit, fail, special: isSpecial })
-            if (typeof addCombatLog === "function") {
-              const critTag = crit ? " ✨ CRIT" : fail ? " ☠ ÉCHEC" : ""
-              addCombatLog(
-                playerId.toUpperCase() + " — " + attack.name +
-                " (D" + diceMax + ": " + roll + critTag + ")" +
-                " → +" + outcome.amount + " PV à " + targetId.toUpperCase()
-              )
-            }
-            if (typeof pushCombatHit === "function") pushCombatHit(playerId.toUpperCase(), targetId.toUpperCase(), outcome.amount, "heal")
+            const healDetail =
+              playerId.toUpperCase() + " — " + attack.name +
+              " (D" + diceMax + ": " + roll + (crit ? " CRIT" : fail ? " ÉCHEC" : "") + ")" +
+              " → +" + outcome.amount + " PV à " + targetId.toUpperCase()
+            if (typeof pushCombatHit === "function") pushCombatHit(playerId.toUpperCase(), targetId.toUpperCase(), outcome.amount, "heal", healDetail)
             if (typeof advanceCombatTurn === "function") advanceCombatTurn()
             window.__playerAttackResolving = false
           }, () => {
@@ -1686,16 +1682,12 @@ function resolvePlayerAttack(attack, options = {}) {
             multiplier
           })
           showPlayerAttackImpact(playerId, attack, outcome, { crit, fail, special: isSpecial })
-          if (typeof addCombatLog === "function") {
-            const statLabel = String(attack.stat || "").toUpperCase()
-            const critTag = crit ? " ✨ CRIT" : fail ? " ☠ ÉCHEC" : ""
-            addCombatLog(
-              playerId.toUpperCase() + " — " + attack.name +
-              " (D" + diceMax + ": " + roll + " + " + statLabel + " " + statValue + " = " + total + ")" + critTag +
-              " → -" + damage + " PV à " + String(mob.name || "MOB").toUpperCase()
-            )
-          }
-          if (typeof pushCombatHit === "function") pushCombatHit(playerId.toUpperCase(), String(mob.name || "MOB").toUpperCase(), damage, "dmg")
+          const statLabel = String(attack.stat || "").toUpperCase()
+          const attackDetail =
+            playerId.toUpperCase() + " — " + attack.name +
+            " (D" + diceMax + ": " + roll + " + " + statLabel + " " + statValue + " = " + total + ")" + (crit ? " CRIT" : fail ? " ÉCHEC" : "") +
+            " → -" + damage + " PV à " + String(mob.name || "MOB").toUpperCase()
+          if (typeof pushCombatHit === "function") pushCombatHit(playerId.toUpperCase(), String(mob.name || "MOB").toUpperCase(), damage, "dmg", attackDetail)
           if (isSpecial) markPlayerCombatSpecialUsed(playerId)
           showCombatHUD()
           if (typeof advanceCombatTurn === "function") advanceCombatTurn()
@@ -2299,12 +2291,14 @@ function launchMobAttackFromSlotV2(attack, mobData, panel, forcedTarget, slot) {
         ;["greg","ju","elo","bibi"].forEach(pid => applyMobDamageToPlayer(pid, dmg, attack, mobData, slot))
         db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:"TOUS", mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
         addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: "TOUS", dmg, special: !!attack.special, attack, mobData })
-        if (typeof pushCombatHit === "function") pushCombatHit(mobLabel, "TOUS", dmg, "mob")
+        const detailAll = (attack.name || "Attaque") + " — " + mobLabel + " → TOUS • " + dmg + " dégâts"
+        if (typeof pushCombatHit === "function") pushCombatHit(mobLabel, "TOUS", dmg, "mob", detailAll)
       } else {
         applyMobDamageToPlayer(target, dmg, attack, mobData, slot)
         db.ref("game/mobAttackEvent").set({ attackName:attack.name, icon:attack.icon, dmg, target:target.toUpperCase(), mobName:(mobData.name||"MOB").toUpperCase(), time:Date.now(), special:!!attack.special, animation:attack.animation || "", flavor:attack.flavor || "", effect:attack.effect || "", type:attack.type || "" })
         addMJCombatLogEntry({ mobName: mobLabel, attackName: attack.name, target: targetLabel, dmg, special: !!attack.special, attack, mobData })
-        if (typeof pushCombatHit === "function") pushCombatHit(mobLabel, targetLabel, dmg, "mob")
+        const detailSingle = (attack.name || "Attaque") + " — " + mobLabel + " → " + targetLabel + " • " + dmg + " dégâts"
+        if (typeof pushCombatHit === "function") pushCombatHit(mobLabel, targetLabel, dmg, "mob", detailSingle)
         showNotification(attack.name+" → "+target.toUpperCase()+" — "+dmg+" dégâts !"); screenShake()
       }
       if (aggroActive) tickTimedCombatMobState("combat/mob/yuAggro")
@@ -3237,8 +3231,13 @@ function buildWantedBoardContent(container, posters) {
 
 function openWantedBoard(fromFirebase) {
   const existing=document.getElementById("wantedBoardOverlay")
-  if (existing) { closeWantedBoard(); return }
+  if (existing) {
+    if (fromFirebase) return
+    closeWantedBoard(); return
+  }
   if (isGM && !fromFirebase) db.ref("game/wantedBoardOpen").set({ time: Date.now() })
+  const posterOverlay = document.getElementById("wantedOverlay")
+  if (posterOverlay) posterOverlay.remove()
   document.querySelectorAll(".gmSection").forEach(sec => { sec.style.display = "none" })
   const bell = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath("cloche.mp3") : "audio/cloche.mp3")
   setManagedAudioBaseVolume(bell, 0.78, "effects")
@@ -3246,7 +3245,7 @@ function openWantedBoard(fromFirebase) {
   const overlay=document.createElement("div")
   overlay.id="wantedBoardOverlay"
   overlay.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.84);display:flex;align-items:center;justify-content:center;z-index:99999998;"
-  overlay.onclick=e=>{ if(e.target===overlay) overlay.remove() }
+  overlay.onclick=e=>{ if(e.target===overlay) closeWantedBoard() }
   const panel=document.createElement("div")
   panel.style.cssText="width:min(960px,92vw);max-height:84vh;overflow-y:auto;padding:26px 24px 22px;background:url('images/wood.png') center/contain no-repeat;border:none;border-radius:0;box-shadow:none;"
   panel.onclick=e=>e.stopPropagation()

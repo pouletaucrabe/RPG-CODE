@@ -1623,10 +1623,26 @@ if (typeof resetAuroraPresentation === "function") resetAuroraPresentation()
 // ─── combat/hits — log des dégâts (sync tous les clients) ───
 db.ref("combat/hits").on("value", snap => {
   const data = snap.val()
-  if (!data) { window.__combatDamageLog = []; if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel(); return }
+  if (!data) {
+    window.__combatDamageLog = []
+    window.__combatHitLogSeen = {}
+    if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+    return
+  }
   const hits = Object.values(data).sort((a, b) => (b.time || 0) - (a.time || 0)).slice(0, 6)
   window.__combatDamageLog = hits
   if (typeof renderCombatStatusPanel === "function") renderCombatStatusPanel()
+})
+
+db.ref("combat/hits").on("child_added", snap => {
+  const hit = snap.val()
+  if (!hit || !hit.detail) return
+  if (hit.time && hit.time < gameStartTime) return
+  if (isGM) return
+  window.__combatHitLogSeen = window.__combatHitLogSeen || {}
+  if (window.__combatHitLogSeen[snap.key]) return
+  window.__combatHitLogSeen[snap.key] = true
+  if (typeof addCombatLog === "function") addCombatLog(String(hit.detail))
 })
 
 // ─── combat/mob — listener unique fusionné ───
