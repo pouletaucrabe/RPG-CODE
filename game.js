@@ -1638,7 +1638,6 @@ db.ref("combat/hits").on("child_added", snap => {
   const hit = snap.val()
   if (!hit || !hit.detail) return
   if (hit.time && hit.time < gameStartTime) return
-  if (isGM) return
   window.__combatHitLogSeen = window.__combatHitLogSeen || {}
   if (window.__combatHitLogSeen[snap.key]) return
   window.__combatHitLogSeen[snap.key] = true
