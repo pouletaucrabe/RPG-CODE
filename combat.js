@@ -78,10 +78,12 @@ function getInitiativeParticipants() {
 
 function initCombatTurnState() {
   if (!isGM) return
+  if (window.__combatTurnStateInitPending) return
+  window.__combatTurnStateInitPending = true
   window.__lastCombatPhase = null
   window.__combatInitiativeHidden = false
   const participants = getInitiativeParticipants()
-  db.ref("combat/turnState").set({
+  const payload = {
     phase: "rolling",
     round: 1,
     currentIndex: 0,
@@ -90,9 +92,22 @@ function initCombatTurnState() {
     rolls: {},
     order: [],
     time: Date.now()
-  }).catch(err => {
+  }
+  const releaseLock = () => {
+    clearTimeout(window.__combatTurnStateInitPendingTimer)
+    window.__combatTurnStateInitPendingTimer = setTimeout(() => {
+      window.__combatTurnStateInitPending = false
+    }, 900)
+  }
+  db.ref("combat/turnState").set(payload).then(releaseLock).catch(err => {
     console.error("initCombatTurnState write failed:", err)
-    if (typeof showNotification === "function") showNotification("⚠️ Erreur réseau : état de combat non synchronisé", "error")
+    setTimeout(() => {
+      db.ref("combat/turnState").set({ ...payload, time: Date.now() }).then(releaseLock).catch(retryErr => {
+        console.error("initCombatTurnState retry failed:", retryErr)
+        window.__combatTurnStateInitPending = false
+        if (typeof showNotification === "function") showNotification("Synchronisation combat retardée, réessaie dans un instant.", "danger")
+      })
+    }, 180)
   })
 }
 
@@ -135,6 +150,7 @@ function submitAllInitiativeRollsForGMTest() {
 
 function finalizeCombatInitiativeIfReady(state) {
   if (!isGM || !state || state.phase !== "rolling") return
+  if (window.__combatInitiativeFinalizePending) return
   const participants = Array.isArray(state.participants) ? state.participants : []
   const rolls = state.rolls || {}
   if (!participants.length) return
@@ -161,15 +177,29 @@ function finalizeCombatInitiativeIfReady(state) {
       if (a.type !== b.type) return a.type === "player" ? -1 : 1
       return a.index - b.index
     })
-  db.ref("combat/turnState").update({
+  window.__combatInitiativeFinalizePending = true
+  const finalizePayload = {
     phase: "active",
     order,
     currentIndex: 0,
     currentActorId: order[0] ? order[0].id : "",
     round: 1
-  }).catch(err => {
+  }
+  const releaseFinalize = () => {
+    clearTimeout(window.__combatInitiativeFinalizePendingTimer)
+    window.__combatInitiativeFinalizePendingTimer = setTimeout(() => {
+      window.__combatInitiativeFinalizePending = false
+    }, 900)
+  }
+  db.ref("combat/turnState").update(finalizePayload).then(releaseFinalize).catch(err => {
     console.error("finalizeInitiativeOrder write failed:", err)
-    if (typeof showNotification === "function") showNotification("⚠️ Erreur réseau : ordre d'initiative non synchronisé", "error")
+    setTimeout(() => {
+      db.ref("combat/turnState").update(finalizePayload).then(releaseFinalize).catch(retryErr => {
+        console.error("finalizeInitiativeOrder retry failed:", retryErr)
+        window.__combatInitiativeFinalizePending = false
+        if (typeof showNotification === "function") showNotification("Synchronisation de l'initiative retardée, réessaie dans un instant.", "danger")
+      })
+    }, 180)
   })
 }
 

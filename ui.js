@@ -1808,58 +1808,12 @@ function togglePlayerAttacks() {
 
 
 function openGMPlayerSheet(playerID) {
-  const panel = document.getElementById("gmCombatPanel")
-  const old = document.getElementById("gmMini_" + playerID); if (old) { cleanupGMPlayerSheetListener(playerID); old.remove(); return }
-  const box = document.createElement("div"); box.className = "gmMiniSheet"; box.id = "gmMini_" + playerID
-  const title = document.createElement("div"); title.className = "gmMiniTitle"
-  const titleImg = document.createElement("img")
-  titleImg.className = "gmMiniToken"
-  titleImg.src = "images/" + sanitizeAssetName(playerID + ".png")
-  title.appendChild(titleImg)
-  title.appendChild(document.createTextNode(playerID.toUpperCase()))
-  box.appendChild(title)
-  const hpc = document.createElement("div"); hpc.className = "gmMiniHPContainer"
-  const hpb = document.createElement("div"); hpb.className = "gmMiniHPBar"; hpb.id = "gmHPBar_"+playerID; hpc.appendChild(hpb); box.appendChild(hpc)
-  const stats = document.createElement("div"); stats.className = "gmMiniStats"; stats.id = "gmStats_"+playerID; box.appendChild(stats)
-  const pa = attacks[playerID]
-  if (pa) pa.forEach(a => {
-    const block = document.createElement("div"); block.className = "combatBlock"
-    populateAttackBlock(block, a)
-    box.appendChild(block)
-  })
-  panel.appendChild(box); makeDraggable(box)
-  const ref = db.ref("characters/" + playerID)
-  const cb = snap => {
-    const d = snap.val(); if (!d) return
-    const hp = d.hp||0, curse = d.curse||0, corruption = d.corruption||0
-    let ci = ""; for (let i=0;i<curse;i++) ci+="☠"
-    const sb = document.getElementById("gmStats_"+playerID)
-    if (sb) {
-      sb.replaceChildren()
-      const lvlEl = document.createElement("div")
-      lvlEl.className = "gmMiniLvl"
-      lvlEl.innerText = "⭐ " + (d.lvl || 1)
-      const hpEl = document.createElement("div")
-      hpEl.className = "gmMiniHP"
-      hpEl.innerText = "❤️ " + hp
-      const curseEl = document.createElement("div")
-      curseEl.className = "gmMiniCurse"
-      curseEl.innerText = ci
-      const powerEl = document.createElement("div")
-      powerEl.className = "gmMiniPower"
-      powerEl.innerText = corruption >= 10 ? "✨" : ""
-      sb.appendChild(lvlEl)
-      sb.appendChild(hpEl)
-      sb.appendChild(curseEl)
-      sb.appendChild(powerEl)
-    }
-    const hpBar = document.getElementById("gmHPBar_"+playerID)
-    if (hpBar) { const pct=Math.max(0,Math.min(100,hp)); hpBar.style.width=pct+"%"; hpBar.style.background=pct>60?"linear-gradient(90deg,#3cff6b,#0b8a3a)":pct>30?"linear-gradient(90deg,#ffb347,#ff7b00)":"linear-gradient(90deg,#ff4040,#8b0000)" }
+  if (!isGM) return
+  if (window.__combatPreviewPlayerId === playerID) {
+    if (typeof closeCombatPreviewHUD === "function") closeCombatPreviewHUD()
+    return
   }
-  if (!window.__gmMiniRefs) window.__gmMiniRefs = {}
-  cleanupGMPlayerSheetListener(playerID)
-  window.__gmMiniRefs[playerID] = { ref, cb }
-  ref.on("value", cb)
+  if (typeof setCombatPreviewPlayer === "function") setCombatPreviewPlayer(playerID)
 }
 
 /* ========================= */
