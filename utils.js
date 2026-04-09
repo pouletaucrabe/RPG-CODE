@@ -265,7 +265,6 @@ function addCombatLog(text) {
   entry.className = "logEntry logCombat"
   entry.innerText = text
   content.prepend(entry)
-  addMJLog(text)
   while (content.children.length > 30) content.removeChild(content.lastChild)
   // Auto-expand dice log panel during combat
   if (content.style.display === "none") {
