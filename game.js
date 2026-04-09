@@ -1887,7 +1887,6 @@ db.ref("game/newGame").on("value", snap => {
   if (!data || !data.time) return
   if (data.time < (window.__pageLoadTime || 0)) return  // event antérieur au chargement, ignorer
   if (isGM) return  // le MJ gère lui-même
-  if (!gameStarted) return
   // Réinitialiser l'état local et revenir à l'écran d'intro
   if (typeof forceCloseCharacterSheetWithoutSave === "function") forceCloseCharacterSheetWithoutSave()
   gameStarted = false
@@ -2747,6 +2746,12 @@ db.ref("game/playerRevive").on("value", snap => {
     if (skull) { skull.style.transition = "opacity 0.5s"; skull.style.opacity = "0"; setTimeout(() => skull.remove(), 500) }
   }
   deadPlayers[pid] = false
+  if (!isGM && getLocalPlayerId() === String(pid || "").toLowerCase()) {
+    window.__pendingLocalDefeat = false
+    window.__combatOutcomeShowing = false
+    const defeatScreen = document.getElementById("defeatScreen")
+    if (defeatScreen) defeatScreen.style.display = "none"
+  }
   const revBtn = document.getElementById("revive_" + pid)
   if (revBtn) revBtn.remove()
   db.ref("game/playerRevive").remove()
@@ -3158,6 +3163,16 @@ db.ref("game/wantedOpen").on("value", snap => {
   window.__wantedOpenLastSignature = signature
   if (!data || !data.poster) return
   showWantedOverlay(data.poster)
+})
+
+// ─── wantedBoardOpen ───
+db.ref("game/wantedBoardOpen").on("value", snap => {
+  if (isGM) return
+  if (snap.val()) {
+    if (typeof openWantedBoard === "function") openWantedBoard(true)
+  } else {
+    if (typeof closeWantedBoard === "function") closeWantedBoard(true)
+  }
 })
 
 // ─── simonState ───
@@ -4090,6 +4105,7 @@ function newGame() {
           db.ref("game/readLoreBooks").remove(),
           db.ref("game/wantedPosters").remove(),
           db.ref("game/wantedOpen").remove(),
+          db.ref("game/wantedBoardOpen").remove(),
           db.ref("game/simonState").remove(),
           db.ref("game/document").remove(),
           db.ref("game/mobAttackEvent").remove(),

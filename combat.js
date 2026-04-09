@@ -924,9 +924,7 @@ function showDefeat() {
   flashRed(); screenShakeHard()
   setTimeout(() => {
     screen.style.display = "none"
-    endCombat()
-    returnToMap()
-    setTimeout(() => { window.__combatOutcomeShowing = false; window.__pendingLocalDefeat = false }, 300)
+    setTimeout(() => { window.__combatOutcomeShowing = false }, 250)
   }, 5000)
 }
 

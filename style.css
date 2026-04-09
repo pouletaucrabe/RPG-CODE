@@ -2094,9 +2094,9 @@ html, body {
   background-image: none !important;
   border: none;
   box-shadow: none;
-  padding: 16px 20px 18px; width: 392px;
+  padding: 16px 20px 18px; width: 424px;
   max-height: min(72vh, 760px);
-  overflow: hidden;
+  overflow: visible;
   font-family: var(--font-body); color: var(--cream);
   z-index: 99999999; gap: 12px;
   border-radius: 0;
@@ -2144,9 +2144,11 @@ html, body {
   gap: 8px;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-  margin-left: 26px;
-  width: calc(100% - 34px);
+  overflow: visible;
+  margin-left: 34px;
+  width: calc(100% - 42px);
+  max-width: calc(100% - 42px);
+  box-sizing: border-box;
 }
 
 #combatHUDMeta {
@@ -2192,15 +2194,16 @@ html, body {
 #combatHUDAttacks {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 8px;
-  width: 84%;
+  width: 100%;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible;
   scrollbar-gutter: stable;
-  padding-right: 4px;
+  padding-right: 8px;
+  box-sizing: border-box;
 }
 
 #combatStatusPanel {
