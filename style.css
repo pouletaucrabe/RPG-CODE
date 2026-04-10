@@ -2096,8 +2096,7 @@ html, body {
   box-shadow: none;
   padding: 10px 14px 12px; width: 400px;
   max-height: min(74vh, 760px);
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   font-family: var(--font-body); color: var(--cream);
   z-index: 99999999; gap: 12px;
   border-radius: 0;
@@ -2144,13 +2143,13 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 0 0 auto;
-  min-height: auto;
-  overflow: visible;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
   margin-left: 18px;
   width: calc(100% - 22px);
   max-width: calc(100% - 22px);
-  max-height: none;
+  max-height: calc(min(74vh, 760px) - 100px);
   box-sizing: border-box;
 }
 
@@ -2200,11 +2199,12 @@ html, body {
   align-items: stretch;
   gap: 6px;
   width: 100%;
-  flex: 0 0 auto;
-  min-height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   min-width: 0;
-  max-height: none;
-  overflow: visible;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-gutter: stable;
   padding-right: 6px;
   padding-bottom: 8px;
