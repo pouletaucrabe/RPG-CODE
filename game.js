@@ -5009,10 +5009,15 @@ document.addEventListener("contextmenu", e => { if (isGM) e.preventDefault() })
 /* ========================= */
 
 // Drag des tokens via touch (simule mousedown/mousemove/mouseup)
+let _touchStartX = 0
+let _touchStartY = 0
+
 document.querySelectorAll(".token").forEach(token => {
   token.addEventListener("touchstart", e => {
     if (e.touches.length !== 1) return
     const t = e.touches[0]
+    _touchStartX = t.clientX
+    _touchStartY = t.clientY
     token.dispatchEvent(new MouseEvent("mousedown", {
       clientX: t.clientX, clientY: t.clientY,
       bubbles: true, cancelable: true
@@ -5022,9 +5027,19 @@ document.querySelectorAll(".token").forEach(token => {
 })
 
 document.addEventListener("touchmove", e => {
-  if (!selected) return
   if (e.touches.length !== 1) return
   const t = e.touches[0]
+  // Si long press en attente : annuler si le doigt bouge trop (scroll intentionnel)
+  if (_longPressPending) {
+    const dx = t.clientX - _touchStartX
+    const dy = t.clientY - _touchStartY
+    if (Math.sqrt(dx * dx + dy * dy) > 15) {
+      if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null }
+      _longPressPending = null
+    }
+    return
+  }
+  if (!selected) return
   document.dispatchEvent(new MouseEvent("mousemove", {
     clientX: t.clientX, clientY: t.clientY, bubbles: true
   }))
@@ -5065,7 +5080,7 @@ if (_camera) {
   }, { passive: true })
 
   _camera.addEventListener("touchmove", e => {
-    if (selected) return
+    if (selected || _longPressPending) return
     const t = Array.from(e.touches).find(x => x.identifier === _touchPanId)
     if (!t) return
     cameraX = t.clientX - _touchPanSX
