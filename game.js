@@ -4822,56 +4822,6 @@ function openPlayerMenuOnStart() {
 /* DRAG TOKENS               */
 /* ========================= */
 
-
-let _longPressTimer   = null
-let _longPressPending = null  // token en attente d'activation
-
-function _startDrag(token, grabOffX, grabOffY) {
-  // Vérifie si la souris est encore appuyée
-  if (_longPressPending !== token) return
-  _longPressPending = null
-  const tokenIsDead = token.classList.contains("playerDead")
-  if (isGM) {
-    if (tokenIsDead) { showNotification(token.id.toUpperCase() + " est KO. Réanimez-le pour le déplacer."); return }
-    if (token.id !== "mobToken" && !token.id.startsWith("mobToken_")) {
-      db.ref("characters/" + token.id).once("value", snap => {
-        if (selected) return  // un autre drag a démarré entre-temps
-        const data = snap.val() || {}
-        if (isCharacterOverweight(token.id, data).overweight) {
-          showNotification(token.id.toUpperCase() + " est surchargé et ne peut pas bouger."); return
-        }
-        document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
-        token.classList.add("gmSelected")
-        selected = token; lastX = selected.offsetLeft
-        _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
-        _state.tokenDragging = true
-      })
-      return
-    }
-    document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
-    token.classList.add("gmSelected")
-    selected = token; lastX = selected.offsetLeft
-    _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
-    _state.tokenDragging = true
-    return
-  }
-  if (tokenIsDead) { showNotification(token.id.toUpperCase() + " est KO et ne peut pas bouger."); return }
-  const localMoveId = token.id === "bibi" ? "bibi" : (myToken ? myToken.id : "")
-  if (token.id === "bibi" || (myToken && token.id === myToken.id)) {
-    db.ref("characters/" + localMoveId).once("value", snap => {
-      if (selected) return
-      const data = snap.val() || {}
-      if (isCharacterOverweight(localMoveId, data).overweight) {
-        showNotification(localMoveId.toUpperCase() + " est surchargé et ne peut pas bouger."); return
-      }
-      selected = token; lastX = selected.offsetLeft
-      _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
-      _state.tokenDragging = true
-      if (token.id === "bibi") { bibiMoved = true; tryBark() }
-    })
-  }
-}
-
 document.querySelectorAll(".token").forEach(token => {
   token.addEventListener("contextmenu", e => {
     e.preventDefault()
@@ -4880,6 +4830,7 @@ document.querySelectorAll(".token").forEach(token => {
   })
   token.addEventListener("mousedown", e => {
     if (e.target.closest("#playerSelect") || e.target.closest("button")) return
+    const tokenIsDead = token.classList.contains("playerDead")
     const now = Date.now()
     if (now - lastClickTime < 300) {
       if (isGM && token.id !== "mobToken") openCharacterSheet(token.id)
@@ -4890,16 +4841,48 @@ document.querySelectorAll(".token").forEach(token => {
     const tr = token.getBoundingClientRect()
     const grabOffX = e.clientX - tr.left
     const grabOffY = e.clientY - tr.top
-    _longPressPending = token
-    _longPressTimer = setTimeout(() => { _longPressTimer = null; _startDrag(token, grabOffX, grabOffY) }, 400)
-    e.preventDefault()
+    if (isGM) {
+      if (tokenIsDead) { showNotification(token.id.toUpperCase() + " est KO. Réanimez-le pour le déplacer."); return }
+      if (token.id !== "mobToken" && !token.id.startsWith("mobToken_")) {
+        db.ref("characters/" + token.id).once("value", snap => {
+          const data = snap.val() || {}
+          if (isCharacterOverweight(token.id, data).overweight) {
+            showNotification(token.id.toUpperCase() + " est surchargé et ne peut pas bouger."); return
+          }
+          document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
+          token.classList.add("gmSelected")
+          selected = token; lastX = selected.offsetLeft
+          _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
+        })
+        e.preventDefault(); return
+      }
+      document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
+      token.classList.add("gmSelected")
+      selected = token; lastX = selected.offsetLeft
+      _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
+      e.preventDefault(); return
+    }
+    if (tokenIsDead) { showNotification(token.id.toUpperCase() + " est KO et ne peut pas bouger."); return }
+    const localMoveId = token.id === "bibi" ? "bibi" : (myToken ? myToken.id : "")
+    if (token.id === "bibi" || (myToken && token.id === myToken.id)) {
+      db.ref("characters/" + localMoveId).once("value", snap => {
+        const data = snap.val() || {}
+        if (isCharacterOverweight(localMoveId, data).overweight) {
+          showNotification(localMoveId.toUpperCase() + " est surchargé et ne peut pas bouger."); return
+        }
+        selected = token; lastX = selected.offsetLeft
+        _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
+        if (token.id === "bibi") { bibiMoved = true; tryBark() }
+      })
+      e.preventDefault()
+    }
   })
 })
 
 document.addEventListener("mousemove", e => {
   if (!selected) return
   if (selected.classList && selected.classList.contains("playerDead")) {
-    selected = null; _state.tokenDragging = false; return
+    selected = null; _state.tokenDragging = false; _state.tokenDragStart = null; return
   }
   if (!isGM && (!myToken || (selected.id !== myToken.id && selected.id !== "bibi" && !(selected.id === "eloSummonToken" && myToken.id === "elo")))) return
   const map = document.getElementById("map"); const rect = map.getBoundingClientRect()
@@ -4936,8 +4919,6 @@ document.addEventListener("mousemove", e => {
 })
 
 document.addEventListener("mouseup", () => {
-  if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null }
-  _longPressPending = null
   if (selected) {
     const snapX = Math.round(parseFloat(selected.style.left) / grid) * grid
     const snapY = Math.round(parseFloat(selected.style.top)  / grid) * grid
@@ -5009,15 +4990,10 @@ document.addEventListener("contextmenu", e => { if (isGM) e.preventDefault() })
 /* ========================= */
 
 // Drag des tokens via touch (simule mousedown/mousemove/mouseup)
-let _touchStartX = 0
-let _touchStartY = 0
-
 document.querySelectorAll(".token").forEach(token => {
   token.addEventListener("touchstart", e => {
     if (e.touches.length !== 1) return
     const t = e.touches[0]
-    _touchStartX = t.clientX
-    _touchStartY = t.clientY
     token.dispatchEvent(new MouseEvent("mousedown", {
       clientX: t.clientX, clientY: t.clientY,
       bubbles: true, cancelable: true
@@ -5027,19 +5003,9 @@ document.querySelectorAll(".token").forEach(token => {
 })
 
 document.addEventListener("touchmove", e => {
+  if (!selected) return
   if (e.touches.length !== 1) return
   const t = e.touches[0]
-  // Si long press en attente : annuler si le doigt bouge trop (scroll intentionnel)
-  if (_longPressPending) {
-    const dx = t.clientX - _touchStartX
-    const dy = t.clientY - _touchStartY
-    if (Math.sqrt(dx * dx + dy * dy) > 15) {
-      if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null }
-      _longPressPending = null
-    }
-    return
-  }
-  if (!selected) return
   document.dispatchEvent(new MouseEvent("mousemove", {
     clientX: t.clientX, clientY: t.clientY, bubbles: true
   }))
@@ -5080,7 +5046,7 @@ if (_camera) {
   }, { passive: true })
 
   _camera.addEventListener("touchmove", e => {
-    if (selected || _longPressPending) return
+    if (selected) return
     const t = Array.from(e.touches).find(x => x.identifier === _touchPanId)
     if (!t) return
     cameraX = t.clientX - _touchPanSX

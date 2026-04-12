@@ -460,7 +460,7 @@ function makeRef(path) {
       const id = nextId()
       wsSendRaw({ type: "push", path, value, id, key })
       let resolveKey
-      new Promise(r => { resolveKey = r })
+      new Promise(r => { resolveKey = r })  // eslint-disable-line no-new
       pendingPush.set(id, k => resolveKey && resolveKey(k))
       const childRef = makeRef(path + "/" + key)
       childRef.key = key
