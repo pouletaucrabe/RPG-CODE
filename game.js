@@ -4822,23 +4822,54 @@ function openPlayerMenuOnStart() {
 /* DRAG TOKENS               */
 /* ========================= */
 
-function _showDropGhost(x, y) {
-  let ghost = document.getElementById("_dropGhost")
-  if (!ghost) {
-    ghost = document.createElement("div")
-    ghost.id = "_dropGhost"
-    ghost.style.cssText = `position:absolute;width:${grid}px;height:${grid}px;border:2px dashed rgba(255,210,80,0.75);border-radius:6px;background:rgba(255,210,80,0.13);pointer-events:none;z-index:100;box-sizing:border-box;`
-    const map = document.getElementById("map")
-    if (map) map.appendChild(ghost)
-  }
-  ghost.style.left = x + "px"
-  ghost.style.top  = y + "px"
-  ghost.style.display = "block"
-}
 
-function _hideDropGhost() {
-  const ghost = document.getElementById("_dropGhost")
-  if (ghost) ghost.style.display = "none"
+let _longPressTimer   = null
+let _longPressPending = null  // token en attente d'activation
+
+function _startDrag(token, grabOffX, grabOffY) {
+  // Vérifie si la souris est encore appuyée
+  if (_longPressPending !== token) return
+  _longPressPending = null
+  const tokenIsDead = token.classList.contains("playerDead")
+  if (isGM) {
+    if (tokenIsDead) { showNotification(token.id.toUpperCase() + " est KO. Réanimez-le pour le déplacer."); return }
+    if (token.id !== "mobToken" && !token.id.startsWith("mobToken_")) {
+      db.ref("characters/" + token.id).once("value", snap => {
+        if (selected) return  // un autre drag a démarré entre-temps
+        const data = snap.val() || {}
+        if (isCharacterOverweight(token.id, data).overweight) {
+          showNotification(token.id.toUpperCase() + " est surchargé et ne peut pas bouger."); return
+        }
+        document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
+        token.classList.add("gmSelected")
+        selected = token; lastX = selected.offsetLeft
+        _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
+        _state.tokenDragging = true
+      })
+      return
+    }
+    document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
+    token.classList.add("gmSelected")
+    selected = token; lastX = selected.offsetLeft
+    _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
+    _state.tokenDragging = true
+    return
+  }
+  if (tokenIsDead) { showNotification(token.id.toUpperCase() + " est KO et ne peut pas bouger."); return }
+  const localMoveId = token.id === "bibi" ? "bibi" : (myToken ? myToken.id : "")
+  if (token.id === "bibi" || (myToken && token.id === myToken.id)) {
+    db.ref("characters/" + localMoveId).once("value", snap => {
+      if (selected) return
+      const data = snap.val() || {}
+      if (isCharacterOverweight(localMoveId, data).overweight) {
+        showNotification(localMoveId.toUpperCase() + " est surchargé et ne peut pas bouger."); return
+      }
+      selected = token; lastX = selected.offsetLeft
+      _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
+      _state.tokenDragging = true
+      if (token.id === "bibi") { bibiMoved = true; tryBark() }
+    })
+  }
 }
 
 document.querySelectorAll(".token").forEach(token => {
@@ -4849,83 +4880,31 @@ document.querySelectorAll(".token").forEach(token => {
   })
   token.addEventListener("mousedown", e => {
     if (e.target.closest("#playerSelect") || e.target.closest("button")) return
-    const tokenIsDead = token.classList.contains("playerDead")
     const now = Date.now()
     if (now - lastClickTime < 300) {
       if (isGM && token.id !== "mobToken") openCharacterSheet(token.id)
       else if (myToken && (token.id === myToken.id || token.id === "bibi")) openCharacterSheet(token.id)
+      lastClickTime = 0; return
     }
     lastClickTime = now
-    // Capture grab offset synchronously (token rect at grab time)
     const tr = token.getBoundingClientRect()
     const grabOffX = e.clientX - tr.left
     const grabOffY = e.clientY - tr.top
-    if (isGM) {
-      if (tokenIsDead) {
-        showNotification(token.id.toUpperCase() + " est KO. Réanimez-le pour le déplacer.")
-        return
-      }
-      if (token.id !== "mobToken" && !token.id.startsWith("mobToken_")) {
-        db.ref("characters/" + token.id).once("value", snap => {
-          const data = snap.val() || {}
-          if (isCharacterOverweight(token.id, data).overweight) {
-            showNotification(token.id.toUpperCase() + " est surchargé et ne peut pas bouger.")
-            return
-          }
-          document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
-          token.classList.add("gmSelected"); selected = token; lastX = selected.offsetLeft
-          _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
-          _state.tokenDragStart = { x: e.clientX, y: e.clientY }; _state.tokenDragging = false
-          e.preventDefault()
-        })
-        return
-      }
-      document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
-      token.classList.add("gmSelected"); selected = token; lastX = selected.offsetLeft
-      _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
-      _state.tokenDragStart = { x: e.clientX, y: e.clientY }; _state.tokenDragging = false
-      e.preventDefault(); return
-    }
-    if (tokenIsDead) {
-      showNotification(token.id.toUpperCase() + " est KO et ne peut pas bouger.")
-      return
-    }
-    const localMoveId = token.id === "bibi" ? "bibi" : (myToken ? myToken.id : "")
-    if (token.id === "bibi" || (myToken && token.id === myToken.id)) {
-      db.ref("characters/" + localMoveId).once("value", snap => {
-        const data = snap.val() || {}
-        if (isCharacterOverweight(localMoveId, data).overweight) {
-          showNotification(localMoveId.toUpperCase() + " est surchargé et ne peut pas bouger.")
-          return
-        }
-        selected = token
-        lastX = selected.offsetLeft
-        _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
-        if (token.id === "bibi") { bibiMoved = true; tryBark() }
-        e.preventDefault()
-      })
-      return
-    }
-    if (!myToken || token.id !== myToken.id) return
+    _longPressPending = token
+    _longPressTimer = setTimeout(() => { _longPressTimer = null; _startDrag(token, grabOffX, grabOffY) }, 400)
+    e.preventDefault()
   })
 })
 
 document.addEventListener("mousemove", e => {
   if (!selected) return
   if (selected.classList && selected.classList.contains("playerDead")) {
-    selected = null; _state.tokenDragging = false; _state.tokenDragStart = null
-    _hideDropGhost(); return
-  }
-  if (_state.tokenDragStart && !_state.tokenDragging) {
-    if (Math.abs(e.clientX - _state.tokenDragStart.x) < 5 && Math.abs(e.clientY - _state.tokenDragStart.y) < 5) return
-    _state.tokenDragging = true
+    selected = null; _state.tokenDragging = false; return
   }
   if (!isGM && (!myToken || (selected.id !== myToken.id && selected.id !== "bibi" && !(selected.id === "eloSummonToken" && myToken.id === "elo")))) return
-  const map  = document.getElementById("map"); const rect = map.getBoundingClientRect()
-  // Snapped position for DB + ghost
+  const map = document.getElementById("map"); const rect = map.getBoundingClientRect()
   const gx = Math.floor((e.clientX - rect.left) / grid) * grid
   const gy = Math.floor((e.clientY - rect.top)  / grid) * grid
-  // Free position: token follows cursor at grab point
   const freeX = (e.clientX - rect.left) - _dragOffsetX
   const freeY = (e.clientY - rect.top)  - _dragOffsetY
   let facing = null
@@ -4933,7 +4912,6 @@ document.addEventListener("mousemove", e => {
   if (gx > lastX) { selected.classList.remove("faceLeft"); facing = 0 }
   lastX = gx
   selected.style.left = freeX + "px"; selected.style.top = freeY + "px"
-  _showDropGhost(gx, gy)
   const now = Date.now()
   if (now - lastSend > sendDelay && (gx !== lastSentX || gy !== lastSentY)) {
     if (selected.id === "eloSummonToken") db.ref("combat/eloSummon").update({ x: gx, y: gy })
@@ -4958,8 +4936,9 @@ document.addEventListener("mousemove", e => {
 })
 
 document.addEventListener("mouseup", () => {
-  if (selected && _state.tokenDragging) {
-    // Snap to grid on drop, send final position
+  if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null }
+  _longPressPending = null
+  if (selected) {
     const snapX = Math.round(parseFloat(selected.style.left) / grid) * grid
     const snapY = Math.round(parseFloat(selected.style.top)  / grid) * grid
     selected.style.left = snapX + "px"; selected.style.top = snapY + "px"
@@ -4976,7 +4955,6 @@ document.addEventListener("mouseup", () => {
         }
       }
     }
-    _hideDropGhost()
   }
   if (bibiMoved) { tryBark(); bibiMoved = false }
   _state.tokenDragging = false; _state.tokenDragStart = null; selected = null
