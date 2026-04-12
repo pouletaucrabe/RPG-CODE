@@ -2770,10 +2770,31 @@ function showCurseIntro(playerID) {
 }
 
 function showCurseWheelScreen(playerID) {
-  const isCursed=isGM || (myToken&&myToken.id===playerID); let s=document.getElementById("curseWheelScreen"); if(!s){ s=document.createElement("div"); s.id="curseWheelScreen"; document.body.appendChild(s) }; s.innerHTML=""; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"
-  const t=document.createElement("div"); t.innerText="LA ROUE DU DESTIN"; t.style.cssText="font-family:Cinzel;font-size:36px;color:#cc0000;text-shadow:0 0 20px red;margin-bottom:30px;"; s.appendChild(t)
-  const canvas=document.createElement("canvas"); canvas.id="curseWheelCanvas"; canvas.width=500; canvas.height=500; canvas.style.cssText="filter:drop-shadow(0 0 20px darkred);"; s.appendChild(canvas)
-  const btn=document.createElement("button"); btn.innerText=isCursed?"Tourner la roue":"En attente de "+playerID.toUpperCase()+"..."; btn.style.cssText="margin-top:30px;padding:14px 40px;font-family:Cinzel;font-size:18px;background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:"+(isCursed?"pointer":"default")+";opacity:"+(isCursed?"1":"0.4")+";"; if(isCursed) btn.onclick=()=>{ btn.disabled=true; btn.style.opacity="0.4"; spinCurseWheel(playerID) }; s.appendChild(btn); drawCurseWheel(canvas,0)
+  const isCursed = isGM || (myToken && myToken.id === playerID)
+  let s = document.getElementById("curseWheelScreen")
+  if (!s) { s = document.createElement("div"); s.id = "curseWheelScreen"; document.body.appendChild(s) }
+  s.innerHTML = ""
+  s.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;overflow-y:auto;padding:16px;box-sizing:border-box;"
+
+  const t = document.createElement("div")
+  t.innerText = "LA ROUE DU DESTIN"
+  t.style.cssText = "font-family:Cinzel;font-size:clamp(20px,4vw,36px);color:#cc0000;text-shadow:0 0 20px red;margin-bottom:16px;text-align:center;flex-shrink:0;"
+  s.appendChild(t)
+
+  const canvas = document.createElement("canvas")
+  canvas.id = "curseWheelCanvas"
+  canvas.width = 500; canvas.height = 500
+  // Responsive : tient dans l'écran sans déborder
+  canvas.style.cssText = "filter:drop-shadow(0 0 20px darkred);width:min(500px,70vmin,70vw);height:min(500px,70vmin,70vw);flex-shrink:0;"
+  s.appendChild(canvas)
+
+  const btn = document.createElement("button")
+  btn.innerText = isCursed ? "Tourner la roue" : "En attente de " + playerID.toUpperCase() + "..."
+  btn.style.cssText = "margin-top:20px;padding:14px 40px;font-family:Cinzel;font-size:clamp(14px,2vw,18px);background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:" + (isCursed ? "pointer" : "default") + ";opacity:" + (isCursed ? "1" : "0.4") + ";touch-action:manipulation;flex-shrink:0;"
+  if (isCursed) btn.addEventListener("pointerup", () => { btn.disabled = true; btn.style.opacity = "0.4"; spinCurseWheel(playerID) })
+  s.appendChild(btn)
+
+  drawCurseWheel(canvas, 0)
 }
 
 function drawCurseWheel(canvas, rotation) {
@@ -2795,10 +2816,10 @@ function spinCurseWheel(playerID) {
 function showCurseResult(playerID, resultIndex) {
   const safeIndex = Math.max(0, Math.min(curseWheelChoices.length - 1, parseInt(resultIndex, 10) || 0))
   const ch=curseWheelChoices[safeIndex]; const ws=document.getElementById("curseWheelScreen"); if(ws) ws.remove(); playSound("curseSound"); playSound("curse2Sound")
-  const s=document.createElement("div"); s.id="curseResultScreen"; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;"; document.body.appendChild(s); flashRed(); screenShakeHard()
-  const ic=document.createElement("div"); ic.innerText=ch.icon; ic.style.cssText="font-size:100px;margin-bottom:20px;animation:curseResultPop 0.5s ease-out;"; s.appendChild(ic)
-  const t=document.createElement("div"); t.innerText=ch.label; t.style.cssText="font-family:Cinzel;font-size:56px;color:#ff0000;text-shadow:0 0 20px red;margin-bottom:16px;text-align:center;animation:curseResultPop 0.6s ease-out;"; s.appendChild(t)
-  const d=document.createElement("div"); d.innerText=ch.description; d.style.cssText="font-family:IM Fell English;font-size:22px;color:#cc6666;text-align:center;margin-bottom:40px;"; s.appendChild(d)
+  const s=document.createElement("div"); s.id="curseResultScreen"; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;padding:20px;box-sizing:border-box;"; document.body.appendChild(s); flashRed(); screenShakeHard()
+  const ic=document.createElement("div"); ic.innerText=ch.icon; ic.style.cssText="font-size:clamp(60px,12vmin,100px);margin-bottom:16px;animation:curseResultPop 0.5s ease-out;"; s.appendChild(ic)
+  const t=document.createElement("div"); t.innerText=ch.label; t.style.cssText="font-family:Cinzel;font-size:clamp(28px,6vw,56px);color:#ff0000;text-shadow:0 0 20px red;margin-bottom:12px;text-align:center;animation:curseResultPop 0.6s ease-out;"; s.appendChild(t)
+  const d=document.createElement("div"); d.innerText=ch.description; d.style.cssText="font-family:IM Fell English;font-size:clamp(16px,2.5vw,22px);color:#cc6666;text-align:center;margin-bottom:30px;"; s.appendChild(d)
   if (isGM) applyCurseEffect(playerID,safeIndex)
   else if (myToken && myToken.id===playerID) applyCurseEffect(playerID,safeIndex)
   setTimeout(()=>{
