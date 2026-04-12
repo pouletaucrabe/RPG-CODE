@@ -58,12 +58,18 @@ self.addEventListener("fetch", e => {
     return
   }
 
+  // Audio → ne pas cacher (range requests 206 incompatibles avec Cache API)
+  const ext = url.pathname.split(".").pop().toLowerCase()
+  if (ext === "mp3" || ext === "ogg" || ext === "wav") {
+    return // laisse le navigateur gérer
+  }
+
   // Tout le reste → Cache first, puis réseau
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached
       return fetch(e.request).then(resp => {
-        if (resp.ok) {
+        if (resp.ok && resp.status === 200) {
           const clone = resp.clone()
           caches.open(CACHE).then(c => c.put(e.request, clone))
         }
