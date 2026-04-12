@@ -2766,7 +2766,17 @@ function showCurseIntro(playerID) {
   playSound("curseSound"); playSound("curse1Sound"); let s=document.getElementById("curseIntroScreen"); if(!s){ s=document.createElement("div"); s.id="curseIntroScreen"; document.body.appendChild(s) }; s.innerHTML=""; s.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;animation:cursePulse 0.5s ease-in-out infinite alternate;"
   const t=document.createElement("div"); t.innerText="VOUS ETES MAUDIT"; t.style.cssText="font-family:Cinzel;font-size:60px;color:#ff0000;text-shadow:0 0 20px red;animation:curseShake 0.1s infinite;text-align:center;margin-bottom:30px;"; s.appendChild(t)
   const sub=document.createElement("div"); sub.innerText=playerID.toUpperCase()+" doit affronter son destin..."; sub.style.cssText="font-family:IM Fell English;font-size:24px;color:#cc4444;text-align:center;opacity:0.8;"; s.appendChild(sub)
-  screenShakeHard(); flashRed(); setTimeout(()=>{ if(s) s.remove(); db.ref("curse/wheel/state").set("wheel") },3000)
+  screenShakeHard(); flashRed()
+  setTimeout(() => {
+    if (s && s.parentNode) s.remove()
+    // GM met à jour Firebase pour les autres clients
+    if (isGM) {
+      db.ref("curse/wheel/state").set("wheel")
+    } else {
+      // Le joueur maudit affiche la roue directement (sans dépendre d'un write Firebase)
+      showCurseWheelScreen(playerID)
+    }
+  }, 3000)
 }
 
 function showCurseWheelScreen(playerID) {

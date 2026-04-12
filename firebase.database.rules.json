@@ -111,7 +111,10 @@
     },
     "curse": {
       ".read": "auth != null",
-      ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'"
+      ".write": "auth != null && root.child('roles').child(auth.uid).val() === 'gm'",
+      "wheel": {
+        ".write": "auth != null && (root.child('roles').child(auth.uid).val() === 'gm' || root.child('profiles').child(auth.uid).child('playerId').val() === data.child('player').val())"
+      }
     },
     "diceRoll": {
       ".read": "auth != null",
