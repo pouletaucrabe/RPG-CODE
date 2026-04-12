@@ -307,13 +307,38 @@ function showPlayerAuthModal() {
   password.id = "playerAuthPassword"; password.type = "password"; password.placeholder = "Mot de passe joueur"; password.autocomplete = "current-password"
   password.style.cssText = "width:100%;padding:12px 14px;margin-bottom:10px;background:rgba(8,8,8,0.92);border:1px solid rgba(120,160,210,0.45);border-radius:8px;color:#f5e6c8;font-family:Cinzel,serif;font-size:14px;box-sizing:border-box;"
   box.appendChild(password)
-  const select = document.createElement("select")
-  select.id = "playerAuthCharacter"
-  select.style.cssText = "width:100%;padding:12px 14px;margin-bottom:14px;background:rgba(8,8,8,0.92);border:1px solid rgba(120,160,210,0.45);border-radius:8px;color:#f5e6c8;font-family:Cinzel,serif;font-size:14px;box-sizing:border-box;"
-  ;[{value:"",label:"Choisir un personnage pour la création"},{value:"greg",label:"Greg"},{value:"ju",label:"Yu"},{value:"elo",label:"Elo"},{value:"bibi",label:"Bibi"}].forEach(o => {
-    const opt = document.createElement("option"); opt.value = o.value; opt.innerText = o.label; select.appendChild(opt)
+  // Choix du personnage (pour création de compte) — boutons tactiles, pas de <select>
+  const charLabel = document.createElement("div")
+  charLabel.style.cssText = "font-size:11px;color:#8aabcf;margin-bottom:6px;letter-spacing:1px;"
+  charLabel.innerText = "Personnage (création uniquement)"
+  box.appendChild(charLabel)
+  const charRow = document.createElement("div")
+  charRow.style.cssText = "display:flex;gap:8px;margin-bottom:14px;justify-content:center;"
+  box.appendChild(charRow)
+  // champ caché qui stocke la valeur sélectionnée
+  const charInput = document.createElement("input")
+  charInput.id = "playerAuthCharacter"; charInput.type = "hidden"; charInput.value = ""
+  box.appendChild(charInput)
+  ;[{value:"greg",label:"Greg"},{value:"ju",label:"Yu"},{value:"elo",label:"Elo"},{value:"bibi",label:"Bibi"}].forEach(o => {
+    const btn = document.createElement("button")
+    btn.type = "button"
+    btn.innerText = o.label
+    btn.dataset.charValue = o.value
+    btn.style.cssText = "flex:1;padding:12px 8px;background:rgba(20,30,50,0.9);border:1px solid rgba(120,160,210,0.35);border-radius:8px;color:#c7d3e8;font-family:Cinzel,serif;font-size:13px;cursor:pointer;transition:background 0.15s,border-color 0.15s;"
+    btn.addEventListener("pointerdown", e => {
+      e.stopPropagation()
+      charRow.querySelectorAll("button").forEach(b => {
+        b.style.background = "rgba(20,30,50,0.9)"
+        b.style.borderColor = "rgba(120,160,210,0.35)"
+        b.style.color = "#c7d3e8"
+      })
+      btn.style.background = "rgba(40,80,140,0.85)"
+      btn.style.borderColor = "#89a9cf"
+      btn.style.color = "#fff"
+      charInput.value = o.value
+    })
+    charRow.appendChild(btn)
   })
-  box.appendChild(select)
   const feedback = document.createElement("div")
   feedback.id = "playerAuthFeedback"
   feedback.style.cssText = "display:none;min-height:20px;margin-bottom:12px;font-size:12px;line-height:1.4;"
