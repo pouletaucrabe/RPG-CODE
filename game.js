@@ -623,6 +623,16 @@ function showMapLoreBookOverlay(bookData) {
     box.appendChild(reward)
   }
 
+  // Fermer en cliquant sur le fond
+  overlay.addEventListener("pointerdown", e => { if (e.target === overlay) closeMapLoreBookOverlay() })
+
+  // Bouton fermer (tablettes sans Echap)
+  const closeBtn = document.createElement("button")
+  closeBtn.innerText = "✕"
+  closeBtn.style.cssText = "position:absolute;top:-14px;right:-14px;width:36px;height:36px;border-radius:50%;background:rgba(20,12,8,0.95);border:1px solid rgba(212,168,53,0.6);color:#d4a835;font-size:18px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.7);touch-action:manipulation;"
+  closeBtn.onclick = closeMapLoreBookOverlay
+  box.appendChild(closeBtn)
+
   overlay.appendChild(box)
   document.body.appendChild(overlay)
   window.__openedMapLoreBookId = bookData.id
