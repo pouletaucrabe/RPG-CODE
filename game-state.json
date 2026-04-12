@@ -1,0 +1,274 @@
+{
+  "combat": {
+    "mob": {
+      "name": "vampire",
+      "hp": 53,
+      "maxHP": 53,
+      "lvl": 1,
+      "tier": "weak"
+    },
+    "turnState": {
+      "phase": "active",
+      "round": 1,
+      "currentIndex": 0,
+      "currentActorId": "mob",
+      "participants": [
+        {
+          "id": "greg",
+          "type": "player",
+          "label": "Greg",
+          "image": "greg.png"
+        },
+        {
+          "id": "ju",
+          "type": "player",
+          "label": "Yu",
+          "image": "ju.png"
+        },
+        {
+          "id": "elo",
+          "type": "player",
+          "label": "Elo",
+          "image": "elo.png"
+        },
+        {
+          "id": "bibi",
+          "type": "player",
+          "label": "Bibi",
+          "image": "bibi.png"
+        },
+        {
+          "id": "mob",
+          "type": "mob",
+          "label": "VAMPIRE",
+          "image": "vampire.png"
+        }
+      ],
+      "rolls": {
+        "greg": 9,
+        "ju": 5,
+        "elo": 4,
+        "bibi": 1,
+        "mob": 8
+      },
+      "order": [
+        {
+          "id": "mob",
+          "type": "mob",
+          "label": "VAMPIRE",
+          "image": "vampire.png",
+          "roll": 11,
+          "index": 4
+        },
+        {
+          "id": "greg",
+          "type": "player",
+          "label": "Greg",
+          "image": "greg.png",
+          "roll": 9,
+          "index": 0
+        },
+        {
+          "id": "ju",
+          "type": "player",
+          "label": "Yu",
+          "image": "ju.png",
+          "roll": 5,
+          "index": 1
+        },
+        {
+          "id": "elo",
+          "type": "player",
+          "label": "Elo",
+          "image": "elo.png",
+          "roll": 4,
+          "index": 2
+        },
+        {
+          "id": "bibi",
+          "type": "player",
+          "label": "Bibi",
+          "image": "bibi.png",
+          "roll": 1,
+          "index": 3
+        }
+      ],
+      "time": 1775895832471
+    },
+    "hits": {
+      "-mnu2j6m8foouv": {
+        "from": "VAMPIRE",
+        "to": "JU",
+        "amount": 11,
+        "type": "mob",
+        "round": 1,
+        "time": 1775895843392,
+        "detail": "Spider monkey — VAMPIRE → JU • 11 dégâts"
+      }
+    }
+  },
+  "game": {
+    "worldMapFogTopLeftHidden": false,
+    "map": "epouventail.jpg",
+    "sessionLog": {
+      "-mnu0krv3867t6": {
+        "text": "🗺 Carte : Village Rivebois",
+        "time": 1775892558350,
+        "display": "09:29"
+      },
+      "-mnu0mj6mu4i45": {
+        "text": "💀 Défaite",
+        "time": 1775892640414,
+        "display": "09:30"
+      },
+      "-mnu0nptg3pt7f": {
+        "text": "🗺 Carte : epouventail.jpg",
+        "time": 1775892695668,
+        "display": "09:31"
+      },
+      "-mnu0opiudgbmh": {
+        "text": "⚔ Combat démarré — loup",
+        "time": 1775892741942,
+        "display": "09:32"
+      },
+      "-mnu0psebyn41e": {
+        "text": "💀 Défaite",
+        "time": 1775892792323,
+        "display": "09:33"
+      },
+      "-mnu0qurle3dey": {
+        "text": "⚔ GREG — Le Bibi (D20 → 16)",
+        "time": 1775892842049,
+        "display": "09:34"
+      },
+      "-mnu0rv85yyxo9": {
+        "text": "🏆 Victoire !",
+        "time": 1775892889301,
+        "display": "09:34"
+      },
+      "-mnu0rv8zmbmfy": {
+        "text": "🏆 Victoire !",
+        "time": 1775892889331,
+        "display": "09:34"
+      },
+      "-mnu2itl6tm001": {
+        "text": "⚔ Combat démarré — vampire",
+        "time": 1775895826506,
+        "display": "10:23"
+      }
+    },
+    "defeatedMobs": {
+      "loup": true
+    },
+    "combatState": {
+      "active": true,
+      "mainMob": "vampire",
+      "tier": "weak",
+      "extraMobs": [],
+      "returnMap": "epouventail.jpg",
+      "time": 1775895826538
+    }
+  },
+  "events": {},
+  "tokens": {
+    "greg": {
+      "x": 720,
+      "y": 400,
+      "facing": 0
+    },
+    "bibi": {
+      "x": 800,
+      "y": 400,
+      "facing": 0
+    },
+    "elo": {
+      "x": 560,
+      "y": 240,
+      "facing": 0
+    },
+    "ju": {
+      "x": 720,
+      "y": 400,
+      "facing": 0
+    }
+  },
+  "characters": {
+    "greg": {
+      "lvl": 1,
+      "xp": 0,
+      "hp": 120,
+      "poids": 100,
+      "force": 6,
+      "charme": 4,
+      "perspi": 4,
+      "chance": 4,
+      "defense": 5,
+      "curse": 0,
+      "corruption": 0,
+      "freePoints": 0,
+      "gold": 0,
+      "inventaire": "",
+      "notes": ""
+    },
+    "bibi": {
+      "lvl": 1,
+      "xp": 0,
+      "hp": 110,
+      "poids": 100,
+      "force": 5,
+      "charme": 4,
+      "perspi": 4,
+      "chance": 6,
+      "defense": 4,
+      "curse": 1,
+      "corruption": 0,
+      "freePoints": 0,
+      "gold": 0,
+      "inventaire": "",
+      "notes": ""
+    },
+    "ju": {
+      "lvl": 1,
+      "xp": 0,
+      "hp": 99,
+      "poids": 100,
+      "force": 4,
+      "charme": 5,
+      "perspi": 7,
+      "chance": 5,
+      "defense": 4,
+      "curse": 0,
+      "corruption": 0,
+      "freePoints": 0,
+      "gold": 0,
+      "inventaire": "",
+      "notes": ""
+    },
+    "elo": {
+      "lvl": 1,
+      "xp": 0,
+      "hp": 110,
+      "poids": 100,
+      "force": 4,
+      "charme": 7,
+      "perspi": 5,
+      "chance": 5,
+      "defense": 4,
+      "curse": 0,
+      "corruption": 0,
+      "freePoints": 0,
+      "gold": 0,
+      "inventaire": "",
+      "notes": ""
+    }
+  },
+  "diceRoll": {
+    "-mnu2hxci2tbrk": {
+      "player": "greg",
+      "dice": 4,
+      "result": 2,
+      "time": 1775895784722,
+      "sender": "greg"
+    }
+  }
+}

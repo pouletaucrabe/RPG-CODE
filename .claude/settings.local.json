@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm list:*)"
+      "Bash(npm list:*)",
+      "Bash(head -20 audio/*)",
+      "Bash(ls -lh *.js)",
+      "Bash(awk '{print $9, $5}')",
+      "Bash(wc -l *.js config.js state.js utils.js game.js ui.js combat.js)"
     ]
   }
 }

@@ -1,0 +1,12 @@
+{
+  "name": "la-prophetie-des-mouches",
+  "version": "1.0.0",
+  "description": "Serveur local pour La Prophétie des Mouches RPG",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

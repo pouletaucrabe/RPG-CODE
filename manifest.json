@@ -1,0 +1,18 @@
+{
+  "name": "La Prophétie des Mouches",
+  "short_name": "PropMouches",
+  "description": "Simulateur de jeu de rôle multijoueur — La Prophétie des Mouches",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0a0806",
+  "theme_color": "#2a1a08",
+  "icons": [
+    {
+      "src": "images/mouche.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
