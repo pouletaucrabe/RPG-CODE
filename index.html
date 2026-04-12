@@ -9,9 +9,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
   <!-- ⬇ Changer ce numéro force le rechargement de TOUS les fichiers pour tous les joueurs -->
-  <script>window.GAME_V = "20260412.8"</script>
+  <script>window.GAME_V = "20260412.9"</script>
   <link rel="stylesheet" href="fonts/fonts.css">
-  <title>RPG Test</title>
+  <title>La Prophétie des Mouches</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
   <script>document.write('<link rel="stylesheet" href="style.css?v='+GAME_V+'">')</script>
   <style>
@@ -27,7 +27,7 @@
 <body tabindex="0">
 
 <div id="gameWrapper">
-  <div id="startScreen" onclick="safeStartIntro(event)">Cliquer pour commencer</div>
+  <div id="startScreen">Cliquer pour commencer</div>
 
   <div id="intro">
     <div id="gameTitle"></div>
@@ -919,44 +919,6 @@
 <script>document.write('<script src="ui.js?v='+GAME_V+'"><\/script>')</script>
 <!-- 6. Combat -->
 <script>document.write('<script src="combat.js?v='+GAME_V+'"><\/script>')</script>
-<script>
-function safeStartIntro(event) {
-  if (event) {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-  window.__introClickLockUntil = Date.now() + 800
-  const start = document.getElementById("startScreen")
-  const intro = document.getElementById("intro")
-  if (start) {
-    start.style.pointerEvents = "none"
-    start.style.zIndex = "999999999"
-  }
-  if (intro) intro.style.pointerEvents = "none"
-  if (typeof startIntro === "function") {
-    startIntro()
-  } else {
-    console.error("startIntro introuvable")
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const start = document.getElementById("startScreen")
-  if (!start) return
-  start.style.zIndex = "999999999"
-  start.style.pointerEvents = "auto"
-  start.addEventListener("pointerdown", safeStartIntro, { passive: false })
-  document.addEventListener("click", function(event) {
-    if (Date.now() < (window.__introClickLockUntil || 0)) {
-      const intro = document.getElementById("intro")
-      if (intro && intro.contains(event.target)) {
-        event.preventDefault()
-        event.stopPropagation()
-      }
-    }
-  }, true)
-})
-</script>
 
 <script>
   if ("serviceWorker" in navigator) {
