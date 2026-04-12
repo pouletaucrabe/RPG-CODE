@@ -5,7 +5,7 @@ const PRECACHE = [
   "/",
   "/index.html",
   "/style.css",
-  "/ws-shim.js",
+
   "/game.js",
   "/ui.js",
   "/combat.js",
@@ -38,8 +38,7 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url)
 
-  // Ne pas intercepter les WebSockets ou les requêtes externes
-  if (url.protocol === "ws:" || url.protocol === "wss:") return
+  // Ne pas intercepter les requêtes externes
   if (url.origin !== self.location.origin) return
 
   // HTML → Network first (pour avoir toujours le dernier index.html)
