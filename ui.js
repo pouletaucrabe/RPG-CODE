@@ -2774,24 +2774,32 @@ function showCurseWheelScreen(playerID) {
   let s = document.getElementById("curseWheelScreen")
   if (!s) { s = document.createElement("div"); s.id = "curseWheelScreen"; document.body.appendChild(s) }
   s.innerHTML = ""
-  s.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;overflow-y:auto;padding:16px;box-sizing:border-box;"
+  // Pas de overflow-y:auto ici — ça casse pointerup/click sur iOS
+  s.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:999999999;padding:12px;box-sizing:border-box;gap:12px;"
 
   const t = document.createElement("div")
   t.innerText = "LA ROUE DU DESTIN"
-  t.style.cssText = "font-family:Cinzel;font-size:clamp(20px,4vw,36px);color:#cc0000;text-shadow:0 0 20px red;margin-bottom:16px;text-align:center;flex-shrink:0;"
+  t.style.cssText = "font-family:Cinzel;font-size:clamp(18px,3.5vw,36px);color:#cc0000;text-shadow:0 0 20px red;text-align:center;flex-shrink:0;"
   s.appendChild(t)
 
   const canvas = document.createElement("canvas")
   canvas.id = "curseWheelCanvas"
   canvas.width = 500; canvas.height = 500
-  // Responsive : tient dans l'écran sans déborder
-  canvas.style.cssText = "filter:drop-shadow(0 0 20px darkred);width:min(500px,70vmin,70vw);height:min(500px,70vmin,70vw);flex-shrink:0;"
+  // Canvas responsive sans overflow : 55vmin laisse la place au titre + bouton
+  canvas.style.cssText = "filter:drop-shadow(0 0 20px darkred);width:min(500px,55vmin);height:min(500px,55vmin);flex-shrink:0;touch-action:none;"
   s.appendChild(canvas)
 
   const btn = document.createElement("button")
+  btn.id = "curseWheelBtn"
   btn.innerText = isCursed ? "Tourner la roue" : "En attente de " + playerID.toUpperCase() + "..."
-  btn.style.cssText = "margin-top:20px;padding:14px 40px;font-family:Cinzel;font-size:clamp(14px,2vw,18px);background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:" + (isCursed ? "pointer" : "default") + ";opacity:" + (isCursed ? "1" : "0.4") + ";touch-action:manipulation;flex-shrink:0;"
-  if (isCursed) btn.addEventListener("pointerup", () => { btn.disabled = true; btn.style.opacity = "0.4"; spinCurseWheel(playerID) })
+  btn.style.cssText = "padding:16px 44px;font-family:Cinzel;font-size:clamp(14px,2vw,18px);background:linear-gradient(#5a0000,#2a0000);color:#ff6060;border:2px solid #aa0000;border-radius:8px;cursor:" + (isCursed ? "pointer" : "default") + ";opacity:" + (isCursed ? "1" : "0.4") + ";touch-action:manipulation;flex-shrink:0;-webkit-appearance:none;"
+  if (isCursed) {
+    btn.addEventListener("click", () => {
+      if (btn.disabled) return
+      btn.disabled = true; btn.style.opacity = "0.4"
+      spinCurseWheel(playerID)
+    })
+  }
   s.appendChild(btn)
 
   drawCurseWheel(canvas, 0)
