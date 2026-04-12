@@ -903,8 +903,8 @@ function updateThuumButton() {
   const activeDef = activeWord ? getThuumDef(activeWord) : null
   const img = btn.querySelector("img")
 
-  const hasAnyPower = !isGM && !!myToken && getAvailablePlayerPowerTabs().length > 0
-  if (!hasAnyPower) {
+  const isPlayer = !isGM && !!myToken
+  if (!isPlayer) {
     btn.style.display = "none"
     btn.disabled = false
     btn.dataset.word = ""
@@ -1102,11 +1102,8 @@ function renderPlayerPowersPanel() {
   const panel = document.getElementById("playerThuumPanel")
   if (!panel || panel.style.display === "none") return
   panel.innerHTML = ""
-  const tabs = getAvailablePlayerPowerTabs()
-  if (!tabs.length) {
-    panel.style.display = "none"
-    return
-  }
+  const powerTabs = getAvailablePlayerPowerTabs()
+  const tabs = [...powerTabs, "fiche"]
 
   const title = document.createElement("div")
   title.id = "playerThuumPanelTitle"
@@ -1121,8 +1118,11 @@ function renderPlayerPowersPanel() {
   content.id = "playerPowerPanelContent"
   panel.appendChild(content)
 
-  const activeTab = tabs.includes(panel.dataset.activeTab) ? panel.dataset.activeTab : getDefaultPlayerPowerTab()
-  panel.dataset.activeTab = activeTab
+  const allTabs = [...tabs]
+  const defaultTab = panel.dataset.activeTab && allTabs.includes(panel.dataset.activeTab)
+    ? panel.dataset.activeTab
+    : (powerTabs.length ? getDefaultPlayerPowerTab() : "fiche")
+  panel.dataset.activeTab = defaultTab
 
   function paintTab(tab) {
     content.innerHTML = ""
@@ -1136,18 +1136,25 @@ function renderPlayerPowersPanel() {
     if (tab === "ally") renderPlayerAllyEntry(content)
     else if (tab === "thuum") renderPlayerThuumEntries(content)
     else if (tab === "runes") renderPlayerRuneEntry(content)
+    else if (tab === "fiche") {
+      const btn = document.createElement("button")
+      btn.innerText = "Ouvrir la fiche"
+      btn.style.cssText = "width:100%;padding:14px;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;border:1px solid rgba(205,170,92,0.6);border-radius:10px;background:linear-gradient(180deg,rgba(60,38,16,0.85),rgba(28,16,8,0.9));color:#f5e2b0;cursor:pointer;margin-top:8px;"
+      btn.onclick = () => { closePlayerPowersPanel(); openCharacterSheet() }
+      content.appendChild(btn)
+    }
   }
 
   tabs.forEach(tab => {
     const btn = document.createElement("button")
     btn.dataset.tab = tab
     btn.style.cssText = "padding:6px 12px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;border:1px solid rgba(120,92,44,0.38);border-radius:999px;background:rgba(18,14,10,0.65);color:#d5c39a;cursor:pointer;"
-    btn.innerText = tab === "ally" ? "Invoc" : tab === "thuum" ? "Thu'um" : "Runes"
+    btn.innerText = tab === "ally" ? "Invoc" : tab === "thuum" ? "Thu'um" : tab === "runes" ? "Runes" : "Fiche"
     btn.onclick = () => paintTab(tab)
     tabRow.appendChild(btn)
   })
 
-  paintTab(activeTab)
+  paintTab(defaultTab)
 }
 
 function togglePlayerThuumPanel() {

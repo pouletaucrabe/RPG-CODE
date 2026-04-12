@@ -3876,6 +3876,9 @@ body {
   bottom: 182px;
   min-width: 260px;
   max-width: 340px;
+  max-height: calc(100vh - 210px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 16px;
   border: 1px solid rgba(202, 170, 96, 0.75);
   border-radius: 14px;
