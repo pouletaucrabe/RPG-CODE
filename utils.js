@@ -972,6 +972,12 @@ document.addEventListener("DOMContentLoaded", () => {
     sheet.addEventListener("touchmove", e => e.stopPropagation(), { passive: true })
   }
 
+  const combatPanel = document.getElementById("playerCombatPanel")
+  if (combatPanel) {
+    combatPanel.addEventListener("wheel",     e => e.stopPropagation(), { passive: true })
+    combatPanel.addEventListener("touchmove", e => e.stopPropagation(), { passive: true })
+  }
+
   document.querySelectorAll(".sheetField").forEach(field => {
     const isLongTextField = field.id === "inventaire" || field.id === "notes"
     field.addEventListener("input", () => {
