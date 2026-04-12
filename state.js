@@ -54,6 +54,8 @@ let sendDelay     = 80
 let lastSentX     = null
 let lastSentY     = null
 let bibiMoved     = false
+let _dragOffsetX  = 0
+let _dragOffsetY  = 0
 let lastBarkTime  = 0
 let barkCooldown  = 10000
 

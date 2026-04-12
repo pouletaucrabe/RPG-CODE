@@ -4822,6 +4822,25 @@ function openPlayerMenuOnStart() {
 /* DRAG TOKENS               */
 /* ========================= */
 
+function _showDropGhost(x, y) {
+  let ghost = document.getElementById("_dropGhost")
+  if (!ghost) {
+    ghost = document.createElement("div")
+    ghost.id = "_dropGhost"
+    ghost.style.cssText = `position:absolute;width:${grid}px;height:${grid}px;border:2px dashed rgba(255,210,80,0.75);border-radius:6px;background:rgba(255,210,80,0.13);pointer-events:none;z-index:100;box-sizing:border-box;`
+    const map = document.getElementById("map")
+    if (map) map.appendChild(ghost)
+  }
+  ghost.style.left = x + "px"
+  ghost.style.top  = y + "px"
+  ghost.style.display = "block"
+}
+
+function _hideDropGhost() {
+  const ghost = document.getElementById("_dropGhost")
+  if (ghost) ghost.style.display = "none"
+}
+
 document.querySelectorAll(".token").forEach(token => {
   token.addEventListener("contextmenu", e => {
     e.preventDefault()
@@ -4837,6 +4856,10 @@ document.querySelectorAll(".token").forEach(token => {
       else if (myToken && (token.id === myToken.id || token.id === "bibi")) openCharacterSheet(token.id)
     }
     lastClickTime = now
+    // Capture grab offset synchronously (token rect at grab time)
+    const tr = token.getBoundingClientRect()
+    const grabOffX = e.clientX - tr.left
+    const grabOffY = e.clientY - tr.top
     if (isGM) {
       if (tokenIsDead) {
         showNotification(token.id.toUpperCase() + " est KO. Réanimez-le pour le déplacer.")
@@ -4851,6 +4874,7 @@ document.querySelectorAll(".token").forEach(token => {
           }
           document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
           token.classList.add("gmSelected"); selected = token; lastX = selected.offsetLeft
+          _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
           _state.tokenDragStart = { x: e.clientX, y: e.clientY }; _state.tokenDragging = false
           e.preventDefault()
         })
@@ -4858,6 +4882,7 @@ document.querySelectorAll(".token").forEach(token => {
       }
       document.querySelectorAll(".token").forEach(t => t.classList.remove("gmSelected"))
       token.classList.add("gmSelected"); selected = token; lastX = selected.offsetLeft
+      _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
       _state.tokenDragStart = { x: e.clientX, y: e.clientY }; _state.tokenDragging = false
       e.preventDefault(); return
     }
@@ -4875,6 +4900,7 @@ document.querySelectorAll(".token").forEach(token => {
         }
         selected = token
         lastX = selected.offsetLeft
+        _dragOffsetX = grabOffX; _dragOffsetY = grabOffY
         if (token.id === "bibi") { bibiMoved = true; tryBark() }
         e.preventDefault()
       })
@@ -4887,10 +4913,8 @@ document.querySelectorAll(".token").forEach(token => {
 document.addEventListener("mousemove", e => {
   if (!selected) return
   if (selected.classList && selected.classList.contains("playerDead")) {
-    selected = null
-    _state.tokenDragging = false
-    _state.tokenDragStart = null
-    return
+    selected = null; _state.tokenDragging = false; _state.tokenDragStart = null
+    _hideDropGhost(); return
   }
   if (_state.tokenDragStart && !_state.tokenDragging) {
     if (Math.abs(e.clientX - _state.tokenDragStart.x) < 5 && Math.abs(e.clientY - _state.tokenDragStart.y) < 5) return
@@ -4898,12 +4922,18 @@ document.addEventListener("mousemove", e => {
   }
   if (!isGM && (!myToken || (selected.id !== myToken.id && selected.id !== "bibi" && !(selected.id === "eloSummonToken" && myToken.id === "elo")))) return
   const map  = document.getElementById("map"); const rect = map.getBoundingClientRect()
-  const gx   = Math.floor((e.clientX - rect.left) / grid) * grid
-  const gy   = Math.floor((e.clientY - rect.top)  / grid) * grid
+  // Snapped position for DB + ghost
+  const gx = Math.floor((e.clientX - rect.left) / grid) * grid
+  const gy = Math.floor((e.clientY - rect.top)  / grid) * grid
+  // Free position: token follows cursor at grab point
+  const freeX = (e.clientX - rect.left) - _dragOffsetX
+  const freeY = (e.clientY - rect.top)  - _dragOffsetY
   let facing = null
   if (gx < lastX) { selected.classList.add("faceLeft"); facing = 1 }
   if (gx > lastX) { selected.classList.remove("faceLeft"); facing = 0 }
-  lastX = gx; selected.style.left = gx + "px"; selected.style.top = gy + "px"
+  lastX = gx
+  selected.style.left = freeX + "px"; selected.style.top = freeY + "px"
+  _showDropGhost(gx, gy)
   const now = Date.now()
   if (now - lastSend > sendDelay && (gx !== lastSentX || gy !== lastSentY)) {
     if (selected.id === "eloSummonToken") db.ref("combat/eloSummon").update({ x: gx, y: gy })
@@ -4928,6 +4958,26 @@ document.addEventListener("mousemove", e => {
 })
 
 document.addEventListener("mouseup", () => {
+  if (selected && _state.tokenDragging) {
+    // Snap to grid on drop, send final position
+    const snapX = Math.round(parseFloat(selected.style.left) / grid) * grid
+    const snapY = Math.round(parseFloat(selected.style.top)  / grid) * grid
+    selected.style.left = snapX + "px"; selected.style.top = snapY + "px"
+    if (snapX !== lastSentX || snapY !== lastSentY) {
+      const facing = selected.classList.contains("faceLeft") ? 1 : 0
+      if (selected.id === "eloSummonToken") db.ref("combat/eloSummon").update({ x: snapX, y: snapY })
+      else if (!selected._fbSlot) db.ref("tokens/" + selected.id).update({ x: snapX, y: snapY, facing })
+      if (selected.id === "greg") {
+        const bibi = document.getElementById("bibi")
+        if (bibi) {
+          const bx = snapX + 80
+          bibi.style.left = bx + "px"; bibi.style.top = snapY + "px"
+          db.ref("tokens/bibi").update({ x: bx, y: snapY, facing })
+        }
+      }
+    }
+    _hideDropGhost()
+  }
   if (bibiMoved) { tryBark(); bibiMoved = false }
   _state.tokenDragging = false; _state.tokenDragStart = null; selected = null
 })
