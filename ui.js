@@ -3181,6 +3181,14 @@ function showWantedOverlay(data) {
   r.innerText="💰 " + normalized.reward + " po"
   inner.appendChild(r)
   p.appendChild(inner)
+
+  // Bouton fermer (tablettes sans Echap)
+  const closeBtn = document.createElement("button")
+  closeBtn.innerText = "✕"
+  closeBtn.style.cssText = "position:absolute;top:-14px;right:-14px;width:36px;height:36px;border-radius:50%;background:rgba(20,10,0,0.95);border:1px solid rgba(212,168,53,0.7);color:#d4a835;font-size:18px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.7);touch-action:manipulation;"
+  closeBtn.onclick = e => { e.stopPropagation(); ov.remove() }
+  p.appendChild(closeBtn)
+
   ov.appendChild(p)
   document.body.appendChild(ov)
 }
