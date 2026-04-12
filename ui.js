@@ -83,6 +83,71 @@ function openCharacterSheet(id = null) {
   if (!isGM || playerID === myToken?.id) setTimeout(() => checkFreePoints(playerID), 300)
 }
 
+/* ========================= */
+/* ÉDITEUR NOTES FLOTTANT    */
+/* ========================= */
+
+function openNotesEditor(field) {
+  const existing = document.getElementById("notesEditorPanel")
+  if (existing) existing.remove()
+  const label = field.id === "inventaire" ? "Inventaire" : "Notes"
+  const panel = document.createElement("div")
+  panel.id = "notesEditorPanel"
+  panel.style.cssText = "position:fixed;top:80px;left:50%;transform:translateX(-50%);width:min(340px,92vw);background:rgba(8,14,20,0.97);border:1px solid rgba(120,160,210,0.5);border-radius:12px;z-index:2000000000;box-shadow:0 8px 32px rgba(0,0,0,0.85);touch-action:none;"
+  // Header draggable
+  const header = document.createElement("div")
+  header.style.cssText = "padding:10px 14px;cursor:grab;background:rgba(20,40,60,0.92);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;user-select:none;-webkit-user-select:none;"
+  header.innerHTML = "<span style='font-family:Cinzel,serif;font-size:13px;color:#c7d3e8;'>✏ " + label + "</span>"
+  const closeX = document.createElement("span")
+  closeX.innerText = "✕"
+  closeX.style.cssText = "color:#8aabcf;cursor:pointer;font-size:16px;padding:0 4px;"
+  closeX.onclick = () => panel.remove()
+  header.appendChild(closeX)
+  panel.appendChild(header)
+  // Drag logic
+  let _dx = false, _sx, _sy, _ox, _oy
+  header.addEventListener("pointerdown", e => {
+    _dx = true; _sx = e.clientX; _sy = e.clientY
+    const r = panel.getBoundingClientRect(); _ox = r.left; _oy = r.top
+    panel.style.transform = "none"; panel.style.left = _ox + "px"; panel.style.top = _oy + "px"
+    header.style.cursor = "grabbing"; header.setPointerCapture(e.pointerId); e.preventDefault()
+  })
+  header.addEventListener("pointermove", e => {
+    if (!_dx) return
+    panel.style.left = (_ox + e.clientX - _sx) + "px"
+    panel.style.top  = (_oy + e.clientY - _sy) + "px"
+  })
+  header.addEventListener("pointerup", () => { _dx = false; header.style.cursor = "grab" })
+  // Textarea
+  const ta = document.createElement("textarea")
+  ta.value = field.value || ""
+  ta.style.cssText = "width:100%;height:160px;padding:12px 14px;background:rgba(5,10,15,0.95);border:none;border-bottom:1px solid rgba(120,160,210,0.25);color:#f0e8c8;font-family:'IM Fell English',serif;font-size:14px;line-height:1.5;resize:none;box-sizing:border-box;outline:none;-webkit-appearance:none;"
+  ta.setAttribute("inputmode", "text")
+  ta.spellcheck = false
+  panel.appendChild(ta)
+  // Boutons
+  const btnRow = document.createElement("div")
+  btnRow.style.cssText = "display:flex;gap:8px;padding:10px 14px;justify-content:flex-end;"
+  const cancelBtn = document.createElement("button")
+  cancelBtn.innerText = "Annuler"
+  cancelBtn.style.cssText = "padding:8px 16px;background:#222;color:#d0c4ae;border:1px solid #555;border-radius:8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;"
+  cancelBtn.onclick = () => panel.remove()
+  const saveBtn = document.createElement("button")
+  saveBtn.innerText = "Enregistrer"
+  saveBtn.style.cssText = "padding:8px 16px;background:linear-gradient(#3d5d44,#233526);color:#e8f4e0;border:1px solid #87aa86;border-radius:8px;font-family:Cinzel,serif;font-size:12px;cursor:pointer;"
+  saveBtn.onclick = () => {
+    field.value = ta.value
+    field.dispatchEvent(new Event("input", { bubbles: true }))
+    field.dispatchEvent(new Event("blur",  { bubbles: true }))
+    panel.remove()
+  }
+  btnRow.appendChild(cancelBtn)
+  btnRow.appendChild(saveBtn)
+  panel.appendChild(btnRow)
+  document.body.appendChild(panel)
+  setTimeout(() => ta.focus(), 80)
+}
+
 function closeCharacterSheet() {
   if (window.__sheetAutoSaveTimer) {
     clearTimeout(window.__sheetAutoSaveTimer)
@@ -2635,8 +2700,8 @@ function showRuneBubble(dialogue, letter, rune) { const ex=document.getElementBy
 /* ========================= */
 
 function toggleCurse(level) {
-  if (!isGM) return
   const targetId = currentSheetPlayer || (myToken && myToken.id)
+  if (!isGM && targetId !== (myToken && myToken.id)) return
   if (!targetId) return
   const previousLevel = curseLevel
   if (level === 8) addMJLog("☠ Malédiction complète !")
@@ -2672,8 +2737,8 @@ function saveCurse() {
   db.ref("characters/" + targetId + "/curse").set(curseLevel)
 }
 function setCorruption(level) {
-  if (!isGM) return
   const targetId = currentSheetPlayer || (myToken && myToken.id)
+  if (!isGM && targetId !== (myToken && myToken.id)) return
   if (!targetId) return
   corruptionLevel = level
   document.querySelectorAll(".corruptionPoint").forEach((b, i) => b.classList.toggle("active", i < level))

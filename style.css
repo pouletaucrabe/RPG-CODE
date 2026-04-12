@@ -1721,6 +1721,7 @@ html, body {
   display: inline-block; width: 20px; height: 20px;
   background: url("mouche.png") center/contain no-repeat;
   margin-right: 2px; cursor: pointer; transition: all 0.2s;
+  touch-action: manipulation;
   filter: grayscale(100%) brightness(0.25);
   border: none; border-radius: 0;
 }
@@ -1741,6 +1742,7 @@ html, body {
   background: rgba(15,40,50,0.8); margin-right: 2px;
   border-radius: 2px; cursor: pointer;
   border: 1px solid rgba(30,90,102,0.5);
+  touch-action: manipulation;
 }
 
 .corruptionPoint.active {

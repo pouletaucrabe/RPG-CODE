@@ -986,6 +986,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof queueCharacterAutoSave === "function") queueCharacterAutoSave(0)
         else autoSaveCharacter()
       })
+      // Sur écran tactile : ouvrir l'éditeur flottant au lieu du clavier natif
+      if (navigator.maxTouchPoints > 0) {
+        field.setAttribute("readonly", "readonly")
+        field.style.cursor = "pointer"
+        field.addEventListener("touchend", e => {
+          e.preventDefault()
+          if (typeof openNotesEditor === "function") openNotesEditor(field)
+        }, { passive: false })
+      }
     }
   })
 
