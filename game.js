@@ -1,12 +1,23 @@
 ﻿"use strict"
 
 /* ========================= */
-/* INIT — firebase via shim  */
+/* FIREBASE INIT             */
 /* ========================= */
 
-// firebase et db sont fournis par ws-shim.js (chargé avant ce fichier)
+const firebaseConfig = {
+  apiKey:            "AIzaSyCRdh9-vOZn-u-FrVwkCX8uE3jHZ9q9ppY",
+  authDomain:        "la-prophetie-des-mouches.firebaseapp.com",
+  databaseURL:       "https://la-prophetie-des-mouches-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "la-prophetie-des-mouches",
+  storageBucket:     "la-prophetie-des-mouches.firebasestorage.app",
+  messagingSenderId: "61052402165",
+  appId:             "1:61052402165:web:376cb5aa9a156bc02cc8bc"
+}
+
+firebase.initializeApp(firebaseConfig)
+firebase.database().goOnline()
 const db   = firebase.database()
-const auth = firebase.auth()
+const auth = typeof firebase.auth === "function" ? firebase.auth() : null
 
 window.__authReady        = false
 window.__authUid          = null
@@ -20,11 +31,58 @@ window.__authProfileRef   = null
 window.__authProfileCb    = null
 window.__gmAuthBusy       = false
 window.__playerAuthBusy   = false
-window.__gmAuthEmail      = "gm"
+
+function detachFirebaseAccessSync() {
+  if (window.__authRoleRef && window.__authRoleCb) window.__authRoleRef.off("value", window.__authRoleCb)
+  if (window.__authProfileRef && window.__authProfileCb) window.__authProfileRef.off("value", window.__authProfileCb)
+  window.__authRoleRef = null; window.__authRoleCb = null
+  window.__authProfileRef = null; window.__authProfileCb = null
+  window.__authRole = null; window.__authPlayerId = null
+}
+
+function syncFirebaseAccessForUser(uid) {
+  detachFirebaseAccessSync()
+  if (!uid) return
+  const roleRef = db.ref("roles/" + uid)
+  const roleCb = snap => {
+    const role = snap.val()
+    window.__authRole = typeof role === "string" ? role : null
+    if (window.__authRole === "gm" && !isGM) activateGM(true)
+    updateIntroLogoutBtn()
+  }
+  const profileRef = db.ref("profiles/" + uid + "/playerId")
+  const profileCb = snap => {
+    const playerId = snap.val()
+    window.__authPlayerId = typeof playerId === "string" ? playerId : null
+    updatePlayerAuthMenuState()
+    if (window.__authPlayerId) setTimeout(() => { tryAutoSelectAuthenticatedPlayer() }, 60)
+  }
+  window.__authRoleRef = roleRef; window.__authRoleCb = roleCb
+  window.__authProfileRef = profileRef; window.__authProfileCb = profileCb
+  roleRef.on("value", roleCb)
+  profileRef.on("value", profileCb)
+}
 
 function initFirebaseAnonymousAuth() {
-  // Géré par ws-shim.js via WebSocket — pas d'action nécessaire ici
-  return Promise.resolve(null)
+  if (!auth) return Promise.resolve(null)
+  if (window.__authLoginPromise) return window.__authLoginPromise
+  window.__authLoginPromise = new Promise(resolve => {
+    let resolved = false
+    const finish = user => { if (resolved) return; resolved = true; resolve(user || null) }
+    auth.onAuthStateChanged(user => {
+      window.__authReady = !!user
+      window.__authUid = user?.uid || null
+      syncFirebaseAccessForUser(window.__authUid)
+      if (user) finish(user)
+    }, error => { console.warn("Firebase auth state error:", error); detachFirebaseAccessSync(); finish(null) })
+    if (auth.currentUser) {
+      window.__authReady = true; window.__authUid = auth.currentUser.uid
+      syncFirebaseAccessForUser(window.__authUid); finish(auth.currentUser); return
+    }
+    window.__authLoginStarted = true
+    auth.signInAnonymously().catch(error => { console.warn("Firebase anonymous auth failed:", error); finish(null) })
+  })
+  return window.__authLoginPromise
 }
 
 /* ========================= */
@@ -45,69 +103,96 @@ function showGMAuthMessage(message, isError = false) {
   feedback.innerText = message
 }
 
+function handleGMEmailPasswordAuth(mode) {
+  if (!auth || window.__gmAuthBusy) return
+  const emailEl = document.getElementById("gmAuthEmail")
+  const passwordEl = document.getElementById("gmAuthPassword")
+  if (!emailEl || !passwordEl) return
+  const email = String(emailEl.value || "").trim()
+  const password = String(passwordEl.value || "")
+  if (!email || !password) { showGMAuthMessage("Email et mot de passe requis", true); return }
+  window.__gmAuthBusy = true
+  showGMAuthMessage(mode === "create" ? "Création du compte MJ..." : "Connexion MJ...")
+  const action = mode === "create"
+    ? auth.createUserWithEmailAndPassword(email, password)
+    : auth.signInWithEmailAndPassword(email, password)
+  action.then(cred => {
+    try { localStorage.setItem("rpg_gm_email", email) } catch (e) {}
+    const uid = cred?.user?.uid || window.__authUid || ""
+    if (mode === "create") {
+      showGMAuthMessage("Compte MJ créé. UID : " + uid + " — pense à lui donner le rôle gm dans Firebase.")
+      showNotification("Compte MJ créé — attribue le rôle gm dans Firebase")
+    } else {
+      showGMAuthMessage("Connexion MJ réussie")
+      showNotification("Connexion MJ réussie")
+      setTimeout(() => {
+        if (window.__authRole === "gm") { activateGM(true); closeGMAuthModal() }
+        else showGMAuthMessage("Compte connecté, mais rôle gm non détecté. Vérifie roles/<uid> = gm dans Firebase.", true)
+      }, 300)
+    }
+  }).catch(error => {
+    console.warn("GM auth error:", error)
+    showGMAuthMessage(error?.message || "Erreur d'authentification MJ", true)
+  }).finally(() => { window.__gmAuthBusy = false })
+}
+
 function showGMAuthModal() {
   const existing = document.getElementById("gmAuthModal")
   if (existing) existing.remove()
-
   const overlay = document.createElement("div")
   overlay.id = "gmAuthModal"
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;z-index:1000000006;"
   overlay.addEventListener("mousedown", e => { if (e.target === overlay) closeGMAuthModal() })
-
   const box = document.createElement("div")
-  box.style.cssText = "width:min(400px,90vw);background:linear-gradient(180deg,rgba(28,20,12,0.98),rgba(10,8,8,0.99));border:1px solid rgba(210,178,108,0.6);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.85);padding:24px 24px 20px 24px;color:#f5e6c8;font-family:Cinzel,serif;"
+  box.style.cssText = "width:min(460px,90vw);background:linear-gradient(180deg,rgba(28,20,12,0.98),rgba(10,8,8,0.99));border:1px solid rgba(210,178,108,0.6);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.85);padding:24px 24px 20px 24px;color:#f5e6c8;font-family:Cinzel,serif;"
   overlay.appendChild(box)
-
   const title = document.createElement("div")
   title.style.cssText = "font-family:'Cinzel Decorative','Cinzel',serif;font-size:26px;letter-spacing:3px;text-align:center;color:#f0d087;margin-bottom:10px;"
   title.innerText = "Connexion MJ"
   box.appendChild(title)
-
   const sub = document.createElement("div")
   sub.style.cssText = "font-size:13px;line-height:1.55;text-align:center;color:#d9c39a;margin-bottom:18px;"
-  sub.innerText = "Entre le mot de passe MJ pour accéder aux contrôles de jeu."
+  sub.innerText = "Utilise un compte Firebase stable pour éviter de remapper le rôle gm à chaque nouvelle session."
   box.appendChild(sub)
-
+  const email = document.createElement("input")
+  email.id = "gmAuthEmail"; email.type = "email"; email.placeholder = "Email MJ"; email.autocomplete = "username"
+  email.style.cssText = "width:100%;padding:12px 14px;margin-bottom:10px;background:rgba(8,8,8,0.92);border:1px solid rgba(180,150,90,0.45);border-radius:8px;color:#f5e6c8;font-family:Cinzel,serif;font-size:14px;box-sizing:border-box;"
+  try { email.value = localStorage.getItem("rpg_gm_email") || "" } catch (e) {}
+  box.appendChild(email)
   const password = document.createElement("input")
-  password.id = "gmAuthPassword"
-  password.type = "password"
-  password.placeholder = "Mot de passe MJ"
-  password.autocomplete = "current-password"
+  password.id = "gmAuthPassword"; password.type = "password"; password.placeholder = "Mot de passe MJ"; password.autocomplete = "current-password"
   password.style.cssText = "width:100%;padding:12px 14px;margin-bottom:14px;background:rgba(8,8,8,0.92);border:1px solid rgba(180,150,90,0.45);border-radius:8px;color:#f5e6c8;font-family:Cinzel,serif;font-size:14px;box-sizing:border-box;"
   box.appendChild(password)
-
   const feedback = document.createElement("div")
   feedback.id = "gmAuthFeedback"
   feedback.style.cssText = "display:none;min-height:20px;margin-bottom:12px;font-size:12px;line-height:1.4;"
   box.appendChild(feedback)
-
   const row = document.createElement("div")
   row.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"
   box.appendChild(row)
-
   const loginBtn = document.createElement("button")
   loginBtn.innerText = "Connexion"
   loginBtn.style.cssText = "padding:10px 18px;background:linear-gradient(#7a5533,#4b321c);color:#f5e6c8;border:1px solid #caa46b;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
-  loginBtn.onclick = () => {
-    if (window.__gmAuthBusy) return
-    const pw = password.value
-    if (!pw) { showGMAuthMessage("Mot de passe requis", true); return }
-    window.__gmAuthBusy = true
-    showGMAuthMessage("Connexion en cours...")
-    auth.signInWithEmailAndPassword("gm", pw)
-  }
+  loginBtn.onclick = () => handleGMEmailPasswordAuth("login")
   row.appendChild(loginBtn)
-
+  const createBtn = document.createElement("button")
+  createBtn.innerText = "Créer compte MJ"
+  createBtn.style.cssText = "padding:10px 18px;background:linear-gradient(#3b5b7a,#20354a);color:#dcecff;border:1px solid #7ea7c9;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
+  createBtn.onclick = () => handleGMEmailPasswordAuth("create")
+  row.appendChild(createBtn)
   const cancelBtn = document.createElement("button")
   cancelBtn.innerText = "Annuler"
   cancelBtn.style.cssText = "padding:10px 18px;background:#222;color:#d0c4ae;border:1px solid #555;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
   cancelBtn.onclick = closeGMAuthModal
   row.appendChild(cancelBtn)
-
-  password.addEventListener("keydown", e => { if (e.key === "Enter") loginBtn.onclick() })
-
+  const hint = document.createElement("div")
+  hint.style.cssText = "margin-top:14px;font-size:11px;line-height:1.5;color:#b9a786;text-align:center;"
+  hint.innerText = "Après création du compte, ajoute une seule fois son UID dans Firebase : roles/<uid> = gm."
+  box.appendChild(hint)
+  password.addEventListener("keydown", e => { if (e.key === "Enter") handleGMEmailPasswordAuth("login") })
+  email.addEventListener("keydown", e => { if (e.key === "Enter") password.focus() })
   document.body.appendChild(overlay)
-  setTimeout(() => password.focus(), 30)
+  setTimeout(() => email.focus(), 30)
 }
 
 /* ========================= */
@@ -129,26 +214,17 @@ function updatePlayerAuthMenuState() {
   const choiceButtons = Array.from(document.querySelectorAll("#playerMenu .playerChoiceBtn"))
   const authButton = document.querySelector("#playerMenu button[onclick=\"requestPlayerAuth()\"]")
   const authPlayer = window.__authPlayerId
-
   if (status) {
-    if (authPlayer) {
-      status.style.display = "block"
-      status.innerText = "Connecté en tant que " + authPlayer.toUpperCase()
-    } else {
-      status.style.display = "none"
-      status.innerText = ""
-    }
+    if (authPlayer) { status.style.display = "block"; status.innerText = "Connecté en tant que " + authPlayer.toUpperCase() }
+    else { status.style.display = "none"; status.innerText = "" }
   }
-
   if (authButton) authButton.innerText = authPlayer ? "🔑 Reconnexion" : "🔑 Connexion"
   if (choiceLabel) choiceLabel.style.display = authPlayer ? "none" : "block"
-
   choiceButtons.forEach(btn => {
     const isAssigned = authPlayer && btn.dataset.playerChoice === authPlayer
     btn.style.display = authPlayer ? (isAssigned ? "block" : "none") : "block"
     btn.disabled = !!(authPlayer && !isAssigned)
   })
-
   updateIntroLogoutBtn()
 }
 
@@ -158,103 +234,145 @@ function closePlayerAuthModal() {
   window.__playerAuthBusy = false
 }
 
+function showPlayerAuthMessage(message, isError = false) {
+  const feedback = document.getElementById("playerAuthFeedback")
+  if (!feedback) return
+  feedback.style.display = "block"
+  feedback.style.color = isError ? "#ff9d9d" : "#d6c28a"
+  feedback.innerText = message
+}
+
+function handlePlayerEmailPasswordAuth(mode) {
+  if (!auth || window.__playerAuthBusy) return
+  const emailEl = document.getElementById("playerAuthEmail")
+  const passwordEl = document.getElementById("playerAuthPassword")
+  const playerEl = document.getElementById("playerAuthCharacter")
+  if (!emailEl || !passwordEl) return
+  const email = String(emailEl.value || "").trim()
+  const password = String(passwordEl.value || "")
+  const chosenPlayer = playerEl ? String(playerEl.value || "").trim().toLowerCase() : ""
+  if (!email || !password) { showPlayerAuthMessage("Email et mot de passe requis", true); return }
+  if (mode === "create" && !chosenPlayer) { showPlayerAuthMessage("Choisis un personnage pour créer le compte", true); return }
+  window.__playerAuthBusy = true
+  showPlayerAuthMessage(mode === "create" ? "Création du compte joueur..." : "Connexion joueur...")
+  const action = mode === "create"
+    ? auth.createUserWithEmailAndPassword(email, password)
+    : auth.signInWithEmailAndPassword(email, password)
+  action.then(cred => {
+    try { localStorage.setItem("rpg_player_email", email) } catch (e) {}
+    if (mode === "create") {
+      const uid = cred?.user?.uid || window.__authUid || ""
+      return db.ref("profiles/" + uid + "/playerId").set(chosenPlayer).then(() => {
+        showPlayerAuthMessage("Compte joueur créé et lié à " + chosenPlayer.toUpperCase())
+        showNotification("Compte joueur créé : " + chosenPlayer.toUpperCase())
+      })
+    }
+    showPlayerAuthMessage("Connexion joueur réussie")
+    showNotification("Connexion joueur réussie")
+    setTimeout(() => {
+      if (window.__authPlayerId) { tryAutoSelectAuthenticatedPlayer(); closePlayerAuthModal() }
+      else showPlayerAuthMessage("Compte connecté, mais aucun playerId n'est défini dans profiles/<uid>/playerId.", true)
+    }, 300)
+    return null
+  }).catch(error => {
+    console.warn("Player auth error:", error)
+    showPlayerAuthMessage(error?.message || "Erreur d'authentification joueur", true)
+  }).finally(() => { window.__playerAuthBusy = false })
+}
+
 function showPlayerAuthModal() {
   const existing = document.getElementById("playerAuthModal")
   if (existing) existing.remove()
-
   const overlay = document.createElement("div")
   overlay.id = "playerAuthModal"
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.82);display:flex;align-items:center;justify-content:center;z-index:1000000006;"
   overlay.addEventListener("mousedown", e => { if (e.target === overlay) closePlayerAuthModal() })
-
   const box = document.createElement("div")
-  box.style.cssText = "width:min(400px,90vw);background:linear-gradient(180deg,rgba(18,20,30,0.98),rgba(8,8,12,0.99));border:1px solid rgba(120,160,210,0.6);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.85);padding:24px 24px 20px 24px;color:#f5e6c8;font-family:Cinzel,serif;"
+  box.style.cssText = "width:min(460px,90vw);background:linear-gradient(180deg,rgba(18,20,30,0.98),rgba(8,8,12,0.99));border:1px solid rgba(120,160,210,0.6);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,0.85);padding:24px 24px 20px 24px;color:#f5e6c8;font-family:Cinzel,serif;"
   overlay.appendChild(box)
-
   const title = document.createElement("div")
   title.style.cssText = "font-family:'Cinzel Decorative','Cinzel',serif;font-size:24px;letter-spacing:3px;text-align:center;color:#cfe2ff;margin-bottom:10px;"
-  title.innerText = "Choisir un Personnage"
+  title.innerText = "Connexion Joueur"
   box.appendChild(title)
-
   const sub = document.createElement("div")
   sub.style.cssText = "font-size:13px;line-height:1.55;text-align:center;color:#c7d3e8;margin-bottom:18px;"
-  sub.innerText = "Clique sur ton personnage pour rejoindre la partie."
+  sub.innerText = "Un compte stable évite de reconfigurer ton personnage à chaque nouvelle session."
   box.appendChild(sub)
-
-  const chars = [
-    { id: "greg", label: "Greg", color: "#7a5533", border: "#caa46b" },
-    { id: "ju",   label: "Yu",   color: "#3d6b9a", border: "#7ea7c9" },
-    { id: "elo",  label: "Elo",  color: "#5a3d7a", border: "#9a7ec9" },
-    { id: "bibi", label: "Bibi", color: "#3d6b4a", border: "#7ec99a" }
-  ]
-
-  const charGrid = document.createElement("div")
-  charGrid.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"
-  box.appendChild(charGrid)
-
-  chars.forEach(({ id, label, color, border }) => {
-    const btn = document.createElement("button")
-    btn.style.cssText = `padding:14px;background:linear-gradient(${color}, ${color}99);color:#f5e6c8;border:1px solid ${border};border-radius:10px;cursor:pointer;font-family:Cinzel,serif;font-size:16px;`
-    btn.innerText = label
-    btn.onclick = () => {
-      db.ref("profiles/local/playerId").set(id)
-      closePlayerAuthModal()
-      if (typeof showNotification === "function") showNotification("Connecté en tant que " + label)
-    }
-    charGrid.appendChild(btn)
+  const email = document.createElement("input")
+  email.id = "playerAuthEmail"; email.type = "email"; email.placeholder = "Email joueur"; email.autocomplete = "username"
+  email.style.cssText = "width:100%;padding:12px 14px;margin-bottom:10px;background:rgba(8,8,8,0.92);border:1px solid rgba(120,160,210,0.45);border-radius:8px;color:#f5e6c8;font-family:Cinzel,serif;font-size:14px;box-sizing:border-box;"
+  try { email.value = localStorage.getItem("rpg_player_email") || "" } catch (e) {}
+  box.appendChild(email)
+  const password = document.createElement("input")
+  password.id = "playerAuthPassword"; password.type = "password"; password.placeholder = "Mot de passe joueur"; password.autocomplete = "current-password"
+  password.style.cssText = "width:100%;padding:12px 14px;margin-bottom:10px;background:rgba(8,8,8,0.92);border:1px solid rgba(120,160,210,0.45);border-radius:8px;color:#f5e6c8;font-family:Cinzel,serif;font-size:14px;box-sizing:border-box;"
+  box.appendChild(password)
+  const select = document.createElement("select")
+  select.id = "playerAuthCharacter"
+  select.style.cssText = "width:100%;padding:12px 14px;margin-bottom:14px;background:rgba(8,8,8,0.92);border:1px solid rgba(120,160,210,0.45);border-radius:8px;color:#f5e6c8;font-family:Cinzel,serif;font-size:14px;box-sizing:border-box;"
+  ;[{value:"",label:"Choisir un personnage pour la création"},{value:"greg",label:"Greg"},{value:"ju",label:"Yu"},{value:"elo",label:"Elo"},{value:"bibi",label:"Bibi"}].forEach(o => {
+    const opt = document.createElement("option"); opt.value = o.value; opt.innerText = o.label; select.appendChild(opt)
   })
-
+  box.appendChild(select)
+  const feedback = document.createElement("div")
+  feedback.id = "playerAuthFeedback"
+  feedback.style.cssText = "display:none;min-height:20px;margin-bottom:12px;font-size:12px;line-height:1.4;"
+  box.appendChild(feedback)
+  const row = document.createElement("div")
+  row.style.cssText = "display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"
+  box.appendChild(row)
+  const loginBtn = document.createElement("button")
+  loginBtn.innerText = "Connexion"
+  loginBtn.style.cssText = "padding:10px 18px;background:linear-gradient(#4d6f96,#2d4561);color:#eef5ff;border:1px solid #89a9cf;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
+  loginBtn.onclick = () => handlePlayerEmailPasswordAuth("login")
+  row.appendChild(loginBtn)
+  const createBtn = document.createElement("button")
+  createBtn.innerText = "Créer compte joueur"
+  createBtn.style.cssText = "padding:10px 18px;background:linear-gradient(#3d5d44,#233526);color:#e8f4e0;border:1px solid #87aa86;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
+  createBtn.onclick = () => handlePlayerEmailPasswordAuth("create")
+  row.appendChild(createBtn)
   const cancelBtn = document.createElement("button")
   cancelBtn.innerText = "Annuler"
-  cancelBtn.style.cssText = "width:100%;padding:10px;background:#222;color:#d0c4ae;border:1px solid #555;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
+  cancelBtn.style.cssText = "padding:10px 18px;background:#222;color:#d0c4ae;border:1px solid #555;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
   cancelBtn.onclick = closePlayerAuthModal
-  box.appendChild(cancelBtn)
-
+  row.appendChild(cancelBtn)
   const gmRow = document.createElement("div")
   gmRow.style.cssText = "margin-top:14px;padding-top:14px;border-top:1px solid rgba(140,170,210,0.2);display:flex;justify-content:center;"
   box.appendChild(gmRow)
-
   const gmBtn = document.createElement("button")
   gmBtn.innerText = "Connexion MJ"
   gmBtn.style.cssText = "padding:10px 18px;background:linear-gradient(#7a5533,#4b321c);color:#f5e6c8;border:1px solid #caa46b;border-radius:8px;cursor:pointer;font-family:Cinzel,serif;"
   gmBtn.onclick = () => { closePlayerAuthModal(); setTimeout(() => showGMAuthModal(), 20) }
   gmRow.appendChild(gmBtn)
-
   document.body.appendChild(overlay)
+  setTimeout(() => email.focus(), 30)
 }
 
 function requestPlayerAuth() {
-  if (window.__authRole === "gm") {
-    activateGM(true)
-    return
-  }
+  if (window.__authRole === "gm") { activateGM(true); return }
   if (window.__authPlayerId) {
     if (tryAutoSelectAuthenticatedPlayer()) return
-    showNotification("Connecté en tant que : " + window.__authPlayerId.toUpperCase())
-    return
+    showNotification("Compte joueur déjà connecté : " + window.__authPlayerId.toUpperCase()); return
   }
   showPlayerAuthModal()
 }
 
 function logoutPlayer() {
+  if (!auth) return
   auth.signOut().then(() => {
     if (isGM) {
       isGM = false
-      const gmBar = document.getElementById("gmBar")
-      const mjLog = document.getElementById("mjLog")
-      const previewBtn = document.getElementById("playerPreviewBtn")
-      if (gmBar) gmBar.style.display = "none"
-      if (mjLog) mjLog.style.display = "none"
-      if (previewBtn) previewBtn.style.display = "none"
+      const gmBar = document.getElementById("gmBar"); const mjLog = document.getElementById("mjLog"); const previewBtn = document.getElementById("playerPreviewBtn")
+      if (gmBar) gmBar.style.display = "none"; if (mjLog) mjLog.style.display = "none"; if (previewBtn) previewBtn.style.display = "none"
       document.querySelectorAll(".gmSection").forEach(s => s.style.display = "none")
     }
-    window.__authPlayerId = null
-    window.__authRole = null
+    window.__authPlayerId = null; window.__authRole = null
+    detachFirebaseAccessSync()
     showNotification("Déconnexion réussie")
     updateIntroLogoutBtn()
-  }).catch(err => {
-    showNotification("Erreur lors de la déconnexion : " + (err?.message || err))
-  })
+    window.__authLoginPromise = null
+    auth.signInAnonymously().catch(() => {})
+  }).catch(err => { showNotification("Erreur lors de la déconnexion : " + (err?.message || err)) })
 }
 
 function updateIntroLogoutBtn() {
