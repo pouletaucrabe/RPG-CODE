@@ -1971,7 +1971,9 @@ db.ref("events/aurora").on("value", snap => {
 
 // ─── bifrostFlash ───
 db.ref("game/bifrostFlash").on("value", snap => {
-  if (!snap.val()) return
+  const d = snap.val()
+  if (!d) return
+  if (!d.time || d.time < (window.__pageLoadTime || 0)) { db.ref("game/bifrostFlash").remove(); return }
   doBifrostFlash()
   db.ref("game/bifrostFlash").remove()
 })
@@ -1980,6 +1982,7 @@ db.ref("game/bifrostFlash").on("value", snap => {
 db.ref("game/odinVision").on("value", snap => {
   const data = snap.val()
   if (!data) return
+  if (!data.time || data.time < (window.__pageLoadTime || 0)) return
   showOdinVision(data.msg)
 })
 
@@ -1987,6 +1990,7 @@ db.ref("game/odinVision").on("value", snap => {
 db.ref("game/powerSound").on("value", snap => {
   const data = snap.val()
   if (!data) return
+  if (!data.time || data.time < (window.__pageLoadTime || 0)) { db.ref("game/powerSound").remove(); return }
   const pInfo = playerPowerSounds[data.player]
   if (!pInfo) return
   const snd = new Audio((typeof resolveAudioPath === "function") ? resolveAudioPath(pInfo.file) : (/^(https?:|data:|blob:|\/|audio\/)/i.test(String(pInfo.file || "")) ? String(pInfo.file || "") : "audio/" + pInfo.file))
@@ -2460,8 +2464,8 @@ function showMobSpecialAttackEvent(data) {
 db.ref("game/mobAttackEvent").on("value", snap => {
   const data = snap.val()
   if (!data) return
-  // Ignorer données résiduelles d'une session précédente (> 8s)
-  if (!data.time || Date.now() - data.time > 8000) {
+  // Ignorer données résiduelles (antérieures au chargement de la page ou > 8s)
+  if (!data.time || data.time < (window.__pageLoadTime || 0) || Date.now() - data.time > 8000) {
     db.ref("game/mobAttackEvent").remove()
     return
   }
@@ -2645,6 +2649,7 @@ db.ref("game/cemeterySpell").on("value", snap => {
 db.ref("game/playerDeath").on("value", snap => {
   const data = snap.val()
   if (!data) return
+  if (!data.time || data.time < (window.__pageLoadTime || 0)) return
   const pid = data.player
   deadPlayers[pid] = true
   const tok = Array.from(document.querySelectorAll(".token")).find(t => String(t.id || "").toLowerCase() === String(pid || "").toLowerCase())
@@ -2701,6 +2706,7 @@ db.ref("game/combatOutcome").on("value", snap => {
 db.ref("game/playerRevive").on("value", snap => {
   const data = snap.val()
   if (!data) return
+  if (!data.time || data.time < (window.__pageLoadTime || 0)) return
   const pid = data.player
   const tok = document.getElementById(pid)
   if (tok) {
@@ -3150,6 +3156,7 @@ db.ref("game/simonState").on("value", snap => {
 
 // ─── document — indices / notes ───
 db.ref("game/document").on("value", snap => {
+  if (!gameStarted) return
   _renderDocument(snap.val())
 })
 
